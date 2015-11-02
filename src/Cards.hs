@@ -25,3 +25,7 @@ newDeck = Card <$> allSuits <*> allCardValues
 
 shuffleDeck :: (RandomGen a) => (a, [Card]) -> [Card]
 shuffleDeck (gen, cards) = shuffle' cards (length cards) gen
+
+drawCard :: [Card] -> Maybe (Card, [Card])
+drawCard []     = Nothing
+drawCard (x:xs) = Just (x, xs)
