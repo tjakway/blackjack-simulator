@@ -24,6 +24,4 @@ newDeck = Card <$> allSuits <*> allCardValues
               allCardValues = [minBound..maxBound] :: [CardValue]
 
 shuffleDeck :: (RandomGen a) => (a, [Card]) -> [Card]
-shuffleDeck (rand, cards) = let listLength = fst . next $ rand
-                                randList = [1..listLength]
-                                in shuffle cards randList
+shuffleDeck (gen, cards) = shuffle' cards (length cards) gen
