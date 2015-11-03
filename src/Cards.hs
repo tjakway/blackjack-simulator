@@ -26,6 +26,12 @@ allSuits = [minBound..maxBound] :: [Suit]
 allCardValues :: [CardValue]
 allCardValues = [minBound..maxBound] :: [CardValue]
 
+isFaceCard :: Card -> Bool
+isFaceCard (Card _ Jack)  = True
+isFaceCard (Card _ Queen) = True
+isFaceCard (Card _ King)  = True
+isFaceCard (Card _ _)     = False
+
 newDeck :: Deck
 newDeck = Card <$> allSuits <*> allCardValues
 
