@@ -27,12 +27,22 @@ allSuits = [minBound..maxBound] :: [Suit]
 allCardValues :: [CardValue]
 allCardValues = [minBound..maxBound] :: [CardValue]
 
-newDeck :: [Card]
-newDeck = let deck = Card <$> allSuits <*> allCardValues
+infiniteDeck :: [Card]
+infiniteDeck = let deck = Card <$> allSuits <*> allCardValues
               in deck ++ newDeck
 
-shuffleDeck :: (RandomGen a) => (a, [Card]) -> [Card]
-shuffleDeck (gen, cards) = shuffle' cards (length cards) gen
+newDeck :: [Card]
+newDeck = Card <$> allSuits <*> allCardValues
+
+infiniteShuffledDeck :: (RandomGen a) => a -> [Card]
+infiniteShuffledDeck gen = shuffledDeck ++ (infiniteShuffledDeck gen)
+                                    where shuffledDeck = shuffleDeck gen newDeck
+
+shuffle52 :: (RandomGen a) => a -> [Card] -> [Card]
+shuffle52 gen cards = shuffle' cards (52) gen
+
+shuffleDeck :: (RandomGen a) => a -> [Card] -> [Card]
+shuffleDeck gen cards = shuffle' cards (length cards) gen
 
 drawCard :: [Card] -> Maybe (Card, [Card])
 drawCard []     = Nothing
