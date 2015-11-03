@@ -16,6 +16,7 @@ data Card = Card
   , cardValue :: CardValue
   } deriving (Show)
 
+
 --disambiguate between a player's hand and the deck--both are lists of cards
 type Deck = [Card]
 type Hand = [Card]
@@ -75,5 +76,11 @@ handPoints hand = let total = sum $ fmap (cardPoints . cardValue) hand
 
 isBust :: Hand -> Bool
 isBust hand = let total = handPoints hand
-                  in if hand > 21 then True
-                                  else False
+                  in if total > 21 then True
+                                   else False
+
+data Record = Record { wins :: Integer,
+                       ties :: Integer,
+                       losses :: Integer }
+
+data Result = Win | Tie | Lose
