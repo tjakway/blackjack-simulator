@@ -4,6 +4,7 @@ import Control.Applicative
 import System.Random
 import System.Random.Shuffle
 import Control.Monad.State
+import Control.Monad
 import Data.List
 
 data Suit = Spade | Club | Heart | Diamond
@@ -84,3 +85,21 @@ data Record = Record { wins :: Integer,
                        losses :: Integer }
 
 data Result = Win | Tie | Lose
+
+data Visibility a = Hidden a | Shown a
+
+instance Functor Visibility where
+        fmap f (Hidden a) = Hidden (f a)
+        fmap f (Shown a) = Shown (f a)
+
+instance Monad Visibility where
+        --cards are shown by default
+        return a = Shown a
+
+        (>>=) (Shown a) f  = f a
+        (>>=) (Hidden a) f = f a
+
+instance Applicative Visibility where
+        pure = return
+        (Hidden f) <*> b = fmap f b
+        (Shown f) <*> b = fmap f b
