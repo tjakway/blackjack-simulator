@@ -28,7 +28,8 @@ allCardValues :: [CardValue]
 allCardValues = [minBound..maxBound] :: [CardValue]
 
 newDeck :: [Card]
-newDeck = Card <$> allSuits <*> allCardValues
+newDeck = let deck = Card <$> allSuits <*> allCardValues
+              in deck ++ newDeck
 
 shuffleDeck :: (RandomGen a) => (a, [Card]) -> [Card]
 shuffleDeck (gen, cards) = shuffle' cards (length cards) gen
