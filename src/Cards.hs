@@ -68,7 +68,12 @@ cardPoints cardValue
                     --enums count up from 0 but the first card type is 2
                     | otherwise = (+2) . fromEnum $ cardValue
 
-handValue :: Hand -> Int
-handValue hand = let handPoints = sum $ fmap (cardPoints . cardValue) hand
-                     in if handPoints <= 21 then handPoints
-                                            else handPoints - 10
+handPoints :: Hand -> Int
+handPoints hand = let total = sum $ fmap (cardPoints . cardValue) hand
+                     in if total <= 21 then total
+                                       else total - 10
+
+isBust :: Hand -> Bool
+isBust hand = let total = handPoints hand
+                  in if hand > 21 then True
+                                  else False
