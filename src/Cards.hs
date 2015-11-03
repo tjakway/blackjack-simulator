@@ -58,5 +58,27 @@ blackjack hand = let hasAce = hasCard hand Ace
                      hasFaceCard = (elem True) . fmap (hasCard hand) . fmap (cardValue) $ faceCards
                      in ((==2) . length $ hand) && (hasAce && hasFaceCard)
 
+cardPoints :: CardValue -> Int
+cardPoints cardValue 
+                    | cardValue == Jack  = 10
+                    | cardValue == Queen = 10
+                    | cardValue == King  = 10
+                    | cardValue == Ace   = 10
+                    --enums count up from 0 but the first card type is 2
+                    | otherwise = (+2) . fromEnum $ cardValue
+
+
+            --enums start at 0 but our first value is Two, so add 2 to each card's enum value
+            --face card and ace values are still wrong here
+            where incEnumValues = fmap ((+2) . fromEnum) allCardValues --what else could I name this?
+                  fixSpecialValue = case cardValue of 
+                                            Jack -> 10
+                                            Queen -> 10
+                                            King -> 10
+                                            Ace -> 10
+
+
 handValue :: Hand -> Int
-handValue  = undefined
+handValue hand = 
+        where               specialValues
+
