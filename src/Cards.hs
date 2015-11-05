@@ -20,7 +20,7 @@ data Card = Card
 
 --disambiguate between a player's hand and the deck--both are lists of cards
 type Deck = [Card]
-type Hand = [Card]
+type Hand = [Visibility Card]
 
 allSuits :: [Suit]
 allSuits = [minBound..maxBound] :: [Suit]
@@ -48,13 +48,13 @@ infiniteShuffledDeck gen = shuffledDeck ++ (infiniteShuffledDeck gen)
 -- |draws 1 card and returns a tuple of that card and the resulting deck
 -- this function intentionally DOES NOT pattern match on []--the deck is
 -- supposed to be infinite so if we got an empty list it's a bug
-drawCard :: Deck -> (Card, [Card])
+drawCard :: Deck -> (Card, Deck)
 drawCard (x:xs) = (x, xs)
 
 hasCard :: [Card] -> CardValue -> Bool
 hasCard cards whichCard = (elem True) . fmap ((==whichCard) . cardValue) $ cards
 
-blackjack :: Hand -> Bool
+blackjack :: [Card] -> Bool
 blackjack hand = let hasAce = hasCard hand Ace 
                      faceCards = Card <$> allSuits <*> [Jack, Queen, King]
                      hasFaceCard = (elem True) . fmap (hasCard hand) . fmap (cardValue) $ faceCards
@@ -70,12 +70,12 @@ cardPoints cardValue
                     --enums count up from 0 but the first card type is 2
                     | otherwise = (+2) . fromEnum $ cardValue
 
-handPoints :: Hand -> Int
+handPoints :: [Card] -> Int
 handPoints hand = let total = sum $ fmap (cardPoints . cardValue) hand
                      in if total <= 21 then total
                                        else total - 10
 
-isBust :: Hand -> Bool
+isBust :: [Card] -> Bool
 isBust hand = let total = handPoints hand
                   in if total > 21 then True
                                    else False
@@ -87,6 +87,11 @@ data Record = Record { wins :: Integer,
 data Result = Win | Tie | Lose
 
 data Visibility a = Hidden a | Shown a
+
+--any better way to do this?
+unwrapVisibility :: Visibility a -> a
+unwrapVisibility (Hidden a) = a
+unwrapVisibility (Shown a) = a
 
 instance Functor Visibility where
         fmap f (Hidden a) = Hidden (f a)
@@ -103,3 +108,22 @@ instance Applicative Visibility where
         pure = return
         (Hidden f) <*> b = fmap f b
         (Shown f) <*> b = fmap f b
+
+class AI a where
+        --returns the resulting deck and the players hand
+        --only need to call this once because all moves are decided one
+        --player at a time, i.e.
+        --one player makes all his moves before the next player does
+        play :: a -> Deck -> Hand -> (Deck, Hand)
+
+data AIType = BasicDealer | BasicPlayer
+
+instance AI AIType where
+        play BasicDealer deck myHand = let cards = map unwrapVisibility myHand
+                                           points = handPoints cards
+                                               --any way to use a case statement or guards here?
+                                          in if (points < 17) then hitMe
+                                                              else (deck, myHand)
+                                            --draw cards face down
+                                        where (drawnCard, resultingDeck) = drawCard deck :: (Card, Deck)
+                                              hitMe = play BasicDealer resultingDeck ((return drawnCard) : myHand)
