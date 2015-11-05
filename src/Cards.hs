@@ -127,3 +127,5 @@ instance AI AIType where
                                             --draw cards face down
                                         where (drawnCard, resultingDeck) = drawCard deck :: (Card, Deck)
                                               hitMe = play BasicDealer resultingDeck ((return drawnCard) : myHand)
+
+        play BasicPlayer deck myHand = play BasicDealer deck myHand
