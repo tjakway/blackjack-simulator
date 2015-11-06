@@ -132,6 +132,7 @@ instance AI AIType where
 
 startingHand :: Deck -> (Hand, Deck)
 startingHand deck = let run = (do
+                              --XXX
                               --I feel like I'm using the State monad
                               --completely wrong
                                         firstDeck <- get
