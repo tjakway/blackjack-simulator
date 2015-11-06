@@ -129,3 +129,40 @@ instance AI AIType where
                                               hitMe = play BasicDealer resultingDeck ((return drawnCard) : myHand)
 
         play BasicPlayer deck myHand = play BasicDealer deck myHand
+
+playGame :: (AI a, AI b) => a -> [b] -> Deck -> Maybe (Result, [Result])
+-- |Can't play a game without any players
+playGame dealer [] deck = Nothing
+playGame dealer allPlayers deck = undefined
+
+-- |first result in the tuple = result for the first Hand
+-- |second result in the tuple = result for the second Hand
+-- this function is very repetitive--rewrite it to pass a tuple of Hands
+-- instead of each players hand as a separate variable
+-- so it'll be:
+-- whoWon :: (Hand, Hand) -> (Result, Result)
+whoWon :: Hand -> Hand -> (Result, Result)
+whoWon firstPlayerHand secondPlayerHand 
+                                        --if both the dealer and a player
+                                        --bust, it's a tie
+                                        | firstPlayerBusted && secondPlayerBusted = (Tie, Tie)
+                                        --check if one player busted and
+                                        --the other didn't
+                                        | firstPlayerBusted && (not secondPlayerBusted) = (Lose, Win)
+                                        | (not firstPlayerBusted) && secondPlayerBusted = (Win, Lose)
+                                        --if neither player busted, highest
+                                        --score wins
+                                        | firstPlayerScore == secondPlayerScore = (Tie, Tie)
+                                        | firstPlayerScore > secondPlayerScore = (Win, Lose)
+                                        | firstPlayerScore < secondPlayerScore = (Lose, Win)
+
+                                --any way to rewrite this in applicative
+                                --syntax?
+                                where playerBusted playerHand = (let cards = fmap unwrapVisibility firstPlayerHand in isBust cards) :: Bool
+                                      firstPlayerBusted = playerBusted firstPlayerHand
+                                      secondPlayerBusted = playerBusted secondPlayerHand
+                                      firstPlayerScore = handPoints $ fmap unwrapVisibility firstPlayerHand
+                                      secondPlayerScore = handPoints $ fmap unwrapVisibility secondPlayerHand
+
+
+
