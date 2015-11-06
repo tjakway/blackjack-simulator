@@ -130,10 +130,27 @@ instance AI AIType where
 
         play BasicPlayer deck myHand = play BasicDealer deck myHand
 
+startingHand :: Deck -> (Deck, Hand) 
+startingHand deck = let run = (do
+                              --I feel like I'm using the State monad
+                              --completely wrong
+                                        firstDeck <- get
+                                        let (secondDeck, firstCard) = drawCard firstDeck
+                                        let (thirdDeck, secondCard) = drawCard secondDeck
+                                        put thirdDeck 
+                                        return [Hidden firstCard, Shown secondCard]) :: State Deck Hand
+                         in runState run deck
+
+{-
 playGame :: (AI a, AI b) => a -> [b] -> Deck -> Maybe (Result, [Result])
 -- |Can't play a game without any players
 playGame dealer [] deck = Nothing
-playGame dealer allPlayers deck = undefined
+playGame dealer allPlayers deck =
+        --State (Deck, (Record, [Result])) (Record, [Result])
+        where playerHands = fmap (\_ -> [Hidden drawCard, Shown drawCard]) 
+              match = do
+                         fmap (\thisHand -> 
+                         -}
 
 -- |first result in the tuple = result for the first Hand
 -- |second result in the tuple = result for the second Hand
