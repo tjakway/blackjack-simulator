@@ -130,13 +130,13 @@ instance AI AIType where
 
         play BasicPlayer deck myHand = play BasicDealer deck myHand
 
-startingHand :: Deck -> (Deck, Hand) 
+startingHand :: Deck -> (Hand, Deck)
 startingHand deck = let run = (do
                               --I feel like I'm using the State monad
                               --completely wrong
                                         firstDeck <- get
-                                        let (secondDeck, firstCard) = drawCard firstDeck
-                                        let (thirdDeck, secondCard) = drawCard secondDeck
+                                        let (firstCard, secondDeck) = drawCard firstDeck
+                                        let (secondCard, thirdDeck) = drawCard secondDeck
                                         put thirdDeck 
                                         return [Hidden firstCard, Shown secondCard]) :: State Deck Hand
                          in runState run deck
