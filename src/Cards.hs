@@ -88,6 +88,14 @@ data Result = Win | Tie | Lose
 
 data Visibility a = Hidden a | Shown a
 
+addResult :: ScoreRecord -> Result -> ScoreRecord
+-- could have used guards here, but I wanted practice using case
+addResult (ScoreRecord prevWins prevTies prevLosses) res = 
+        case res of
+            Win -> ScoreRecord (prevWins+1) prevTies prevLosses
+            Tie -> ScoreRecord prevWins (prevTies+1) prevLosses
+            Lose -> ScoreRecord prevWins prevTies (prevLosses+1)
+
 instance Monoid ScoreRecord where
         mempty = ScoreRecord 0 0 0
         --XXX
@@ -152,7 +160,7 @@ startingHand deck = let run = (do
                          in runState run deck
 
 {-
-playGame :: (AI a, AI b) => a -> [b] -> Deck -> Maybe (Result, [Result])
+playGame :: (AI a, AI b) => a -> [b] -> Deck -> Maybe (ScoreRecord, [Result])
 -- |Can't play a game without any players
 playGame dealer [] deck = Nothing
 playGame dealer allPlayers deck =
