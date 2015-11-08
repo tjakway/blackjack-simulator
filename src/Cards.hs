@@ -179,8 +179,9 @@ playGame dealerAI allPlayers deck = let { (dealersStartingHand, deckAfterDealerD
                                                          -- ^ need to reverse the list of player hands because we're appending each player's hand to the front of the list but iterating head -> tail
                                         (dealerResDeck, dealerHand) = play dealerAI playerResDeck dealersStartingHand;
                                          -- | in blackjack each player faces off against the dealer separately
-                                        playerMatchResults = map (\thisPlayersHand -> whoWon dealerHand thisPlayersHand) playerHands;
-                                        dealerScore = foldr (\thisResult total -> addResult total thisResult) mempty $ map (\thisPlayersHand -> whoWon thisPlayersHand dealerHand) playerHands;
+                                        (dealerMatchResults, playerMatchResults)  = (foldr (\thisResTuple res -> ((fst res) ++ [(fst thisResTuple)], (snd res) ++ [(snd thisResTuple)])  ) ([], [])  $ map (\thisPlayersHand -> whoWon dealerHand thisPlayersHand) playerHands) :: ([Result], [Result]);
+                                        -- ^ ++ is slower but at least we don't have to reverse the list
+                                        dealerScore = foldr (\thisResult total -> addResult total thisResult) mempty dealerMatchResults
                                      -- ^ the dealer's list of results is the mirror image of the players'
                                     } in  Just (dealerScore, playerMatchResults)
 
