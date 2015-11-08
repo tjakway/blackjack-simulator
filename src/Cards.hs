@@ -159,18 +159,24 @@ startingHand deck = let run = (do
                                         return [Hidden firstCard, Shown secondCard]) :: State Deck Hand
                          in runState run deck
 
-{-
+
 playGame :: (AI a, AI b) => a -> [b] -> Deck -> Maybe (ScoreRecord, [Result])
 -- |Can't play a game without any players
 playGame dealer [] deck = Nothing
-playGame dealer allPlayers deck =
+playGame dealer allPlayers deck = let (dealersHand, deckAfterDealerDraws) = runState $ (drawCard >>= (\firstCard -> drawCard >>= (\secondCard -> return [Hidden firstCard, Shown secondCard]))) deck 
+                                      (playerResDeck, playerResult) = 
+                                      -- ^ (the deck after every player has made his move, a list of the player results in the order each player took his turn)
+                                      -- XXX: refactor this monstrosity of nested let bindings
+                                            let foldRes = foldr (\thisAI (thisDeck, resultsList) -> let (startingHand, deckAfterDraw) = startingHand deck
+                                                                                          (resDeck, thisResult) = play thisAI deckAfterDraw
+                                                                                         in (resDeck, thisResult : resultsList)) (deckAfterDealerDraws, []) allPlayers
+                                                    in (fst foldRes, reverse $ snd foldRes)
+                                      
+                                      -- ^ (the deck after each player has taken his turn)
         --State (Deck, (ScoreRecord, [Result])) (ScoreRecord, [Result])
-        where playerStartingHands = fmap (\_ -> [Hidden drawCard, Shown drawCard]) allPlayers
-              dealersHand = [Hidden drawCard, Shown drawCard]
-              match = do
-                         fmap (\thisHand ->                          
-                              --WHERE TO USE PLAY?
--}
+--        where playerStartingHands = fmap (\_ -> [Hidden drawCard, Shown drawCard]) allPlayers
+--              dealersHand = [Hidden drawCard, Shown drawCard]
+
 
 -- |first result in the tuple = result for the first Hand
 -- |second result in the tuple = result for the second Hand
