@@ -162,15 +162,22 @@ startingHand deck = let run = (do
 
 playGame :: (AI a, AI b) => a -> [b] -> Deck -> Maybe (ScoreRecord, [Result])
 -- |Can't play a game without any players
-playGame dealer [] deck = Nothing
-playGame dealer allPlayers deck = let (dealersHand, deckAfterDealerDraws) = runState $ (drawCard >>= (\firstCard -> drawCard >>= (\secondCard -> return [Hidden firstCard, Shown secondCard]))) deck 
-                                      (playerResDeck, playerResult) = 
+playGame dealerAI [] deck = Nothing
+playGame dealerAI allPlayers deck = let (dealersHand, deckAfterDealerDraws) = let (dFirstCard, dFirstDeck) = drawCard deck
+                                                                                  (dSecondCard, dSecondDeck) = drawCard dFirstDeck
+                                                                              in ([Hidden dFirstCard, Shown dSecondCard], dSecondDeck)
+        --runState $ (drawCard >>= (\firstCard -> drawCard >>= (\secondCard -> return [Hidden firstCard, Shown secondCard]))) deck 
+                                      (playerResDeck, playerHands) = 
                                       -- ^ (the deck after every player has made his move, a list of the player results in the order each player took his turn)
                                       -- XXX: refactor this monstrosity of nested let bindings
                                             let foldRes = foldr (\thisAI (thisDeck, resultsList) -> let (startingHand, deckAfterDraw) = startingHand deck
                                                                                           (resDeck, thisResult) = play thisAI deckAfterDraw
                                                                                          in (resDeck, thisResult : resultsList)) (deckAfterDealerDraws, []) allPlayers
-                                                    in (fst foldRes, reverse $ snd foldRes)
+                                                         in (fst foldRes, reverse $ snd foldRes)
+                                                         -- ^ need to reverse the list of player hands because we're appending each player's hand to the front of the list but iterating head -> tail
+                                      (dealerResDeck, dealerHand) = play dealerAI playerResDeck dealersStartingHand
+                                     
+
                                       
                                       -- ^ (the deck after each player has taken his turn)
         --State (Deck, (ScoreRecord, [Result])) (ScoreRecord, [Result])
