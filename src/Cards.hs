@@ -80,13 +80,21 @@ isBust hand = let total = handPoints hand
                   in if total > 21 then True
                                    else False
 
-data Record = Record { wins :: Integer,
+data ScoreRecord = ScoreRecord { wins :: Integer,
                        ties :: Integer,
                        losses :: Integer }
 
 data Result = Win | Tie | Lose
 
 data Visibility a = Hidden a | Shown a
+
+instance Monoid ScoreRecord where
+        mempty = ScoreRecord 0 0 0
+        --XXX
+        --there has got to be a better way of doing this
+        --maybe redefine ScoreRecord as a tuple (Integer, Integer, Integer)?
+        mappend (ScoreRecord firstWins firstTies firstLosses) (ScoreRecord secondWins secondTies secondLosses) = ScoreRecord (firstWins + secondWins) (firstTies + secondTies) (firstLosses + secondLosses)
+        mconcat scoreRecords = foldr mappend mempty scoreRecords
 
 --any better way to do this?
 unwrapVisibility :: Visibility a -> a
@@ -128,6 +136,7 @@ instance AI AIType where
                                         where (drawnCard, resultingDeck) = drawCard deck :: (Card, Deck)
                                               hitMe = play BasicDealer resultingDeck ((return drawnCard) : myHand)
 
+
         play BasicPlayer deck myHand = play BasicDealer deck myHand
 
 startingHand :: Deck -> (Hand, Deck)
@@ -147,11 +156,13 @@ playGame :: (AI a, AI b) => a -> [b] -> Deck -> Maybe (Result, [Result])
 -- |Can't play a game without any players
 playGame dealer [] deck = Nothing
 playGame dealer allPlayers deck =
-        --State (Deck, (Record, [Result])) (Record, [Result])
-        where playerHands = fmap (\_ -> [Hidden drawCard, Shown drawCard]) 
+        --State (Deck, (ScoreRecord, [Result])) (ScoreRecord, [Result])
+        where playerStartingHands = fmap (\_ -> [Hidden drawCard, Shown drawCard]) allPlayers
+              dealersHand = [Hidden drawCard, Shown drawCard]
               match = do
-                         fmap (\thisHand -> 
-                         -}
+                         fmap (\thisHand ->                          
+                              --WHERE TO USE PLAY?
+-}
 
 -- |first result in the tuple = result for the first Hand
 -- |second result in the tuple = result for the second Hand
