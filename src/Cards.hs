@@ -88,6 +88,7 @@ data Result = Win | Tie | Lose
 
 data Visibility a = Hidden a | Shown a
 
+-- | add the passed result to the total and return the new total
 addResult :: ScoreRecord -> Result -> ScoreRecord
 -- could have used guards here, but I wanted practice using case
 addResult (ScoreRecord prevWins prevTies prevLosses) res = 
@@ -163,19 +164,26 @@ startingHand deck = let run = (do
 playGame :: (AI a, AI b) => a -> [b] -> Deck -> Maybe (ScoreRecord, [Result])
 -- |Can't play a game without any players
 playGame dealerAI [] deck = Nothing
-playGame dealerAI allPlayers deck = let (dealersHand, deckAfterDealerDraws) = let (dFirstCard, dFirstDeck) = drawCard deck
-                                                                                  (dSecondCard, dSecondDeck) = drawCard dFirstDeck
-                                                                              in ([Hidden dFirstCard, Shown dSecondCard], dSecondDeck)
+playGame dealerAI allPlayers deck = let { (dealersStartingHand, deckAfterDealerDraws) = let { (dFirstCard, dFirstDeck)   = drawCard deck;
+                                                                                              (dSecondCard, dSecondDeck) = drawCard dFirstDeck ;
+                                                                                            }
+                                                                                        in  ([Hidden dFirstCard, Shown dSecondCard], dSecondDeck);
         --runState $ (drawCard >>= (\firstCard -> drawCard >>= (\secondCard -> return [Hidden firstCard, Shown secondCard]))) deck 
-                                      (playerResDeck, playerHands) = 
+                                        (playerResDeck, playerHands) = 
                                       -- ^ (the deck after every player has made his move, a list of the player results in the order each player took his turn)
                                       -- XXX: refactor this monstrosity of nested let bindings
-                                            let foldRes = foldr (\thisAI (thisDeck, resultsList) -> let (startingHand, deckAfterDraw) = startingHand deck
-                                                                                          (resDeck, thisResult) = play thisAI deckAfterDraw
-                                                                                         in (resDeck, thisResult : resultsList)) (deckAfterDealerDraws, []) allPlayers
-                                                         in (fst foldRes, reverse $ snd foldRes)
+                                                 let { foldRes = foldr (\thisAI (thisDeck, resultsList) -> let { (startingHand, deckAfterDraw) = startingHand deck;
+                                                                                                                 (resDeck, thisResult) = play thisAI deckAfterDraw; }
+                                                                                                              in (resDeck, thisResult : resultsList) ) (deckAfterDealerDraws, []) allPlayers;
+                                                 } in (fst foldRes, reverse $ snd foldRes);
                                                          -- ^ need to reverse the list of player hands because we're appending each player's hand to the front of the list but iterating head -> tail
-                                      (dealerResDeck, dealerHand) = play dealerAI playerResDeck dealersStartingHand
+                                        (dealerResDeck, dealerHand) = play dealerAI playerResDeck dealersStartingHand;
+                                         -- | in blackjack each player faces off against the dealer separately
+                                        playerMatchResults = map (\thisPlayersHand -> whoWon dealerHand thisPlayersHand) playerHands;
+                                        dealerScore = foldr (\thisResult total -> addResult total thisResult) mempty $ map (\thisPlayersHand -> whoWon thisPlayersHand dealerHand) playerHands;
+                                     -- ^ the dealer's list of results is the mirror image of the players'
+                                    } in  Just (dealerScore, playerMatchResults)
+
                                      
 
                                       
