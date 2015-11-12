@@ -137,11 +137,14 @@ infiniteShuffledDeck gen = shuffledDeck ++ (infiniteShuffledDeck gen)
 -- |draws 1 card and returns a tuple of that card and the resulting deck
 -- this function intentionally DOES NOT pattern match on []--the deck is
 -- supposed to be infinite so if we got an empty list it's a bug
-drawCard :: Deck -> (Card, Deck)
-drawCard (x:xs) = (x, xs)
+drawCard :: Blackjack Card
+drawCard = do
+  card <- gets head
+  modify tail
+  return card
 
 hasCard :: [Card] -> CardValue -> Bool
-hasCard cards whichCard = (elem True) . fmap ((==whichCard) . cardValue) $ cards
+hasCard cards whichCard = (elem True) . map ((==whichCard) . cardValue) $ cards
 
 blackjack :: [Card] -> Bool
 blackjack hand = let hasAce = hasCard hand Ace 
@@ -174,11 +177,11 @@ isBust hand = let total = handPoints hand
 startingHand :: Deck -> (Hand, Deck)
 startingHand deck = let run = (do
                               firstDeck <- get
-                                        let (firstCard, secondDeck) = drawCard firstDeck
-                                        let (secondCard, thirdDeck) = drawCard secondDeck
-                                            put thirdDeck 
-                                            return [Hidden firstCard, Shown secondCard]) :: State Deck Hand
-                                            in runState run deck
+                              let (firstCard, secondDeck) = drawCard firstDeck
+                                  (secondCard, thirdDeck) = drawCard secondDeck
+                              put thirdDeck 
+                              return [Hidden firstCard, Shown secondCard]) :: State Deck Hand
+                     in runState run deck
 
 
 playGame :: (AI a, AI b) => a -> [b] -> Deck -> Maybe (ScoreRecord, [Result])
@@ -214,26 +217,27 @@ playGame dealerAI allPlayers deck = let { (dealersStartingHand, deckAfterDealerD
 -- whoWon :: (Hand, Hand) -> (Result, Result)
 whoWon :: Hand -> Hand -> (Result, Result)
 whoWon firstPlayerHand secondPlayerHand 
---if both the dealer and a player
---bust, it's a tie
-| firstPlayerBusted && secondPlayerBusted = (Tie, Tie)
---check if one player busted and
---the other didn't
-| firstPlayerBusted && (not secondPlayerBusted) = (Lose, Win)
-| (not firstPlayerBusted) && secondPlayerBusted = (Win, Lose)
---if neither player busted, highest
---score wins
-| firstPlayerScore == secondPlayerScore = (Tie, Tie)
-| firstPlayerScore > secondPlayerScore = (Win, Lose)
-| firstPlayerScore < secondPlayerScore = (Lose, Win)
-
---any way to rewrite this in applicative
---syntax?
-where playerBusted playerHand = (let cards = fmap unwrapVisibility firstPlayerHand in isBust cards) :: Bool
-                                     firstPlayerBusted = playerBusted firstPlayerHand
-                                     secondPlayerBusted = playerBusted secondPlayerHand
-                                     firstPlayerScore = handPoints $ fmap unwrapVisibility firstPlayerHand
-                                     secondPlayerScore = handPoints $ fmap unwrapVisibility secondPlayerHand
-
-
+  --if both the dealer and a player
+  --bust, it's a tie
+  | firstPlayerBusted && secondPlayerBusted = (Tie, Tie)
+  --check if one player busted and
+  --the other didn't
+  | firstPlayerBusted && (not secondPlayerBusted) = (Lose, Win)
+  | (not firstPlayerBusted) && secondPlayerBusted = (Win, Lose)
+  --if neither player busted, highest
+  --score wins
+  | firstPlayerScore == secondPlayerScore = (Tie, Tie)
+  | firstPlayerScore > secondPlayerScore = (Win, Lose)
+  | firstPlayerScore < secondPlayerScore = (Lose, Win)
+  
+  --any way to rewrite this in applicative
+  --syntax?
+  where
+    playerBusted playerHand = (let cards = fmap unwrapVisibility firstPlayerHand in isBust cards) :: Bool
+    firstPlayerBusted = playerBusted firstPlayerHand
+    secondPlayerBusted = playerBusted secondPlayerHand
+    firstPlayerScore = handPoints $ fmap unwrapVisibility firstPlayerHand
+    secondPlayerScore = handPoints $ fmap unwrapVisibility secondPlayerHand
+  
+  
 
