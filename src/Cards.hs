@@ -57,6 +57,8 @@ hasCard cards whichCard = (elem True) . fmap ((==whichCard) . cardValue) $ cards
 blackjack :: [Card] -> Bool
 blackjack hand = let hasAce = hasCard hand Ace 
                      faceCards = Card <$> allSuits <*> [Jack, Queen, King]
+                     --XXX: I really don't think composing fmap is the
+                     --right way to do this...
                      hasFaceCard = (elem True) . fmap (hasCard hand) . fmap (cardValue) $ faceCards
                      in ((==2) . length $ hand) && (hasAce && hasFaceCard)
 
@@ -184,14 +186,6 @@ playGame dealerAI allPlayers deck = let { (dealersStartingHand, deckAfterDealerD
                                         dealerScore = foldr (\thisResult total -> addResult total thisResult) mempty dealerMatchResults
                                      -- ^ the dealer's list of results is the mirror image of the players'
                                     } in  Just (dealerScore, playerMatchResults)
-
-                                     
-
-                                      
-                                      -- ^ (the deck after each player has taken his turn)
-        --State (Deck, (ScoreRecord, [Result])) (ScoreRecord, [Result])
---        where playerStartingHands = fmap (\_ -> [Hidden drawCard, Shown drawCard]) allPlayers
---              dealersHand = [Hidden drawCard, Shown drawCard]
 
 
 -- |first result in the tuple = result for the first Hand
