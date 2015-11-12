@@ -17,10 +17,78 @@ data Card = Card
   , cardValue :: CardValue
   } deriving (Show)
 
-
 --disambiguate between a player's hand and the deck--both are lists of cards
 type Deck = [Card]
 type Hand = [Visibility Card]
+
+data Result = Win | Tie | Lose
+
+data Visibility a = Hidden a | Shown a
+
+-- | add the passed result to the total and return the new total
+addResult :: ScoreRecord -> Result -> ScoreRecord
+-- could have used guards here, but I wanted practice using case
+addResult (ScoreRecord prevWins prevTies prevLosses) res = 
+        case res of
+            Win -> ScoreRecord (prevWins+1) prevTies prevLosses
+            Tie -> ScoreRecord prevWins (prevTies+1) prevLosses
+            Lose -> ScoreRecord prevWins prevTies (prevLosses+1)
+
+instance Monoid ScoreRecord where
+        mempty = ScoreRecord 0 0 0
+        --XXX
+        --there has got to be a better way of doing this
+        --maybe redefine ScoreRecord as a tuple (Integer, Integer, Integer)?
+        mappend (ScoreRecord firstWins firstTies firstLosses) (ScoreRecord secondWins secondTies secondLosses) = ScoreRecord (firstWins + secondWins) (firstTies + secondTies) (firstLosses + secondLosses)
+        mconcat scoreRecords = foldr mappend mempty scoreRecords
+
+--any better way to do this?
+unwrapVisibility :: Visibility a -> a
+unwrapVisibility (Hidden a) = a
+unwrapVisibility (Shown a) = a
+
+instance Functor Visibility where
+        fmap f (Hidden a) = Hidden (f a)
+        fmap f (Shown a) = Shown (f a)
+
+instance Monad Visibility where
+        --cards are shown by default
+        return a = Shown a
+
+        (>>=) (Shown a) f  = f a
+        (>>=) (Hidden a) f = f a
+
+instance Applicative Visibility where
+        pure = return
+        (Hidden f) <*> b = fmap f b
+        (Shown f) <*> b = fmap f b
+
+data ScoreRecord = ScoreRecord { wins :: Integer,
+                       ties :: Integer,
+                       losses :: Integer }
+
+class AI a where
+        --returns the resulting deck and the players hand
+        --only need to call this once because all moves are decided one
+        --player at a time, i.e.
+        --one player makes all his moves before the next player does
+        play :: a -> Deck -> Hand -> (Deck, Hand)
+
+data AIType = BasicDealer | BasicPlayer
+
+instance AI AIType where
+        play BasicDealer deck myHand = let cards = map unwrapVisibility myHand
+                                           points = handPoints cards
+                                               --any way to use a case statement or guards here?
+                                          in if (points < 17) then hitMe
+                                                              else (deck, myHand)
+                                            --draw cards face down
+                                        where (drawnCard, resultingDeck) = drawCard deck :: (Card, Deck)
+                                              hitMe = play BasicDealer resultingDeck ((return drawnCard) : myHand)
+
+
+        play BasicPlayer deck myHand = play BasicDealer deck myHand
+
 
 allSuits :: [Suit]
 allSuits = [minBound..maxBound] :: [Suit]
@@ -81,74 +149,6 @@ isBust :: [Card] -> Bool
 isBust hand = let total = handPoints hand
                   in if total > 21 then True
                                    else False
-
-data ScoreRecord = ScoreRecord { wins :: Integer,
-                       ties :: Integer,
-                       losses :: Integer }
-
-data Result = Win | Tie | Lose
-
-data Visibility a = Hidden a | Shown a
-
--- | add the passed result to the total and return the new total
-addResult :: ScoreRecord -> Result -> ScoreRecord
--- could have used guards here, but I wanted practice using case
-addResult (ScoreRecord prevWins prevTies prevLosses) res = 
-        case res of
-            Win -> ScoreRecord (prevWins+1) prevTies prevLosses
-            Tie -> ScoreRecord prevWins (prevTies+1) prevLosses
-            Lose -> ScoreRecord prevWins prevTies (prevLosses+1)
-
-instance Monoid ScoreRecord where
-        mempty = ScoreRecord 0 0 0
-        --XXX
-        --there has got to be a better way of doing this
-        --maybe redefine ScoreRecord as a tuple (Integer, Integer, Integer)?
-        mappend (ScoreRecord firstWins firstTies firstLosses) (ScoreRecord secondWins secondTies secondLosses) = ScoreRecord (firstWins + secondWins) (firstTies + secondTies) (firstLosses + secondLosses)
-        mconcat scoreRecords = foldr mappend mempty scoreRecords
-
---any better way to do this?
-unwrapVisibility :: Visibility a -> a
-unwrapVisibility (Hidden a) = a
-unwrapVisibility (Shown a) = a
-
-instance Functor Visibility where
-        fmap f (Hidden a) = Hidden (f a)
-        fmap f (Shown a) = Shown (f a)
-
-instance Monad Visibility where
-        --cards are shown by default
-        return a = Shown a
-
-        (>>=) (Shown a) f  = f a
-        (>>=) (Hidden a) f = f a
-
-instance Applicative Visibility where
-        pure = return
-        (Hidden f) <*> b = fmap f b
-        (Shown f) <*> b = fmap f b
-
-class AI a where
-        --returns the resulting deck and the players hand
-        --only need to call this once because all moves are decided one
-        --player at a time, i.e.
-        --one player makes all his moves before the next player does
-        play :: a -> Deck -> Hand -> (Deck, Hand)
-
-data AIType = BasicDealer | BasicPlayer
-
-instance AI AIType where
-        play BasicDealer deck myHand = let cards = map unwrapVisibility myHand
-                                           points = handPoints cards
-                                               --any way to use a case statement or guards here?
-                                          in if (points < 17) then hitMe
-                                                              else (deck, myHand)
-                                            --draw cards face down
-                                        where (drawnCard, resultingDeck) = drawCard deck :: (Card, Deck)
-                                              hitMe = play BasicDealer resultingDeck ((return drawnCard) : myHand)
-
-
-        play BasicPlayer deck myHand = play BasicDealer deck myHand
 
 startingHand :: Deck -> (Hand, Deck)
 startingHand deck = let run = (do
