@@ -204,10 +204,11 @@ playGame dealerAI allPlayers deck =
             (dSecondCard, dSecondDeck) = drawCard' dFirstDeck
          in ([Hidden dFirstCard, Shown dSecondCard], dSecondDeck)
       (playerHands, playerResDeck) = reverse <$> foldr (foldFn deckAfterDealerDraws) ([[]], deckAfterDealerDraws) allPlayers
-           -- ^ need to reverse the list of player hands because we're appending each player's hand to the front of the list but iterating head -> tail
-      (dealerHand, dealerResDeck) = play dealerAI dealersStartingHand playerResDeck;
+      (dealerHand, dealerResDeck) = play dealerAI dealersStartingHand playerResDeck
       -- | in blackjack each player faces off against the dealer separately
-      (dealerMatchResults, playerMatchResults)  = foldr ((\thisResTuple res -> (fst res ++ [fst thisResTuple], snd res ++ [snd thisResTuple])) . whoWon dealerHand) ([], []) playerHands
+      -- Ok, now we'll 
+      (dealerMatchResults, playerMatchResults) =
+        foldr ((\thisResTuple res -> (fst res ++ [fst thisResTuple], snd res ++ [snd thisResTuple])) . whoWon dealerHand) ([], []) playerHands
          -- ^ ++ is slower but at least we don't have to reverse the list
       dealerScore = foldr (flip addResult) mempty dealerMatchResults
          -- ^ the dealer's list of results is the mirror image of the players'
@@ -216,11 +217,15 @@ playGame dealerAI allPlayers deck =
     -- There! Stateful. Will be a lot nicer when `play` is refactored to be stateful too.
     foldFn deckAfterDealerDraws thisAI (handsList, thisDeck) = flip runState thisDeck $ do
       thisPlayersStartingHand <- startingHand
-      deckAfterDraw <- get
-      let (resultingHand, resDeck) = play thisAI thisPlayersStartingHand deckAfterDraw
-      put resDeck
+      resultingHand <- play' thisAI thisPlayersStartingHand
       return (resultingHand : handsList)
 
+play' :: (AI a) => a -> Hand -> Blackjack Hand
+play' ai hand = do
+  deck <- get
+  let (resultingHand, resDeck) = play ai hand deck
+  put resDeck
+  return resultingHand
 
 
 -- |first result in the tuple = result for the first Hand
