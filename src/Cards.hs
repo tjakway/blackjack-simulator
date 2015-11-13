@@ -213,14 +213,13 @@ playGame dealerAI allPlayers deck =
          -- ^ the dealer's list of results is the mirror image of the players'
    in Just (dealerScore, playerMatchResults)
   where
-    -- Alright, this looks pretty stateful. But I'm not sure about that `deckAfterDealerDraws`
-    -- bit. Each player gets the same starting hand? From the same deck? And that first
-    -- iteration of `thisDeck` is totally the `deckAfterDealerDraws` thing that is
-    -- the initial accumulator in the fold. 
-    foldFn deckAfterDealerDraws thisAI (handsList, thisDeck) = 
-      let (thisPlayersStartingHand, deckAfterDraw) = startingHand' deckAfterDealerDraws
-          (resultingHand, resDeck) = play thisAI thisPlayersStartingHand deckAfterDraw
-       in (resultingHand : handsList, resDeck)
+    -- There! Stateful. Will be a lot nicer when `play` is refactored to be stateful too.
+    foldFn deckAfterDealerDraws thisAI (handsList, thisDeck) = flip runState thisDeck $ do
+      thisPlayersStartingHand <- startingHand
+      deckAfterDraw <- get
+      let (resultingHand, resDeck) = play thisAI thisPlayersStartingHand deckAfterDraw
+      put resDeck
+      return (resultingHand : handsList)
 
 
 
