@@ -197,7 +197,7 @@ playGame dealerAI allPlayers deck = flip evalState deck $ do
   playerHands <- reverse <$> foldrM foldFnSt [] allPlayers
   dealerHand <- play' dealerAI dealersStartingHand
   let results = reverse . map (whoWon' dealerHand)
-  return . Just $ (dealerScore . results &&& results) playerHands
+  return . Just . first dealerScore . join (,) . results $ playerHands
   where
     dealerScore = foldr (flip addResult) mempty
     foldFnSt ai hands = do
