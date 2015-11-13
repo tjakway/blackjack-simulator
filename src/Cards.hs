@@ -91,18 +91,19 @@ data ScoreRecord
 type Blackjack a = State Deck a
 
 class AI a where
-  play :: a -> Hand -> Blackjack Hand
+  play :: a -> Hand -> Deck -> (Hand, Deck)
 
 data BasicDealer = BasicDealer
 data BasicPlayer = BasicPlayer
 
 instance AI BasicDealer where
-  play BasicDealer myHand = do
+  play BasicDealer myHand deck = flip runState deck $ do
       let points = handPoints (map unwrapVisibility myHand)
       if points < 17
          then do
            drawnCard <- drawCard
-           play BasicDealer (Shown drawnCard : myHand)
+           deck' <- get
+           return . fst $ play BasicDealer (Shown drawnCard : myHand) deck'
          else 
            return myHand
 
@@ -143,6 +144,10 @@ drawCard = do
   modify tail
   return card
 
+
+drawCard' :: Deck -> (Card, Deck)
+drawCard' (x:xs) = (x, xs)
+
 hasCard :: [Card] -> CardValue -> Bool
 hasCard cards whichCard = any ((==whichCard) . cardValue) cards
 
@@ -178,30 +183,43 @@ startingHand = do
   secondCard <- Shown <$> drawCard
   return [firstCard, secondCard]
 
-
+startingHand' :: Deck -> (Hand, Deck)
+startingHand' deck = let run = (do
+                              --XXX
+                              --I feel like I'm using the State monad
+                              --completely wrong
+                                        firstDeck <- get
+                                        let (firstCard, secondDeck) = drawCard' firstDeck
+                                        let (secondCard, thirdDeck) = drawCard' secondDeck
+                                        put thirdDeck 
+                                        return [Hidden firstCard, Shown secondCard]) :: State Deck Hand
+                         in runState run deck
 playGame :: (AI a, AI b) => a -> [b] -> Deck -> Maybe (ScoreRecord, [Result])
 -- |Can't play a game without any players
 playGame dealerAI [] deck = Nothing
+
 playGame dealerAI allPlayers deck =
-  -- ahh, function reuse. Right now we're locally doing `runState`, but we'll get this more global in a bit.
-  let (dealersStartingHand, deckAfterDealerDraws) = runState startingHand deck 
-      -- Ok, so this returns a (deck, [hands]), so we'll do Blackjack [Hand]
-      (playerHands, playerResDeck) = flip runState deckAfterDealerDraws $ do
-          -- Well, I'm noticing that this is basically the exact same thing that we're returning...
-          let (firstRes, secondRes) = foldr (\thisAI (thisDeck, handsList) -> 
-                  let (thisPlayersStartingHand, deckAfterDraw) = startingHand deckAfterDealerDraws
+  let (dealersStartingHand, deckAfterDealerDraws) = 
+        let (dFirstCard, dFirstDeck)   = drawCard' deck
+            (dSecondCard, dSecondDeck) = drawCard' dFirstDeck
+         in ([Hidden dFirstCard, Shown dSecondCard], dSecondDeck)
+      (playerResDeck, playerHands) = 
+          -- ^ (the deck after every player has made his move, a list of the player results in the order each player took his turn)
+          -- XXX: refactor this monstrosity of nested let bindings
+          let foldRes = foldr (\thisAI (thisDeck, handsList) -> 
+                  let (thisPlayersStartingHand, deckAfterDraw) = startingHand' deckAfterDealerDraws
                       (resDeck, resultingHand) = play thisAI deckAfterDraw thisPlayersStartingHand
                    in (resDeck, resultingHand : handsList)) (deckAfterDealerDraws, [[]]) allPlayers
-           in (firstRes, reverse secondRes)
+           in (fst foldRes, reverse $ snd foldRes)
            -- ^ need to reverse the list of player hands because we're appending each player's hand to the front of the list but iterating head -> tail
       (dealerResDeck, dealerHand) = play dealerAI playerResDeck dealersStartingHand;
       -- | in blackjack each player faces off against the dealer separately
-      
-      (dealerMatchResults, playerMatchResults) = 
-        (foldr (\(resA, resB) res@(accResA, accResB) -> (accResA ++ [resA], accResB ++ [resB])  ) ([], [])
-        . map (whoWon dealerHand) playerHands) :: ([Result], [Result])
-      dealerScore = foldr (flip addResult) mempty dealerMatchResults
+      (dealerMatchResults, playerMatchResults)  = (foldr (\thisResTuple res -> ((fst res) ++ [(fst thisResTuple)], (snd res) ++ [(snd thisResTuple)])  ) ([], [])  $ map (\thisPlayersHand -> whoWon dealerHand thisPlayersHand) playerHands) :: ([Result], [Result]);
+         -- ^ ++ is slower but at least we don't have to reverse the list
+      dealerScore = foldr (\thisResult total -> addResult total thisResult) mempty dealerMatchResults
+         -- ^ the dealer's list of results is the mirror image of the players'
    in Just (dealerScore, playerMatchResults)
+
 
 
 -- |first result in the tuple = result for the first Hand
