@@ -94,15 +94,15 @@ class AI a where
   play :: a -> Hand -> Blackjack Hand
 
 data BasicDealer = BasicDealer
-data BasicDealer = BasicPlayer
+data BasicPlayer = BasicPlayer
 
 instance AI BasicDealer where
   play BasicDealer myHand = do
-      let points = handsPoints (map unwrapVisibility myHand)
+      let points = handPoints (map unwrapVisibility myHand)
       if points < 17
          then do
            drawnCard <- drawCard
-           play BasicDealer (Shown drawnCard : hand)
+           play BasicDealer (Shown drawnCard : myHand)
          else 
            return myHand
 
@@ -172,14 +172,11 @@ handPoints hand = let total = sum $ fmap (cardPoints . cardValue) hand
 isBust :: [Card] -> Bool
 isBust hand = 21 < handPoints hand
 
-startingHand :: Deck -> (Hand, Deck)
-startingHand deck = let run = (do
-                              firstDeck <- get
-                              let (firstCard, secondDeck) = drawCard firstDeck
-                                  (secondCard, thirdDeck) = drawCard secondDeck
-                              put thirdDeck 
-                              return [Hidden firstCard, Shown secondCard]) :: State Deck Hand
-                     in runState run deck
+startingHand :: Blackjack Hand
+startingHand = do
+  firstCard <- Hidden <$> drawCard
+  secondCard <- Shown <$> drawCard
+  return [firstCard, secondCard]
 
 
 playGame :: (AI a, AI b) => a -> [b] -> Deck -> Maybe (ScoreRecord, [Result])
@@ -191,25 +188,19 @@ playGame dealerAI allPlayers deck =
             (dSecondCard, dSecondDeck) = drawCard dFirstDeck
          in ([Hidden dFirstCard, Shown dSecondCard], dSecondDeck)
       (playerResDeck, playerHands) = 
-          -- ^ (the deck after every player has made his move, a list of the player results in the order each player took his turn)
-          -- XXX: refactor this monstrosity of nested let bindings
-          let foldRes = foldr (\thisAI (thisDeck, handsList) -> 
+          let (firstRes, secondRes) = foldr (\thisAI (thisDeck, handsList) -> 
                   let (thisPlayersStartingHand, deckAfterDraw) = startingHand deckAfterDealerDraws
                       (resDeck, resultingHand) = play thisAI deckAfterDraw thisPlayersStartingHand
                    in (resDeck, resultingHand : handsList)) (deckAfterDealerDraws, [[]]) allPlayers
-           in (fst foldRes, reverse $ snd foldRes)
+           in (firstRes, reverse secondRes)
            -- ^ need to reverse the list of player hands because we're appending each player's hand to the front of the list but iterating head -> tail
       (dealerResDeck, dealerHand) = play dealerAI playerResDeck dealersStartingHand;
       -- | in blackjack each player faces off against the dealer separately
       
       (dealerMatchResults, playerMatchResults) = 
-        -- If you use `fst` and `snd` on an argument, you should just pattern match it.
         (foldr (\(resA, resB) res@(accResA, accResB) -> (accResA ++ [resA], accResB ++ [resB])  ) ([], [])
-        -- For clarity, try to reduce lambdas where possible and where readable.
         . map (whoWon dealerHand) playerHands) :: ([Result], [Result])
-         -- ^ ++ is slower but at least we don't have to reverse the list
-      dealerScore = foldr (\thisResult total -> addResult total thisResult) mempty dealerMatchResults
-         -- ^ the dealer's list of results is the mirror image of the players'
+      dealerScore = foldr (flip addResult) mempty dealerMatchResults
    in Just (dealerScore, playerMatchResults)
 
 
