@@ -200,8 +200,8 @@ playGame :: (AI a, AI b) => a -> [b] -> Deck -> Maybe (ScoreRecord, [Result])
 playGame dealerAI [] deck = Nothing
 
 playGame dealerAI allPlayers deck =
+  -- and now, I bet we can make the whole thing stateful...
   let (dealersStartingHand, deckAfterDealerDraws) = runState startingHand deck
-      -- hey, I bet we can use `foldrM` to clean up this highly stateful thing!
       (playerHands, playerResDeck) = reverse <$> runState (foldrM foldFnSt [] allPlayers) deckAfterDealerDraws 
       (dealerHand, dealerResDeck) = play dealerAI dealersStartingHand playerResDeck
       -- | in blackjack each player faces off against the dealer separately
