@@ -199,10 +199,7 @@ playGame :: (AI a, AI b) => a -> [b] -> Deck -> Maybe (ScoreRecord, [Result])
 playGame dealerAI [] deck = Nothing
 
 playGame dealerAI allPlayers deck =
-  let (dealersStartingHand, deckAfterDealerDraws) = 
-        let (dFirstCard, dFirstDeck)   = drawCard' deck
-            (dSecondCard, dSecondDeck) = drawCard' dFirstDeck
-         in ([Hidden dFirstCard, Shown dSecondCard], dSecondDeck)
+  let (dealersStartingHand, deckAfterDealerDraws) = runState startingHand deck
       (playerHands, playerResDeck) = reverse <$> foldr (foldFn deckAfterDealerDraws) ([[]], deckAfterDealerDraws) allPlayers
       (dealerHand, dealerResDeck) = play dealerAI dealersStartingHand playerResDeck
       -- | in blackjack each player faces off against the dealer separately
