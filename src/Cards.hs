@@ -185,26 +185,28 @@ startingHand deck = let run = (do
 playGame :: (AI a, AI b) => a -> [b] -> Deck -> Maybe (ScoreRecord, [Result])
 -- |Can't play a game without any players
 playGame dealerAI [] deck = Nothing
-playGame dealerAI allPlayers deck = let { (dealersStartingHand, deckAfterDealerDraws) = let { (dFirstCard, dFirstDeck)   = drawCard deck;
-                                        (dSecondCard, dSecondDeck) = drawCard dFirstDeck ;
-                                        }
-                                        in  ([Hidden dFirstCard, Shown dSecondCard], dSecondDeck);
-                                        --runState $ (drawCard >>= (\firstCard -> drawCard >>= (\secondCard -> return [Hidden firstCard, Shown secondCard]))) deck 
-                                        (playerResDeck, playerHands) = 
-                                          -- ^ (the deck after every player has made his move, a list of the player results in the order each player took his turn)
-                                          -- XXX: refactor this monstrosity of nested let bindings
-                                          let { foldRes = foldr (\thisAI (thisDeck, handsList) -> let { (thisPlayersStartingHand, deckAfterDraw) = startingHand deckAfterDealerDraws;
-                                              (resDeck, resultingHand) = play thisAI deckAfterDraw thisPlayersStartingHand; }
-                                           in (resDeck, resultingHand : handsList) ) (deckAfterDealerDraws, [[]]) allPlayers;
-                                           } in (fst foldRes, reverse $ snd foldRes);
-                                           -- ^ need to reverse the list of player hands because we're appending each player's hand to the front of the list but iterating head -> tail
-                                           (dealerResDeck, dealerHand) = play dealerAI playerResDeck dealersStartingHand;
-                                           -- | in blackjack each player faces off against the dealer separately
-                                           (dealerMatchResults, playerMatchResults)  = (foldr (\thisResTuple res -> ((fst res) ++ [(fst thisResTuple)], (snd res) ++ [(snd thisResTuple)])  ) ([], [])  $ map (\thisPlayersHand -> whoWon dealerHand thisPlayersHand) playerHands) :: ([Result], [Result]);
-                                           -- ^ ++ is slower but at least we don't have to reverse the list
-                                           dealerScore = foldr (\thisResult total -> addResult total thisResult) mempty dealerMatchResults
-                                           -- ^ the dealer's list of results is the mirror image of the players'
-                                           } in  Just (dealerScore, playerMatchResults)
+
+playGame dealerAI allPlayers deck =
+  let (dealersStartingHand, deckAfterDealerDraws) = 
+        let (dFirstCard, dFirstDeck)   = drawCard deck
+            (dSecondCard, dSecondDeck) = drawCard dFirstDeck
+         in ([Hidden dFirstCard, Shown dSecondCard], dSecondDeck)
+      (playerResDeck, playerHands) = 
+          -- ^ (the deck after every player has made his move, a list of the player results in the order each player took his turn)
+          -- XXX: refactor this monstrosity of nested let bindings
+          let foldRes = foldr (\thisAI (thisDeck, handsList) -> 
+                  let (thisPlayersStartingHand, deckAfterDraw) = startingHand deckAfterDealerDraws
+                      (resDeck, resultingHand) = play thisAI deckAfterDraw thisPlayersStartingHand
+                   in (resDeck, resultingHand : handsList)) (deckAfterDealerDraws, [[]]) allPlayers
+           in (fst foldRes, reverse $ snd foldRes)
+           -- ^ need to reverse the list of player hands because we're appending each player's hand to the front of the list but iterating head -> tail
+      (dealerResDeck, dealerHand) = play dealerAI playerResDeck dealersStartingHand;
+      -- | in blackjack each player faces off against the dealer separately
+      (dealerMatchResults, playerMatchResults)  = (foldr (\thisResTuple res -> ((fst res) ++ [(fst thisResTuple)], (snd res) ++ [(snd thisResTuple)])  ) ([], [])  $ map (\thisPlayersHand -> whoWon dealerHand thisPlayersHand) playerHands) :: ([Result], [Result]);
+         -- ^ ++ is slower but at least we don't have to reverse the list
+      dealerScore = foldr (\thisResult total -> addResult total thisResult) mempty dealerMatchResults
+         -- ^ the dealer's list of results is the mirror image of the players'
+   in Just (dealerScore, playerMatchResults)
 
 
 -- |first result in the tuple = result for the first Hand
