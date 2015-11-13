@@ -206,15 +206,15 @@ playGame dealerAI allPlayers deck =
       (playerHands, playerResDeck) = reverse <$> foldr (foldFn deckAfterDealerDraws) ([[]], deckAfterDealerDraws) allPlayers
       (dealerHand, dealerResDeck) = play dealerAI dealersStartingHand playerResDeck
       -- | in blackjack each player faces off against the dealer separately
-      -- Ok, now we'll 
+      -- Ok, now we'll pattern match on tuples because all the fst and snd is
+      -- noisy.
       (dealerMatchResults, playerMatchResults) =
-        foldr ((\thisResTuple res -> (fst res ++ [fst thisResTuple], snd res ++ [snd thisResTuple])) . whoWon dealerHand) ([], []) playerHands
+        foldr ((\(dealerResult, playerResult) (dealerResults, playerResults) -> (dealerResults ++ [dealerResult], playerResults ++ [playerResult])) . whoWon dealerHand) ([], []) playerHands
          -- ^ ++ is slower but at least we don't have to reverse the list
       dealerScore = foldr (flip addResult) mempty dealerMatchResults
          -- ^ the dealer's list of results is the mirror image of the players'
    in Just (dealerScore, playerMatchResults)
   where
-    -- There! Stateful. Will be a lot nicer when `play` is refactored to be stateful too.
     foldFn deckAfterDealerDraws thisAI (handsList, thisDeck) = flip runState thisDeck $ do
       thisPlayersStartingHand <- startingHand
       resultingHand <- play' thisAI thisPlayersStartingHand
