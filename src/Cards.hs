@@ -206,19 +206,23 @@ playGame dealerAI allPlayers deck =
       (playerHands, playerResDeck) = reverse <$> foldr (foldFn deckAfterDealerDraws) ([[]], deckAfterDealerDraws) allPlayers
       (dealerHand, dealerResDeck) = play dealerAI dealersStartingHand playerResDeck
       -- | in blackjack each player faces off against the dealer separately
-      -- Reversing a list isn't a big deal -- consider that multiple ++s incur an O(n*m),
-      -- while consing is O(1) and reversing is O(n). You'll do n conses and n reverses for
-      -- O(2n) which is much nicer than O(n^2).
+      -- Now, let's extract that fold function, and make it a bit nicer...
       (dealerMatchResults, playerMatchResults) = both reverse $ 
-        foldr ((\(dealerResult, playerResult) (dealerResults, playerResults) -> (dealerResult : dealerResults, playerResult : playerResults)) . whoWon dealerHand) ([], []) playerHands
+        foldr (foldFn2 . whoWon dealerHand) ([], []) playerHands
       dealerScore = foldr (flip addResult) mempty dealerMatchResults
          -- ^ the dealer's list of results is the mirror image of the players'
    in Just (dealerScore, playerMatchResults)
   where
+    -- lol isn't this absurd???? totally equivalent.
+    foldFn2 = uncurry (***) . ((:) *** (:))
     foldFn deckAfterDealerDraws thisAI (handsList, thisDeck) = flip runState thisDeck $ do
       thisPlayersStartingHand <- startingHand
       resultingHand <- play' thisAI thisPlayersStartingHand
       return (resultingHand : handsList)
+
+-- now, this function can be a lot of fun, especially with `both`...
+(***) :: (a -> c) -> (b -> d) -> (a, b) -> (c, d)
+(f *** g) (a, b) = (f a, g b)
 
 both :: (a -> b) -> (a, a) -> (b, b)
 both f (a, b) = (f a, f b)
