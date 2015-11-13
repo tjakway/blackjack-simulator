@@ -1,6 +1,7 @@
 module Cards where
 
 import Control.Applicative
+import Data.Ord
 import Data.Foldable
 import System.Random
 import System.Random.Shuffle
@@ -40,7 +41,7 @@ data Card = Card
 type Deck = [Card]
 type Hand = [Visibility Card]
 
-data Result = Win | Tie | Lose
+data Result = Lose | Tie | Win deriving (Eq, Ord, Bounded)
 
 data Visibility a = Hidden a | Shown a
 
@@ -253,5 +254,29 @@ whoWon firstPlayerHand secondPlayerHand
     firstPlayerScore = handPoints $ map unwrapVisibility firstPlayerHand
     secondPlayerScore = handPoints $ map unwrapVisibility secondPlayerHand
   
-  
+-- So... note that we have something that is equivalent to Ordering.
+--  Tie ~ ==, Win ~ >, Lose ~ <
+-- I refactored the data declaration so the derived Ord instances does
+-- The Right Thing. Now we can do some pattern matching in a dumb
+-- sorta way...
+whoWon' :: Hand -> Hand -> Result
+whoWon' first second =
+  case bust of
+    GT -> Win
+    LT -> Lose
+    EQ -> if busted first
+             then Tie
+             else case scores of
+                       EQ -> Tie
+                       LT -> Lose
+                       GT -> Win
+  where
+    busted = isBust . map unwrapVisibility 
+    -- if Busted is GT, then firstPlayerBusted is true and spB is false.
+    -- if Busted is LT, then vice versa.
+    -- If it's EQ, then they're either both true or both false.
+    -- We can use comparing to drop some boilerplate 
+    bust = comparing busted first second
+    scores = comparing (handPoints . map unwrapVisibility) first second
+
 
