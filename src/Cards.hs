@@ -204,13 +204,12 @@ playGame dealerAI allPlayers deck =
             (dSecondCard, dSecondDeck) = drawCard' dFirstDeck
          in ([Hidden dFirstCard, Shown dSecondCard], dSecondDeck)
       (playerResDeck, playerHands) = 
-          -- ^ (the deck after every player has made his move, a list of the player results in the order each player took his turn)
-          -- XXX: refactor this monstrosity of nested let bindings
-          let foldRes = foldr (\thisAI (thisDeck, handsList) -> 
+        --  yay functor instance of (,)! Now we can collapse the let!
+          let (fstFoldRes, sndFoldRes) = reverse <$> foldr (\thisAI (thisDeck, handsList) -> 
                   let (thisPlayersStartingHand, deckAfterDraw) = startingHand' deckAfterDealerDraws
                       (resultingHand, resDeck) = play thisAI thisPlayersStartingHand deckAfterDraw
                    in (resDeck, resultingHand : handsList)) (deckAfterDealerDraws, [[]]) allPlayers
-           in (fst foldRes, reverse $ snd foldRes)
+           in (fstFoldRes, sndFoldRes)
            -- ^ need to reverse the list of player hands because we're appending each player's hand to the front of the list but iterating head -> tail
       (dealerHand, dealerResDeck) = play dealerAI dealersStartingHand playerResDeck;
       -- | in blackjack each player faces off against the dealer separately
