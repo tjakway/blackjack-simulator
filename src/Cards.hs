@@ -185,6 +185,7 @@ playGame dealerAI [] deck = Nothing
 playGame dealerAI allPlayers deck =
   -- ahh, function reuse. Right now we're locally doing `runState`, but we'll get this more global in a bit.
   let (dealersStartingHand, deckAfterDealerDraws) = runState startingHand deck 
+      -- Ok, so this returns a (deck, [hands]), so we'll do Blackjack [Hand]
       (playerResDeck, playerHands) = 
           let (firstRes, secondRes) = foldr (\thisAI (thisDeck, handsList) -> 
                   let (thisPlayersStartingHand, deckAfterDraw) = startingHand deckAfterDealerDraws
