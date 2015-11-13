@@ -61,9 +61,7 @@ instance Monoid ScoreRecord where
   --there has got to be a better way of doing this
   --maybe redefine ScoreRecord as a tuple (Integer, Integer, Integer)?
   mappend (ScoreRecord firstWins firstTies firstLosses) (ScoreRecord secondWins secondTies secondLosses) = ScoreRecord (firstWins + secondWins) (firstTies + secondTies) (firstLosses + secondLosses)
-  -- foldr mappend mempty is the default definition, so we can delete it.
 
---any better way to do this?
 unwrapVisibility :: Visibility a -> a
 unwrapVisibility (Hidden a) = a
 unwrapVisibility (Shown a) = a
@@ -152,15 +150,16 @@ drawCard' :: Deck -> (Card, Deck)
 drawCard' (x:xs) = (x, xs)
 
 hasCard :: [Card] -> CardValue -> Bool
-hasCard cards whichCard = any ((==whichCard) . cardValue) cards
+hasCard cards whichCard = any ((whichCard ==) . cardValue) cards
 
 blackjack :: [Card] -> Bool
-blackjack hand = let hasAce = hasCard hand Ace 
-                     faceCards = Card <$> allSuits <*> [Jack, Queen, King]
-                     --XXX: I really don't think composing fmap is the
-                     --right way to do this...
-                     hasFaceCard = any (hasCard hand) . fmap cardValue $ faceCards
-                  in ((==2) . length $ hand) && (hasAce && hasFaceCard)
+blackjack hand = 2 == length hand && hasAce && hasFaceCard
+  where
+    handHas = hasCard hand
+    hasAce = handHas Ace
+    faceCards = Card <$> allSuits <*> [Jack, Queen, King]
+    hasFaceCard = any (handHas . cardValue) faceCards
+    
 
 cardPoints :: CardValue -> Int
 cardPoints cardValue 
@@ -170,12 +169,15 @@ cardPoints cardValue
   --count aces as 11 now, can decrement 10 later as necessary
   | cardValue == Ace   = 11
   --enums count up from 0 but the first card type is 2
-  | otherwise = (+2) . fromEnum $ cardValue
+  | otherwise = 2 + fromEnum cardValue
 
 handPoints :: [Card] -> Int
-handPoints hand = let total = sum $ fmap (cardPoints . cardValue) hand
-                   in if total <= 21 then total
-                                     else total - 10
+handPoints hand = 
+  if total <= 21
+     then total
+     else total - 10
+  where
+    total = getSum $ foldMap (Sum . cardPoints . cardValue) hand
 
 isBust :: [Card] -> Bool
 isBust hand = 21 < handPoints hand
@@ -194,14 +196,18 @@ playGame dealerAI allPlayers deck = flip evalState deck $ do
   dealersStartingHand <- startingHand
   playerHands <- reverse <$> foldrM foldFnSt [] allPlayers
   dealerHand <- play' dealerAI dealersStartingHand
-  let results = both reverse . foldMap (both pure . whoWon dealerHand)
-  return . Just . first dealerScore . results $ playerHands
+  let results = reverse . map (whoWon' dealerHand)
+  return . Just $ (dealerScore . results &&& results) playerHands
   where
     dealerScore = foldr (flip addResult) mempty
     foldFnSt ai hands = do
       start <- startingHand
       resultingHand <- play' ai start
       return (resultingHand : hands)
+
+infixl 8 &&&
+(f &&& g) a = (f a, g a)
+
 
 
 first :: (a -> b) -> (a, c) -> (b, c)
