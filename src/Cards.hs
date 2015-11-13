@@ -183,10 +183,8 @@ playGame :: (AI a, AI b) => a -> [b] -> Deck -> Maybe (ScoreRecord, [Result])
 -- |Can't play a game without any players
 playGame dealerAI [] deck = Nothing
 playGame dealerAI allPlayers deck =
-  let (dealersStartingHand, deckAfterDealerDraws) = 
-        let (dFirstCard, dFirstDeck)   = drawCard deck
-            (dSecondCard, dSecondDeck) = drawCard dFirstDeck
-         in ([Hidden dFirstCard, Shown dSecondCard], dSecondDeck)
+  -- ahh, function reuse. Right now we're locally doing `runState`, but we'll get this more global in a bit.
+  let (dealersStartingHand, deckAfterDealerDraws) = runState startingHand deck 
       (playerResDeck, playerHands) = 
           let (firstRes, secondRes) = foldr (\thisAI (thisDeck, handsList) -> 
                   let (thisPlayersStartingHand, deckAfterDraw) = startingHand deckAfterDealerDraws
