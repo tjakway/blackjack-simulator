@@ -206,11 +206,11 @@ playGame dealerAI allPlayers deck =
       (playerHands, playerResDeck) = reverse <$> foldr (foldFn deckAfterDealerDraws) ([[]], deckAfterDealerDraws) allPlayers
       (dealerHand, dealerResDeck) = play dealerAI dealersStartingHand playerResDeck
       -- | in blackjack each player faces off against the dealer separately
-      -- Ok, now we'll pattern match on tuples because all the fst and snd is
-      -- noisy.
-      (dealerMatchResults, playerMatchResults) =
-        foldr ((\(dealerResult, playerResult) (dealerResults, playerResults) -> (dealerResults ++ [dealerResult], playerResults ++ [playerResult])) . whoWon dealerHand) ([], []) playerHands
-         -- ^ ++ is slower but at least we don't have to reverse the list
+      -- Reversing a list isn't a big deal -- consider that multiple ++s incur an O(n*m),
+      -- while consing is O(1) and reversing is O(n). You'll do n conses and n reverses for
+      -- O(2n) which is much nicer than O(n^2).
+      (dealerMatchResults, playerMatchResults) = both reverse $ 
+        foldr ((\(dealerResult, playerResult) (dealerResults, playerResults) -> (dealerResult : dealerResults, playerResult : playerResults)) . whoWon dealerHand) ([], []) playerHands
       dealerScore = foldr (flip addResult) mempty dealerMatchResults
          -- ^ the dealer's list of results is the mirror image of the players'
    in Just (dealerScore, playerMatchResults)
@@ -219,6 +219,9 @@ playGame dealerAI allPlayers deck =
       thisPlayersStartingHand <- startingHand
       resultingHand <- play' thisAI thisPlayersStartingHand
       return (resultingHand : handsList)
+
+both :: (a -> b) -> (a, a) -> (b, b)
+both f (a, b) = (f a, f b)
 
 play' :: (AI a) => a -> Hand -> Blackjack Hand
 play' ai hand = do
