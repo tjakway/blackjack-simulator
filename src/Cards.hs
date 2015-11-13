@@ -194,16 +194,13 @@ playGame :: (AI a, AI b) => a -> [b] -> Deck -> Maybe (ScoreRecord, [Result])
 playGame dealerAI [] deck = Nothing
 playGame dealerAI allPlayers deck = flip evalState deck $ do
   dealersStartingHand <- startingHand
-  playerHands <- reverse <$> foldrM foldFnSt [] allPlayers
+  playerHands <- reverse <$> mapM foldFnSt allPlayers
   dealerHand <- play' dealerAI dealersStartingHand
   let results = reverse . map (whoWon' dealerHand)
   return . Just . first dealerScore . join (,) . results $ playerHands
   where
     dealerScore = foldr (flip addResult) mempty
-    foldFnSt ai hands = do
-      start <- startingHand
-      resultingHand <- play' ai start
-      return (resultingHand : hands)
+    foldFnSt ai = startingHand >>= play' ai
 
 infixl 8 &&&
 (f &&& g) a = (f a, g a)
