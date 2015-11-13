@@ -205,10 +205,10 @@ playGame dealerAI allPlayers deck =
          in ([Hidden dFirstCard, Shown dSecondCard], dSecondDeck)
       -- Ok, now I want to swap the types: rather than (Deck, [Hand]), let's make it
       -- ([Hand], Deck) to make it easier to state monadify.
-      (playerResDeck, playerHands) = reverse <$> foldr (\thisAI (thisDeck, handsList) -> 
+      (playerHands, playerResDeck) = reverse <$> foldr (\thisAI (handsList, thisDeck) -> 
                   let (thisPlayersStartingHand, deckAfterDraw) = startingHand' deckAfterDealerDraws
                       (resultingHand, resDeck) = play thisAI thisPlayersStartingHand deckAfterDraw
-                   in (resDeck, resultingHand : handsList)) (deckAfterDealerDraws, [[]]) allPlayers
+                   in (resultingHand : handsList, resDeck)) ([[]], deckAfterDealerDraws) allPlayers
            -- ^ need to reverse the list of player hands because we're appending each player's hand to the front of the list but iterating head -> tail
       (dealerHand, dealerResDeck) = play dealerAI dealersStartingHand playerResDeck;
       -- | in blackjack each player faces off against the dealer separately
