@@ -1,6 +1,7 @@
 module Cards where
 
 import Control.Applicative
+import Data.Foldable
 import System.Random
 import System.Random.Shuffle
 import Control.Monad.State
@@ -200,7 +201,8 @@ playGame dealerAI [] deck = Nothing
 
 playGame dealerAI allPlayers deck =
   let (dealersStartingHand, deckAfterDealerDraws) = runState startingHand deck
-      (playerHands, playerResDeck) = reverse <$> foldr (foldFn deckAfterDealerDraws) ([[]], deckAfterDealerDraws) allPlayers
+      -- hey, I bet we can use `foldrM` to clean up this highly stateful thing!
+      (playerHands, playerResDeck) = reverse <$> runState (foldrM foldFnSt [] allPlayers) deckAfterDealerDraws 
       (dealerHand, dealerResDeck) = play dealerAI dealersStartingHand playerResDeck
       -- | in blackjack each player faces off against the dealer separately
       res = both reverse (foldr (foldFn2 . whoWon dealerHand) ([], []) playerHands)
@@ -213,7 +215,11 @@ playGame dealerAI allPlayers deck =
   where
     -- lol isn't this absurd???? totally equivalent.
     foldFn2 = uncurry (***) . ((:) *** (:))
-    foldFn deckAfterDealerDraws thisAI (handsList, thisDeck) = flip runState thisDeck $ do
+    foldFnSt ai hands = do
+      start <- startingHand
+      resultingHand <- play' ai start
+      return (resultingHand : hands)
+    foldFn thisAI (handsList, thisDeck) = flip runState thisDeck $ do
       thisPlayersStartingHand <- startingHand
       resultingHand <- play' thisAI thisPlayersStartingHand
       return (resultingHand : handsList)
