@@ -185,7 +185,6 @@ startingHand deck = let run = (do
 playGame :: (AI a, AI b) => a -> [b] -> Deck -> Maybe (ScoreRecord, [Result])
 -- |Can't play a game without any players
 playGame dealerAI [] deck = Nothing
-
 playGame dealerAI allPlayers deck =
   let (dealersStartingHand, deckAfterDealerDraws) = 
         let (dFirstCard, dFirstDeck)   = drawCard deck
@@ -202,7 +201,12 @@ playGame dealerAI allPlayers deck =
            -- ^ need to reverse the list of player hands because we're appending each player's hand to the front of the list but iterating head -> tail
       (dealerResDeck, dealerHand) = play dealerAI playerResDeck dealersStartingHand;
       -- | in blackjack each player faces off against the dealer separately
-      (dealerMatchResults, playerMatchResults)  = (foldr (\thisResTuple res -> ((fst res) ++ [(fst thisResTuple)], (snd res) ++ [(snd thisResTuple)])  ) ([], [])  $ map (\thisPlayersHand -> whoWon dealerHand thisPlayersHand) playerHands) :: ([Result], [Result]);
+      
+      (dealerMatchResults, playerMatchResults) = 
+        -- If you use `fst` and `snd` on an argument, you should just pattern match it.
+        (foldr (\(resA, resB) res@(accResA, accResB) -> (accResA ++ [resA], accResB ++ [resB])  ) ([], [])
+        -- For clarity, try to reduce lambdas where possible and where readable.
+        . map (whoWon dealerHand) playerHands) :: ([Result], [Result])
          -- ^ ++ is slower but at least we don't have to reverse the list
       dealerScore = foldr (\thisResult total -> addResult total thisResult) mempty dealerMatchResults
          -- ^ the dealer's list of results is the mirror image of the players'
@@ -222,8 +226,8 @@ whoWon firstPlayerHand secondPlayerHand
   | firstPlayerBusted && secondPlayerBusted = (Tie, Tie)
   --check if one player busted and
   --the other didn't
-  | firstPlayerBusted && (not secondPlayerBusted) = (Lose, Win)
-  | (not firstPlayerBusted) && secondPlayerBusted = (Win, Lose)
+  | firstPlayerBusted && not secondPlayerBusted = (Lose, Win)
+  | not firstPlayerBusted && secondPlayerBusted = (Win, Lose)
   --if neither player busted, highest
   --score wins
   | firstPlayerScore == secondPlayerScore = (Tie, Tie)
