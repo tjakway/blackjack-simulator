@@ -206,12 +206,13 @@ playGame dealerAI allPlayers deck =
       (playerHands, playerResDeck) = reverse <$> foldr (foldFn deckAfterDealerDraws) ([[]], deckAfterDealerDraws) allPlayers
       (dealerHand, dealerResDeck) = play dealerAI dealersStartingHand playerResDeck
       -- | in blackjack each player faces off against the dealer separately
-      -- Now, let's extract that fold function, and make it a bit nicer...
-      (dealerMatchResults, playerMatchResults) = both reverse $ 
-        foldr (foldFn2 . whoWon dealerHand) ([], []) playerHands
-      dealerScore = foldr (flip addResult) mempty dealerMatchResults
+      res = both reverse (foldr (foldFn2 . whoWon dealerHand) ([], []) playerHands)
+      dealerScore = foldr (flip addResult) mempty
          -- ^ the dealer's list of results is the mirror image of the players'
-   in Just (dealerScore, playerMatchResults)
+
+      -- hmm, this just is very similar to the tuple returned above...
+      -- if we make dealerScore a function taking the dealerMatchResults...
+   in Just . fstMap dealerScore $ res
   where
     -- lol isn't this absurd???? totally equivalent.
     foldFn2 = uncurry (***) . ((:) *** (:))
@@ -219,6 +220,7 @@ playGame dealerAI allPlayers deck =
       thisPlayersStartingHand <- startingHand
       resultingHand <- play' thisAI thisPlayersStartingHand
       return (resultingHand : handsList)
+    fstMap f (a, b) = (f a, b)
 
 -- now, this function can be a lot of fun, especially with `both`...
 (***) :: (a -> c) -> (b -> d) -> (a, b) -> (c, d)
