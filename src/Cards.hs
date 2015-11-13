@@ -58,7 +58,7 @@ instance Monoid ScoreRecord where
   --there has got to be a better way of doing this
   --maybe redefine ScoreRecord as a tuple (Integer, Integer, Integer)?
   mappend (ScoreRecord firstWins firstTies firstLosses) (ScoreRecord secondWins secondTies secondLosses) = ScoreRecord (firstWins + secondWins) (firstTies + secondTies) (firstLosses + secondLosses)
-  mconcat scoreRecords = foldr mappend mempty scoreRecords
+  -- foldr mappend mempty is the default definition, so we can delete it.
 
 --any better way to do this?
 unwrapVisibility :: Visibility a -> a
@@ -71,7 +71,7 @@ instance Functor Visibility where
 
 instance Monad Visibility where
   --cards are shown by default
-  return a = Shown a
+  return = Shown
 
   (>>=) (Shown a) f  = f a
   (>>=) (Hidden a) f = f a
@@ -103,7 +103,7 @@ instance AI BasicDealer where
          then do
            drawnCard <- drawCard
            play BasicDealer (Shown drawnCard : hand)
-         else do
+         else 
            return myHand
 
 
@@ -130,7 +130,7 @@ shuffleDeck :: (RandomGen a) => a -> Deck -> Deck
 shuffleDeck gen cards = shuffle' cards (length cards) gen
 
 infiniteShuffledDeck :: (RandomGen a) => a -> Deck
-infiniteShuffledDeck gen = shuffledDeck ++ (infiniteShuffledDeck gen)
+infiniteShuffledDeck gen = shuffledDeck ++ infiniteShuffledDeck gen
   where shuffledDeck = shuffleDeck gen newDeck
 
 
@@ -144,14 +144,14 @@ drawCard = do
   return card
 
 hasCard :: [Card] -> CardValue -> Bool
-hasCard cards whichCard = (elem True) . map ((==whichCard) . cardValue) $ cards
+hasCard cards whichCard = any ((==whichCard) . cardValue) cards
 
 blackjack :: [Card] -> Bool
 blackjack hand = let hasAce = hasCard hand Ace 
                      faceCards = Card <$> allSuits <*> [Jack, Queen, King]
                      --XXX: I really don't think composing fmap is the
                      --right way to do this...
-                     hasFaceCard = (elem True) . fmap (hasCard hand) . fmap (cardValue) $ faceCards
+                     hasFaceCard = any (hasCard hand) . fmap cardValue $ faceCards
                   in ((==2) . length $ hand) && (hasAce && hasFaceCard)
 
 cardPoints :: CardValue -> Int
@@ -170,9 +170,7 @@ handPoints hand = let total = sum $ fmap (cardPoints . cardValue) hand
                                      else total - 10
 
 isBust :: [Card] -> Bool
-isBust hand = let total = handPoints hand
-               in if total > 21 then True
-                                else False
+isBust hand = 21 < handPoints hand
 
 startingHand :: Deck -> (Hand, Deck)
 startingHand deck = let run = (do
