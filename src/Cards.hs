@@ -203,11 +203,7 @@ playGame dealerAI allPlayers deck =
         let (dFirstCard, dFirstDeck)   = drawCard' deck
             (dSecondCard, dSecondDeck) = drawCard' dFirstDeck
          in ([Hidden dFirstCard, Shown dSecondCard], dSecondDeck)
-      -- Let's pull that fold function out into a where clause.
-      (playerHands, playerResDeck) = reverse <$> foldr (\thisAI (handsList, thisDeck) -> 
-                  let (thisPlayersStartingHand, deckAfterDraw) = startingHand' deckAfterDealerDraws
-                      (resultingHand, resDeck) = play thisAI thisPlayersStartingHand deckAfterDraw
-                   in (resultingHand : handsList, resDeck)) ([[]], deckAfterDealerDraws) allPlayers
+      (playerHands, playerResDeck) = reverse <$> foldr (foldFn deckAfterDealerDraws) ([[]], deckAfterDealerDraws) allPlayers
            -- ^ need to reverse the list of player hands because we're appending each player's hand to the front of the list but iterating head -> tail
       (dealerHand, dealerResDeck) = play dealerAI dealersStartingHand playerResDeck;
       -- | in blackjack each player faces off against the dealer separately
@@ -216,6 +212,15 @@ playGame dealerAI allPlayers deck =
       dealerScore = foldr (flip addResult) mempty dealerMatchResults
          -- ^ the dealer's list of results is the mirror image of the players'
    in Just (dealerScore, playerMatchResults)
+  where
+    -- Alright, this looks pretty stateful. But I'm not sure about that `deckAfterDealerDraws`
+    -- bit. Each player gets the same starting hand? From the same deck? And that first
+    -- iteration of `thisDeck` is totally the `deckAfterDealerDraws` thing that is
+    -- the initial accumulator in the fold. 
+    foldFn deckAfterDealerDraws thisAI (handsList, thisDeck) = 
+      let (thisPlayersStartingHand, deckAfterDraw) = startingHand' deckAfterDealerDraws
+          (resultingHand, resDeck) = play thisAI thisPlayersStartingHand deckAfterDraw
+       in (resultingHand : handsList, resDeck)
 
 
 
