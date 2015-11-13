@@ -184,50 +184,26 @@ startingHand = do
   secondCard <- Shown <$> drawCard
   return [firstCard, secondCard]
 
-startingHand' :: Deck -> (Hand, Deck)
-startingHand' deck = let run = (do
-                              --XXX
-                              --I feel like I'm using the State monad
-                              --completely wrong
-                                        firstDeck <- get
-                                        let (firstCard, secondDeck) = drawCard' firstDeck
-                                        let (secondCard, thirdDeck) = drawCard' secondDeck
-                                        put thirdDeck 
-                                        return [Hidden firstCard, Shown secondCard]) :: State Deck Hand
-                         in runState run deck
+
 playGame :: (AI a, AI b) => a -> [b] -> Deck -> Maybe (ScoreRecord, [Result])
 -- |Can't play a game without any players
 playGame dealerAI [] deck = Nothing
-
-playGame dealerAI allPlayers deck =
-  -- and now, I bet we can make the whole thing stateful...
-  let (dealersStartingHand, deckAfterDealerDraws) = runState startingHand deck
-      (playerHands, playerResDeck) = reverse <$> runState (foldrM foldFnSt [] allPlayers) deckAfterDealerDraws 
-      (dealerHand, dealerResDeck) = play dealerAI dealersStartingHand playerResDeck
-      -- | in blackjack each player faces off against the dealer separately
-      res = both reverse (foldr (foldFn2 . whoWon dealerHand) ([], []) playerHands)
-      dealerScore = foldr (flip addResult) mempty
-         -- ^ the dealer's list of results is the mirror image of the players'
-
-      -- hmm, this just is very similar to the tuple returned above...
-      -- if we make dealerScore a function taking the dealerMatchResults...
-   in Just . fstMap dealerScore $ res
+playGame dealerAI allPlayers deck = flip evalState deck $ do
+  dealersStartingHand <- startingHand
+  playerHands <- reverse <$> foldrM foldFnSt [] allPlayers
+  dealerHand <- play' dealerAI dealersStartingHand
+  let results = both reverse . foldMap (both pure . whoWon dealerHand)
+  return . Just . first dealerScore . results $ playerHands
   where
-    -- lol isn't this absurd???? totally equivalent.
-    foldFn2 = uncurry (***) . ((:) *** (:))
+    dealerScore = foldr (flip addResult) mempty
     foldFnSt ai hands = do
       start <- startingHand
       resultingHand <- play' ai start
       return (resultingHand : hands)
-    foldFn thisAI (handsList, thisDeck) = flip runState thisDeck $ do
-      thisPlayersStartingHand <- startingHand
-      resultingHand <- play' thisAI thisPlayersStartingHand
-      return (resultingHand : handsList)
-    fstMap f (a, b) = (f a, b)
 
--- now, this function can be a lot of fun, especially with `both`...
-(***) :: (a -> c) -> (b -> d) -> (a, b) -> (c, d)
-(f *** g) (a, b) = (f a, g b)
+
+first :: (a -> b) -> (a, c) -> (b, c)
+first f (a, b) = (f a, b)
 
 both :: (a -> b) -> (a, a) -> (b, b)
 both f (a, b) = (f a, f b)
@@ -263,12 +239,19 @@ whoWon firstPlayerHand secondPlayerHand
   
   --any way to rewrite this in applicative
   --syntax?
+
+  -- Probably not, but... notice that you only need one part of the info here.
+  -- If the function just returns whether or not the first person won,
+  -- then we can cut out half of the cases.
   where
-    playerBusted playerHand = (let cards = fmap unwrapVisibility firstPlayerHand in isBust cards) :: Bool
+    -- You were using a wrong variable here. `playerBusted`
+    -- only referred to firstPlayerHand. One area where point-free
+    -- is nice is not using the wrong variables!
+    playerBusted = isBust . map unwrapVisibility 
     firstPlayerBusted = playerBusted firstPlayerHand
     secondPlayerBusted = playerBusted secondPlayerHand
-    firstPlayerScore = handPoints $ fmap unwrapVisibility firstPlayerHand
-    secondPlayerScore = handPoints $ fmap unwrapVisibility secondPlayerHand
+    firstPlayerScore = handPoints $ map unwrapVisibility firstPlayerHand
+    secondPlayerScore = handPoints $ map unwrapVisibility secondPlayerHand
   
   
 
