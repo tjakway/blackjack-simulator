@@ -203,8 +203,7 @@ playGame dealerAI allPlayers deck =
         let (dFirstCard, dFirstDeck)   = drawCard' deck
             (dSecondCard, dSecondDeck) = drawCard' dFirstDeck
          in ([Hidden dFirstCard, Shown dSecondCard], dSecondDeck)
-      -- Ok, now I want to swap the types: rather than (Deck, [Hand]), let's make it
-      -- ([Hand], Deck) to make it easier to state monadify.
+      -- Let's pull that fold function out into a where clause.
       (playerHands, playerResDeck) = reverse <$> foldr (\thisAI (handsList, thisDeck) -> 
                   let (thisPlayersStartingHand, deckAfterDraw) = startingHand' deckAfterDealerDraws
                       (resultingHand, resDeck) = play thisAI thisPlayersStartingHand deckAfterDraw
