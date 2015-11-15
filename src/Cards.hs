@@ -42,7 +42,7 @@ data Card = Card
 type Deck = [Card]
 type Hand = [Visibility Card]
 
-data Result = Lose | Tie | Win deriving (Eq, Ord, Bounded)
+data Result = Lose | Tie | Win deriving (Eq, Ord, Bounded, Show)
 
 data Visibility a = Hidden a | Shown a
 
@@ -87,7 +87,7 @@ data ScoreRecord
   { wins :: Integer
   , ties :: Integer
   , losses :: Integer
-  }
+  } deriving Show
 
 type Blackjack a = State Deck a
 
@@ -199,7 +199,7 @@ playGame dealerAI allPlayers deck = flip evalState deck $ do
   let results = reverse . map (whoWon' dealerHand)
   return . Just . first dealerScore . join (,) . results $ playerHands
   where
-    dealerScore = foldr (flip addResult) mempty
+    dealerScore = foldr (flip addResult . oppositeResult) mempty
     foldFnSt ai = startingHand >>= play' ai
 
 infixl 8 &&&
@@ -269,3 +269,9 @@ ordToResult :: Ordering -> Result
 ordToResult GT = Win
 ordToResult LT = Lose
 ordToResult EQ = Tie
+
+-- |There's probably a more concise way to define this
+oppositeResult :: Result -> Result
+oppositeResult Win = Lose
+oppositeResult Tie = Tie
+oppositeResult Lose = Win
