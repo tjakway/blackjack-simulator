@@ -1,27 +1,48 @@
 module Cards where
 
 import Control.Applicative
+import Data.Monoid
+import Data.Ord
+import Data.Foldable
 import System.Random
 import System.Random.Shuffle
 import Control.Monad.State
 import Control.Monad
 import Data.List
 
-data Suit = Spade | Club | Heart | Diamond
-               deriving (Eq, Ord, Enum, Bounded, Show, Read)
-data CardValue = Two | Three | Four | Five | Six | Seven | Eight | Nine | Ten | Jack | Queen | King | Ace
-               deriving (Eq, Ord, Enum, Bounded, Show, Read)
+data Suit
+  = Spade 
+  | Club 
+  | Heart
+  | Diamond
+  deriving (Eq, Ord, Enum, Bounded, Show, Read)
+
+data CardValue
+  = Two 
+  | Three 
+  | Four 
+  | Five 
+  | Six 
+  | Seven 
+  | Eight 
+  | Nine 
+  | Ten 
+  | Jack  
+  | Queen
+  | King
+  | Ace
+  deriving (Eq, Ord, Enum, Bounded, Show, Read)
 
 data Card = Card
   { cardSuit :: Suit
   , cardValue :: CardValue
-  } deriving (Show)
+  } deriving Show
 
 --disambiguate between a player's hand and the deck--both are lists of cards
 type Deck = [Card]
 type Hand = [Visibility Card]
 
-data Result = Win | Tie | Lose
+data Result = Lose | Tie | Win deriving (Eq, Ord, Bounded)
 
 data Visibility a = Hidden a | Shown a
 
@@ -29,66 +50,67 @@ data Visibility a = Hidden a | Shown a
 addResult :: ScoreRecord -> Result -> ScoreRecord
 -- could have used guards here, but I wanted practice using case
 addResult (ScoreRecord prevWins prevTies prevLosses) res = 
-        case res of
-            Win -> ScoreRecord (prevWins+1) prevTies prevLosses
-            Tie -> ScoreRecord prevWins (prevTies+1) prevLosses
-            Lose -> ScoreRecord prevWins prevTies (prevLosses+1)
+  case res of
+       Win -> ScoreRecord (prevWins+1) prevTies prevLosses
+       Tie -> ScoreRecord prevWins (prevTies+1) prevLosses
+       Lose -> ScoreRecord prevWins prevTies (prevLosses+1)
 
 instance Monoid ScoreRecord where
-        mempty = ScoreRecord 0 0 0
-        --XXX
-        --there has got to be a better way of doing this
-        --maybe redefine ScoreRecord as a tuple (Integer, Integer, Integer)?
-        mappend (ScoreRecord firstWins firstTies firstLosses) (ScoreRecord secondWins secondTies secondLosses) = ScoreRecord (firstWins + secondWins) (firstTies + secondTies) (firstLosses + secondLosses)
-        mconcat scoreRecords = foldr mappend mempty scoreRecords
+  mempty = ScoreRecord 0 0 0
+  --XXX
+  --there has got to be a better way of doing this
+  --maybe redefine ScoreRecord as a tuple (Integer, Integer, Integer)?
+  mappend (ScoreRecord firstWins firstTies firstLosses) (ScoreRecord secondWins secondTies secondLosses) = ScoreRecord (firstWins + secondWins) (firstTies + secondTies) (firstLosses + secondLosses)
 
---any better way to do this?
 unwrapVisibility :: Visibility a -> a
 unwrapVisibility (Hidden a) = a
 unwrapVisibility (Shown a) = a
 
 instance Functor Visibility where
-        fmap f (Hidden a) = Hidden (f a)
-        fmap f (Shown a) = Shown (f a)
+  fmap f (Hidden a) = Hidden (f a)
+  fmap f (Shown a) = Shown (f a)
 
 instance Monad Visibility where
-        --cards are shown by default
-        return a = Shown a
+  --cards are shown by default
+  return = Shown
 
-        (>>=) (Shown a) f  = f a
-        (>>=) (Hidden a) f = f a
+  (>>=) (Shown a) f  = f a
+  (>>=) (Hidden a) f = f a
 
 instance Applicative Visibility where
-        pure = return
-        (Hidden f) <*> b = fmap f b
-        (Shown f) <*> b = fmap f b
+  pure = return
+  (Hidden f) <*> b = fmap f b
+  (Shown f) <*> b = fmap f b
 
-data ScoreRecord = ScoreRecord { wins :: Integer,
-                       ties :: Integer,
-                       losses :: Integer }
+data ScoreRecord
+  = ScoreRecord 
+  { wins :: Integer
+  , ties :: Integer
+  , losses :: Integer
+  }
+
+type Blackjack a = State Deck a
 
 class AI a where
-        --returns the resulting deck and the players hand
-        --only need to call this once because all moves are decided one
-        --player at a time, i.e.
-        --one player makes all his moves before the next player does
-        play :: a -> Deck -> Hand -> (Deck, Hand)
+  play :: a -> Hand -> Deck -> (Hand, Deck)
 
-data AIType = BasicDealer | BasicPlayer
+data BasicDealer = BasicDealer
+data BasicPlayer = BasicPlayer
 
-instance AI AIType where
-        play BasicDealer deck myHand = let cards = map unwrapVisibility myHand
-                                           points = handPoints cards
-                                               --any way to use a case statement or guards here?
-                                          in if (points < 17) then hitMe
-                                                              else (deck, myHand)
-                                            --draw cards face down
-                                        where (drawnCard, resultingDeck) = drawCard deck :: (Card, Deck)
-                                              hitMe = play BasicDealer resultingDeck ((return drawnCard) : myHand)
+instance AI BasicDealer where
+  play BasicDealer myHand deck = flip runState deck $ do
+      let points = handPoints (map unwrapVisibility myHand)
+      if points < 17
+         then do
+           drawnCard <- drawCard
+           deck' <- get
+           return . fst $ play BasicDealer (Shown drawnCard : myHand) deck'
+         else 
+           return myHand
 
 
-        play BasicPlayer deck myHand = play BasicDealer deck myHand
-
+instance AI BasicPlayer where
+  play BasicPlayer = play BasicDealer
 
 allSuits :: [Suit]
 allSuits = [minBound..maxBound] :: [Suit]
@@ -110,82 +132,93 @@ shuffleDeck :: (RandomGen a) => a -> Deck -> Deck
 shuffleDeck gen cards = shuffle' cards (length cards) gen
 
 infiniteShuffledDeck :: (RandomGen a) => a -> Deck
-infiniteShuffledDeck gen = shuffledDeck ++ (infiniteShuffledDeck gen)
-                                    where shuffledDeck = shuffleDeck gen newDeck
+infiniteShuffledDeck gen = shuffledDeck ++ infiniteShuffledDeck gen
+  where shuffledDeck = shuffleDeck gen newDeck
+
 
 -- |draws 1 card and returns a tuple of that card and the resulting deck
 -- this function intentionally DOES NOT pattern match on []--the deck is
 -- supposed to be infinite so if we got an empty list it's a bug
-drawCard :: Deck -> (Card, Deck)
-drawCard (x:xs) = (x, xs)
+drawCard :: Blackjack Card
+drawCard = do
+  card <- gets head
+  modify tail
+  return card
+
+
+drawCard' :: Deck -> (Card, Deck)
+drawCard' (x:xs) = (x, xs)
 
 hasCard :: [Card] -> CardValue -> Bool
-hasCard cards whichCard = (elem True) . fmap ((==whichCard) . cardValue) $ cards
+hasCard cards whichCard = any ((whichCard ==) . cardValue) cards
 
 blackjack :: [Card] -> Bool
-blackjack hand = let hasAce = hasCard hand Ace 
-                     faceCards = Card <$> allSuits <*> [Jack, Queen, King]
-                     --XXX: I really don't think composing fmap is the
-                     --right way to do this...
-                     hasFaceCard = (elem True) . fmap (hasCard hand) . fmap (cardValue) $ faceCards
-                     in ((==2) . length $ hand) && (hasAce && hasFaceCard)
+blackjack hand = 2 == length hand && hasAce && hasFaceCard
+  where
+    handHas = hasCard hand
+    hasAce = handHas Ace
+    faceCards = Card <$> allSuits <*> [Jack, Queen, King]
+    hasFaceCard = any (handHas . cardValue) faceCards
+    
 
 cardPoints :: CardValue -> Int
 cardPoints cardValue 
-                    | cardValue == Jack  = 10
-                    | cardValue == Queen = 10
-                    | cardValue == King  = 10
-                    --count aces as 11 now, can decrement 10 later as necessary
-                    | cardValue == Ace   = 11
-                    --enums count up from 0 but the first card type is 2
-                    | otherwise = (+2) . fromEnum $ cardValue
+  | cardValue == Jack  = 10
+  | cardValue == Queen = 10
+  | cardValue == King  = 10
+  --count aces as 11 now, can decrement 10 later as necessary
+  | cardValue == Ace   = 11
+  --enums count up from 0 but the first card type is 2
+  | otherwise = 2 + fromEnum cardValue
 
 handPoints :: [Card] -> Int
-handPoints hand = let total = sum $ fmap (cardPoints . cardValue) hand
-                     in if total <= 21 then total
-                                       else total - 10
+handPoints hand = 
+  if total <= 21
+     then total
+     else total - 10
+  where
+    total = getSum $ foldMap (Sum . cardPoints . cardValue) hand
 
 isBust :: [Card] -> Bool
-isBust hand = let total = handPoints hand
-                  in if total > 21 then True
-                                   else False
+isBust hand = 21 < handPoints hand
 
-startingHand :: Deck -> (Hand, Deck)
-startingHand deck = let run = (do
-                              --XXX
-                              --I feel like I'm using the State monad
-                              --completely wrong
-                                        firstDeck <- get
-                                        let (firstCard, secondDeck) = drawCard firstDeck
-                                        let (secondCard, thirdDeck) = drawCard secondDeck
-                                        put thirdDeck 
-                                        return [Hidden firstCard, Shown secondCard]) :: State Deck Hand
-                         in runState run deck
+startingHand :: Blackjack Hand
+startingHand = do
+  firstCard <- Hidden <$> drawCard
+  secondCard <- Shown <$> drawCard
+  return [firstCard, secondCard]
 
 
 playGame :: (AI a, AI b) => a -> [b] -> Deck -> Maybe (ScoreRecord, [Result])
 -- |Can't play a game without any players
 playGame dealerAI [] deck = Nothing
-playGame dealerAI allPlayers deck = let { (dealersStartingHand, deckAfterDealerDraws) = let { (dFirstCard, dFirstDeck)   = drawCard deck;
-                                                                                              (dSecondCard, dSecondDeck) = drawCard dFirstDeck ;
-                                                                                            }
-                                                                                        in  ([Hidden dFirstCard, Shown dSecondCard], dSecondDeck);
-        --runState $ (drawCard >>= (\firstCard -> drawCard >>= (\secondCard -> return [Hidden firstCard, Shown secondCard]))) deck 
-                                        (playerResDeck, playerHands) = 
-                                      -- ^ (the deck after every player has made his move, a list of the player results in the order each player took his turn)
-                                      -- XXX: refactor this monstrosity of nested let bindings
-                                                 let { foldRes = foldr (\thisAI (thisDeck, handsList) -> let { (thisPlayersStartingHand, deckAfterDraw) = startingHand deckAfterDealerDraws;
-                                                                                                                 (resDeck, resultingHand) = play thisAI deckAfterDraw thisPlayersStartingHand; }
-                                                                                                              in (resDeck, resultingHand : handsList) ) (deckAfterDealerDraws, [[]]) allPlayers;
-                                                 } in (fst foldRes, reverse $ snd foldRes);
-                                                         -- ^ need to reverse the list of player hands because we're appending each player's hand to the front of the list but iterating head -> tail
-                                        (dealerResDeck, dealerHand) = play dealerAI playerResDeck dealersStartingHand;
-                                         -- | in blackjack each player faces off against the dealer separately
-                                        (dealerMatchResults, playerMatchResults)  = (foldr (\thisResTuple res -> ((fst res) ++ [(fst thisResTuple)], (snd res) ++ [(snd thisResTuple)])  ) ([], [])  $ map (\thisPlayersHand -> whoWon dealerHand thisPlayersHand) playerHands) :: ([Result], [Result]);
-                                        -- ^ ++ is slower but at least we don't have to reverse the list
-                                        dealerScore = foldr (\thisResult total -> addResult total thisResult) mempty dealerMatchResults
-                                     -- ^ the dealer's list of results is the mirror image of the players'
-                                    } in  Just (dealerScore, playerMatchResults)
+playGame dealerAI allPlayers deck = flip evalState deck $ do
+  dealersStartingHand <- startingHand
+  playerHands <- reverse <$> mapM foldFnSt allPlayers
+  dealerHand <- play' dealerAI dealersStartingHand
+  let results = reverse . map (whoWon' dealerHand)
+  return . Just . first dealerScore . join (,) . results $ playerHands
+  where
+    dealerScore = foldr (flip addResult) mempty
+    foldFnSt ai = startingHand >>= play' ai
+
+infixl 8 &&&
+(f &&& g) a = (f a, g a)
+
+
+
+first :: (a -> b) -> (a, c) -> (b, c)
+first f (a, b) = (f a, b)
+
+both :: (a -> b) -> (a, a) -> (b, b)
+both f (a, b) = (f a, f b)
+
+play' :: (AI a) => a -> Hand -> Blackjack Hand
+play' ai hand = do
+  deck <- get
+  let (resultingHand, resDeck) = play ai hand deck
+  put resDeck
+  return resultingHand
 
 
 -- |first result in the tuple = result for the first Hand
@@ -196,26 +229,43 @@ playGame dealerAI allPlayers deck = let { (dealersStartingHand, deckAfterDealerD
 -- whoWon :: (Hand, Hand) -> (Result, Result)
 whoWon :: Hand -> Hand -> (Result, Result)
 whoWon firstPlayerHand secondPlayerHand 
-                                        --if both the dealer and a player
-                                        --bust, it's a tie
-                                        | firstPlayerBusted && secondPlayerBusted = (Tie, Tie)
-                                        --check if one player busted and
-                                        --the other didn't
-                                        | firstPlayerBusted && (not secondPlayerBusted) = (Lose, Win)
-                                        | (not firstPlayerBusted) && secondPlayerBusted = (Win, Lose)
-                                        --if neither player busted, highest
-                                        --score wins
-                                        | firstPlayerScore == secondPlayerScore = (Tie, Tie)
-                                        | firstPlayerScore > secondPlayerScore = (Win, Lose)
-                                        | firstPlayerScore < secondPlayerScore = (Lose, Win)
+  --if both the dealer and a player
+  --bust, it's a tie
+  | firstPlayerBusted && secondPlayerBusted = (Tie, Tie)
+  --check if one player busted and
+  --the other didn't
+  | firstPlayerBusted && not secondPlayerBusted = (Lose, Win)
+  | not firstPlayerBusted && secondPlayerBusted = (Win, Lose)
+  --if neither player busted, highest
+  --score wins
+  | firstPlayerScore == secondPlayerScore = (Tie, Tie)
+  | firstPlayerScore > secondPlayerScore = (Win, Lose)
+  | firstPlayerScore < secondPlayerScore = (Lose, Win)
+  
+  --any way to rewrite this in applicative
+  --syntax?
 
-                                --any way to rewrite this in applicative
-                                --syntax?
-                                where playerBusted playerHand = (let cards = fmap unwrapVisibility firstPlayerHand in isBust cards) :: Bool
-                                      firstPlayerBusted = playerBusted firstPlayerHand
-                                      secondPlayerBusted = playerBusted secondPlayerHand
-                                      firstPlayerScore = handPoints $ fmap unwrapVisibility firstPlayerHand
-                                      secondPlayerScore = handPoints $ fmap unwrapVisibility secondPlayerHand
+  -- Probably not, but... notice that you only need one part of the info here.
+  -- If the function just returns whether or not the first person won,
+  -- then we can cut out half of the cases.
+  where
+    -- You were using a wrong variable here. `playerBusted`
+    -- only referred to firstPlayerHand. One area where point-free
+    -- is nice is not using the wrong variables!
+    playerBusted = isBust . map unwrapVisibility 
+    firstPlayerBusted = playerBusted firstPlayerHand
+    secondPlayerBusted = playerBusted secondPlayerHand
+    firstPlayerScore = handPoints $ map unwrapVisibility firstPlayerHand
+    secondPlayerScore = handPoints $ map unwrapVisibility secondPlayerHand
+  
+whoWon' :: Hand -> Hand -> Result
+whoWon' first second = ordToResult $ bust <> scores
+  where
+    busted = isBust . map unwrapVisibility 
+    bust = comparing busted first second
+    scores = comparing (handPoints . map unwrapVisibility) first second
 
-
-
+ordToResult :: Ordering -> Result
+ordToResult GT = Win
+ordToResult LT = Lose
+ordToResult EQ = Tie
