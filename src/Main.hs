@@ -7,25 +7,28 @@ import Cards
 -- generated automatically
 foldOverResults :: [ScoreRecord] -> [Result] -> [ScoreRecord]
 foldOverResults [] results = foldOverResults (flip replicate mempty . length $ results) results 
+foldOverResults startingRecords [] = startingRecords
 foldOverResults startingRecords results = map (\(thisRecord, thisScore) -> thisRecord `addResult` thisScore) zippedArgs
                     where zippedArgs = zip startingRecords results
                           -- ^ TODO: come up with a better name...
 
-runNGamesNPlayers :: RandomGen a => Int -> Int -> a -> Maybe (ScoreRecord, [ScoreRecord])
-runNGamesNPlayers numGames numPlayers gen = let players = replicate numPlayers BasicPlayer 
-                                                dealer = BasicDealer
-                                                -- |There should be
-                                                -- a better way to do
-                                                -- this--mapping over
-                                                -- a list of ints that are
-                                                -- ignored is basically
-                                                -- just a loop
-                                                gameResults = map (\_ -> playGame dealer players (infiniteShuffledDeck gen)) [1..numGames]
-                                                -- |tally the scores
-                                                --http://stackoverflow.com/questions/9448570/using-map-with-two-lists-rather-than-one-can-you-nest
-                                                scores = foldr (\(tallyDealerScore, tallyPlayerScores) res -> res >>= \(prevDealerScore, prevPlayerScores) -> return (tallyDealerScore `mconcat` prevDealerScore, foldOverResults prevPlayerScores))
-                                                startingValues = (mempty, replicate numPlayers mempty)
-                                                    in scores gameResults startingValues
+sumScores :: (ScoreRecord, [ScoreRecord]) -> [Maybe (ScoreRecord, [Result])] -> (ScoreRecord, [ScoreRecord])
+sumScores (a, []) (b, c) = sumScores (a, flip replicate mempty . length $ c) (b, c)
+sumScores startingValues allGameResults = foldr (\res (tallyDealerScore, tallyPlayerScores) -> res >>= (\(prevDealerScore, prevPlayerScores) -> return (tallyDealerScore `mconcat` prevDealerScore, foldOverResults tallyPlayerScores prevPlayerScores ))) startingValues allGameResults
+
+
+playNGamesNPlayers :: RandomGen a => Int -> Int -> a -> Maybe (ScoreRecord, [ScoreRecord])
+playNGamesNPlayers numGames numPlayers gen = let players = replicate numPlayers BasicPlayer 
+                                                 dealer = BasicDealer
+                                                 -- |XXX: There should be
+                                                 -- a better way to do
+                                                 -- this--mapping over
+                                                 -- a list of ints that are
+                                                 -- ignored is basically
+                                                 -- just a loop
+                                                 gameResults = map (\_ -> playGame dealer players (infiniteShuffledDeck gen)) [1..numGames]
+                                                 startingValues = (mempty, replicate numPlayers mempty) :: (ScoreRecord, [ScoreRecord]) 
+                                                    in sumScores startingValues gameResults
 
 
 
