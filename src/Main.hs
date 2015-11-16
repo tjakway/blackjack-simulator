@@ -1,6 +1,7 @@
 module Main where
 
 import System.Random
+import Data.Maybe (fromJust)
 import Cards
 
 -- |no need to create the empty list of starting records--it'll be
@@ -13,8 +14,9 @@ foldOverResults startingRecords results = map (\(thisRecord, thisScore) -> thisR
                           -- ^ TODO: come up with a better name...
 
 sumScores :: (ScoreRecord, [ScoreRecord]) -> [Maybe (ScoreRecord, [Result])] -> (ScoreRecord, [ScoreRecord])
-sumScores (a, []) (b, c) = sumScores (a, flip replicate mempty . length $ c) (b, c)
-sumScores startingValues allGameResults = foldr (\res (tallyDealerScore, tallyPlayerScores) -> res >>= (\(prevDealerScore, prevPlayerScores) -> return (tallyDealerScore `mconcat` prevDealerScore, foldOverResults tallyPlayerScores prevPlayerScores ))) startingValues allGameResults
+sumScores startingValues allGameResults = case summedRecords of Nothing -> error "Should never reach here!" 
+                                                                _ -> fromJust summedRecords
+        where summedRecords = foldr (\res (tallyDealerScore, tallyPlayerScores) -> res >>= (\(prevDealerScore, prevPlayerScores) -> return (tallyDealerScore `mconcat` prevDealerScore, foldOverResults tallyPlayerScores prevPlayerScores ))) startingValues allGameResults
 
 
 playNGamesNPlayers :: RandomGen a => Int -> Int -> a -> Maybe (ScoreRecord, [ScoreRecord])
