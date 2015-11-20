@@ -16,7 +16,7 @@ foldOverResults startingRecords results = map (\(thisRecord, thisScore) -> thisR
 sumScores :: (ScoreRecord, [ScoreRecord]) -> [Maybe (ScoreRecord, [Result])] -> (ScoreRecord, [ScoreRecord])
 sumScores startingValues allGameResults = case summedRecords of Nothing -> error "Should never reach here!" 
                                                                 _ -> fromJust summedRecords
-        where summedRecords = foldr (\res (tallyDealerScore, tallyPlayerScores) -> res >>= (\(prevDealerScore, prevPlayerScores) -> return (tallyDealerScore `mconcat` prevDealerScore, foldOverResults tallyPlayerScores prevPlayerScores ))) startingValues allGameResults
+        where summedRecords = foldr (\res (tallyDealerScore, tallyPlayerScores) -> res >>= (\ (prevDealerScore, prevPlayerScores) -> return (tallyDealerScore `mconcat` prevDealerScore, foldOverResults tallyPlayerScores prevPlayerScores ))) startingValues allGameResults
 
 
 playNGamesNPlayers :: RandomGen a => Int -> Int -> a -> Maybe (ScoreRecord, [ScoreRecord])
