@@ -36,7 +36,5 @@ playNGamesNPlayers numGames numPlayers gen = let players = replicate numPlayers 
                                                  startingValues = (mempty, replicate numPlayers mempty) :: (ScoreRecord, [ScoreRecord]) 
                                                     in sumScores startingValues gameResults
 
-
-
 main :: IO ()
 main = putStrLn "Hello, Haskell!"
