@@ -1,7 +1,11 @@
 module Main where
 
 import System.Random
-import Cards
+import Jakway.Blackjack.AI
+import Jakway.Blackjack.Game
+import Jakway.Blackjack.Cards
+import Jakway.Blackjack.Result
+import Jakway.Blackjack.Visibility
 
 -- |no need to create the empty list of starting records--it'll be
 -- generated automatically
