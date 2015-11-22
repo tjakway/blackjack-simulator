@@ -26,6 +26,7 @@ startingHand = do
   secondCard <- Shown <$> drawCard
   return [firstCard, secondCard]
 
+foldFnSt ai = startingHand >>= play' ai
 
 playGame :: (AI a, AI b) => a -> [b] -> Deck -> Maybe (ScoreRecord, [Result])
 -- |Can't play a game without any players
@@ -38,7 +39,21 @@ playGame dealerAI allPlayers deck = flip evalState deck $ do
   return . Just . first dealerScore . join (,) . results $ playerHands
   where
     dealerScore = foldr (flip addResult . oppositeResult) mempty
-    foldFnSt ai = startingHand >>= play' ai
+    
+
+-- |Plays a game and returns the relevant state
+-- |returns a tuple of (dealersHand, playerHands, playerResults)
+-- |dealer score record is redundant and not returned (just the opposite of
+-- every Result)
+evalGame :: (AI a, AI b) => a -> [b] -> Deck -> Maybe (Hand, [Hand], [Result])
+evalGame dealerAI [] deck = Nothing
+evalGame dealerAI allPlayers deck = flip evalState deck $ do
+  dealersStartingHand <- startingHand
+  playerHands <- reverse <$> mapM foldFnSt allPlayers
+  dealerHand <- play' dealerAI dealersStartingHand
+  let results = reverse . map (whoWon' dealerHand)
+  return . Just $ (dealerHand, playerHands, results playerHands)
+  -- ^ TODO: REFACTOR TO ELIMINATE DUPLICATE CODE WITH playGame
 
 infixl 8 &&&
 (f &&& g) a = (f a, g a)
