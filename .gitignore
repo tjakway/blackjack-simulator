@@ -5,3 +5,5 @@ dist/
 .stack-work/
 
 tags
+TAGS
+*.swp
