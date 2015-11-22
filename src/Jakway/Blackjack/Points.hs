@@ -1,6 +1,7 @@
 module Jakway.Blackjack.Points where
 
 import Jakway.Blackjack.Cards
+import Data.Monoid
 
 cardPoints :: CardValue -> Int
 cardPoints cardValue 

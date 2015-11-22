@@ -6,6 +6,8 @@ import Jakway.Blackjack.Result
 import Jakway.Blackjack.Visibility
 import Jakway.Blackjack.Points
 import Control.Monad.State
+import Data.Ord
+import Data.Monoid
 
 blackjack :: [Card] -> Bool
 blackjack hand = 2 == length hand && hasAce && hasFaceCard
