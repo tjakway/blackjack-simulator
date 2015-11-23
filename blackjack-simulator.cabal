@@ -57,7 +57,7 @@ executable haskell-blackjack
   -- other-extensions:    
   
   -- Other library packages from which modules are imported.
-  build-depends:       base >=4.8 && <4.9, random, mtl, random-shuffle
+  build-depends:       base >=4.8 && <4.9, random, mtl, random-shuffle, HDBC >= 2.0.0, HDBC-sqlite3
   
   -- Directories containing source files.
   hs-source-dirs:      src

@@ -7,7 +7,9 @@ import Jakway.Blackjack.Game
 import Jakway.Blackjack.Cards
 import Jakway.Blackjack.Result
 import Jakway.Blackjack.Visibility
+import Jakway.Blackjack.IO.Database
 
+{-
 -- |no need to create the empty list of starting records--it'll be
 -- generated automatically
 foldOverResults :: [ScoreRecord] -> [Result] -> [ScoreRecord]
@@ -35,6 +37,6 @@ playNGamesNPlayers numGames numPlayers gen = let players = replicate numPlayers 
                                                  gameResults = map (\_ -> playGame dealer players (infiniteShuffledDeck gen)) [1..numGames]
                                                  startingValues = (mempty, replicate numPlayers mempty) :: (ScoreRecord, [ScoreRecord]) 
                                                     in sumScores startingValues gameResults
-
+-}
 main :: IO ()
 main = putStrLn "Hello, Haskell!"
