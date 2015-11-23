@@ -37,7 +37,7 @@ insertPlayerStatement conn = prepare conn "INSERT INTO players(whichPlayer) VALU
 
 insertPlayers :: (IConnection a) => a -> Int -> IO ()
 insertPlayers conn numPlayers = insertPlayerStatement conn >>= (\insertStatement -> executeMany insertStatement insValues)
-                        where insValues = map ((: []) . toSql) [1..numPlayers]
+                        where insValues = map ((: []) . toSql) [0..numPlayers]
 
 insertHandStatement :: (IConnection a) => a -> IO (Statement)
 insertHandStatement conn = undefined
