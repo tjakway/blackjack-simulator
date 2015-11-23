@@ -2,11 +2,17 @@ module Jakway.Blackjack.IO.Database where
 
 import Database.HDBC
 
-createDB :: IConnection a => a -> IO [()]
+enableForeignKeys :: IConnection a => a -> IO Integer
+enableForeignKeys conn = run conn "PRAGMA foreign_keys = ON;" []
+
+flipInner2 :: (a -> b -> c -> d) -> a -> c -> b -> d
+flipInner2 f x y z = f x z y
+
+createDB :: IConnection a => a -> IO [Integer]
 createDB conn =
-        sequence $ map (runRaw conn) createTableStatements
+            sequence $ map (flipInner2 run conn []) createTableStatements
         where createTableStatements = [ "CREATE TABLE cards (id INTEGER PRIMARY KEY AUTOINCREMENT, cardValue INTEGER NOT NULL, suit INTEGER NOT NULL)",
                                         "CREATE TABLE players (whichPlayer INTEGER PRIMARY KEY)",
-                                        "CREATE TABLE hands (id INTEGER PRIMARY KEY AUTOINCREMENT, whichPlayers INTEGER, whichHand INTEGER, thisCard INTEGER, "
+                                        "CREATE TABLE hands (id INTEGER PRIMARY KEY AUTOINCREMENT, whichPlayer INTEGER, whichHand INTEGER, thisCard INTEGER, "
                                                             ++ "FOREIGN KEY(whichPlayer) REFERENCES players(whichPlayer), FOREIGN KEY(thisCard) REFERENCES cards(id) )",
-                                        "CREATE TABLE matches (id INTEGER PRIMARY KEY AUTOINCREMENT, whichGame INTEGER, dealersHand INTEGER)" ]
+                                        "CREATE TABLE matches (id INTEGER PRIMARY KEY AUTOINCREMENT, whichGame INTEGER, dealersHand INTEGER, thisPlayersHand INTEGER, playerResult INTEGER)" ]
