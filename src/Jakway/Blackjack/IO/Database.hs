@@ -1,5 +1,6 @@
 module Jakway.Blackjack.IO.Database where
 
+import Jakway.Blackjack.Cards
 import Database.HDBC
 
 enableForeignKeys :: IConnection a => a -> IO Integer
@@ -20,3 +21,25 @@ createTables conn =
 insertCardStatement :: (IConnection a) => a -> IO (Statement)
 --ignore the id field
 insertCardStatement conn = prepare conn "INSERT INTO cards(cardValue, suit) VALUES(?, ?)"
+
+cardToSqlValues :: Card -> [SqlValue]
+cardToSqlValues (Card val suit) = [toSql . fromEnum $ val, toSql . fromEnum $ suit]
+
+insertAllCards :: (IConnection a) => a -> IO ()
+insertAllCards conn = do 
+                         let cardSqlValues = map cardToSqlValues newDeck 
+                             -- ^ newDeck is a (sorted) array of all possible card values
+                         insertStatement <- insertCardStatement conn
+                         executeMany insertStatement cardSqlValues
+
+insertPlayerStatement :: (IConnection a) => a -> IO (Statement)
+insertPlayerStatement conn = prepare conn "INSERT INTO players(whichPlayer) VALUES(?)"
+
+insertPlayers :: (IConnection a) => a -> Int -> IO ()
+insertPlayers conn numPlayers = insertPlayerStatement conn >>= (\insertStatement -> executeMany insertStatement insValues)
+                        where insValues = map ((: []) . toSql) [1..numPlayers]
+
+insertHandStatement :: (IConnection a) => a -> IO (Statement)
+insertHandStatement conn = undefined
+
+
