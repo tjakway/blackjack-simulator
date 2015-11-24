@@ -1,5 +1,6 @@
 module Jakway.Blackjack.IO.Database where
 
+import Jakway.Blackjack.Visibility
 import Jakway.Blackjack.Cards
 import Database.HDBC
 
@@ -12,7 +13,9 @@ flipInner2 f x y z = f x z y
 createTables :: IConnection a => a -> IO [Integer]
 createTables conn =
             sequence $ map (flipInner2 run conn []) createTableStatements
-        where createTableStatements = [ "CREATE TABLE cards (id INTEGER PRIMARY KEY AUTOINCREMENT, cardValue INTEGER NOT NULL, suit INTEGER NOT NULL)",
+        where createTableStatements = [ "CREATE TABLE cards (id INTEGER PRIMARY KEY AUTOINCREMENT, cardValue INTEGER NOT NULL, suit INTEGER NOT NULL, visibile INTEGER NOT NULL)",
+                                      -- ^ Sqlite doesn't have a boolean
+                                      -- data type, see https://www.sqlite.org/datatype3.html and http://stackoverflow.com/questions/843780/store-boolean-value-in-sqlite
                                         "CREATE TABLE players (whichPlayer INTEGER PRIMARY KEY)",
                                         "CREATE TABLE hands (id INTEGER PRIMARY KEY AUTOINCREMENT, whichPlayer INTEGER, whichHand INTEGER, thisCard INTEGER, "
                                                             ++ "FOREIGN KEY(whichPlayer) REFERENCES players(whichPlayer), FOREIGN KEY(thisCard) REFERENCES cards(id) )",
@@ -22,12 +25,16 @@ insertCardStatement :: (IConnection a) => a -> IO (Statement)
 --ignore the id field
 insertCardStatement conn = prepare conn "INSERT INTO cards(cardValue, suit) VALUES(?, ?)"
 
-cardToSqlValues :: Card -> [SqlValue]
-cardToSqlValues (Card val suit) = [toSql . fromEnum $ val, toSql . fromEnum $ suit]
+cardSqlArr :: Suit -> CardValue -> [SqlValue]
+cardSqlArr s v = [toSql . fromEnum $ v, toSql . fromEnum $ s]
+cardToSqlValues :: Visibility Card -> [SqlValue]
+cardToSqlValues (Shown (Card suit val))   = (cardSqlArr suit val) ++ [iToSql 0]
+cardToSqlValues (Hidden (Card suit val))  = (cardSqlArr suit val) ++ [iToSql 1]
+
 
 insertAllCards :: (IConnection a) => a -> IO ()
 insertAllCards conn = do 
-                         let cardSqlValues = map cardToSqlValues newDeck 
+                         let cardSqlValues = cardToSqlValues <$> (Shown <$> newDeck) ++ (Hidden <$> newDeck) 
                              -- ^ newDeck is a (sorted) array of all possible card values
                          insertStatement <- insertCardStatement conn
                          executeMany insertStatement cardSqlValues
@@ -41,6 +48,6 @@ insertPlayers conn numPlayers = insertPlayerStatement conn >>= (\insertStatement
                             -- ^ player number 0 is the dealer!
 
 insertHandStatement :: (IConnection a) => a -> IO (Statement)
-insertHandStatement conn = undefined
+insertHandStatement conn = prepare conn "INSERT INTO hands(whichPlayer, whichHand, thisCard) VALUES(?, ?, ?)"
 
 
