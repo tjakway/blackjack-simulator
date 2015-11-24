@@ -46,7 +46,7 @@ extra-source-files:  ChangeLog.md
 cabal-version:       >=1.10
 
 
-executable haskell-blackjack
+executable blackjack-simulator
   -- .hs or .lhs file containing the Main module.
   main-is:             Main.hs
   
@@ -57,7 +57,7 @@ executable haskell-blackjack
   -- other-extensions:    
   
   -- Other library packages from which modules are imported.
-  build-depends:       base >=4.8 && <4.9, random, mtl, random-shuffle, HDBC >= 2.0.0, HDBC-sqlite3
+  build-depends:       base >=4.8, random, mtl, random-shuffle, HDBC >= 2.0.0, HDBC-sqlite3
   
   -- Directories containing source files.
   hs-source-dirs:      src
@@ -67,3 +67,14 @@ executable haskell-blackjack
 
   ghc-options:         -Wall -fwarn-tabs -fwarn-incomplete-record-updates -fwarn-unused-do-bind -fwarn-incomplete-uni-patterns
   
+Test-Suite test-blackjack-simulator
+  type:
+    exitcode-stdio-1.0
+
+  main-is:
+    test-main.hs
+
+  hs-source-dirs:
+    test
+
+  build-depends:       base >=4.8, random, mtl, random-shuffle, HDBC >= 2.0.0, HDBC-sqlite3
