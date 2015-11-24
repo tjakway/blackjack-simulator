@@ -25,6 +25,7 @@ insertCardStatement :: (IConnection a) => a -> IO (Statement)
 --ignore the id field
 insertCardStatement conn = prepare conn "INSERT INTO cards(cardValue, suit) VALUES(?, ?)"
 
+-- | XXX: for some reason this function wouldn't work in a where binding?
 cardSqlArr :: Suit -> CardValue -> [SqlValue]
 cardSqlArr s v = [toSql . fromEnum $ v, toSql . fromEnum $ s]
 cardToSqlValues :: Visibility Card -> [SqlValue]
