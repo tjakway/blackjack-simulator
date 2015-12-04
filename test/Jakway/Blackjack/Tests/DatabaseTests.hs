@@ -7,6 +7,7 @@ import Control.Exception
 import System.IO.Error hiding (catch)
 import Database.HDBC
 import Database.HDBC.Sqlite3
+import Database.HDBC.Session (withConnectionIO)
 import Test.HUnit
 import Control.Monad (liftM)
 import qualified Jakway.Blackjack.IO.Database as DB
@@ -20,13 +21,17 @@ removeIfExists fileName = removeFile fileName `catch` handleExists
           | isDoesNotExistError e = return ()
           | otherwise = throwIO e
 
-withDatabase dbName = let openConnection = connectSqlite3 dbName
-                    in openConnection >>= (\conn -> bracket (return (conn)) acquireDB releaseDB)
-                    where acquireDB openConnection = openConnection >>= (\conn -> DB.enableForeignKeys conn >> DB.createTables conn >> commit conn)
-                          releaseDB openConnection = openConnection >>= (\conn -> commit conn >> disconnect conn >> removeIfExists dbName)
-
+withDatabase name = withConnectionIO (connectSqlite3 name)
 withTestDatabase = withDatabase test_db_name
 
-testOpenDatabase = TestCase (assertBool ("Make sure database"++test_db_name++" exists") True (withTestDatabase >> doesFileExist test_db_name))
+
+testOpenDatabase = TestCase $ withTestDatabase $ (\_ -> do
+                                exists <- doesFileExist test_db_name
+                                if exists
+                                    then return ()
+                                    else assertFailure message)
+                    where message = "Database "++test_db_name++" does not exist!"
+
+--(assertEqual ("Make sure database"++test_db_name++" exists") (return True) (withTestDatabase (\_ -> doesFileExist test_db_name)))
 
 tests = TestList [TestLabel "testOpenDatabase" testOpenDatabase]
