@@ -10,9 +10,9 @@ enableForeignKeys conn = run conn "PRAGMA foreign_keys = ON;" []
 flipInner2 :: (a -> b -> c -> d) -> a -> c -> b -> d
 flipInner2 f x y z = f x z y
 
-createTables :: IConnection a => a -> IO [Integer]
+createTables :: IConnection a => a -> IO ()
 createTables conn =
-            sequence $ map (flipInner2 run conn []) createTableStatements
+            sequence_ $ map (flipInner2 run conn []) createTableStatements
         where createTableStatements = [ "CREATE TABLE cards (id INTEGER PRIMARY KEY AUTOINCREMENT, cardValue INTEGER NOT NULL, suit INTEGER NOT NULL, visibile INTEGER NOT NULL)",
                                       -- ^ Sqlite doesn't have a boolean
                                       -- data type, see https://www.sqlite.org/datatype3.html and http://stackoverflow.com/questions/843780/store-boolean-value-in-sqlite
@@ -51,4 +51,9 @@ insertPlayers conn numPlayers = insertPlayerStatement conn >>= (\insertStatement
 insertHandStatement :: (IConnection a) => a -> IO (Statement)
 insertHandStatement conn = prepare conn "INSERT INTO hands(whichPlayer, whichHand, thisCard) VALUES(?, ?, ?)"
 
+--nextHandId :: (IConnection a) => a -> Int
+--nextHandId conn = quickQuery' conn "SELECT MAX(whichHand) FROM hands" []
 
+insertHand :: (IConnection a) => Statement -> a -> Int -> IO (Int)
+-- use the connection to figure out what ID to assign this hand
+insertHand statement conn whichPlayer = undefined
