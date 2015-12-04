@@ -12,6 +12,8 @@ import Test.HUnit
 import Control.Monad (liftM, when)
 import qualified Jakway.Blackjack.IO.Database as DB
 import Data.List (sort)
+import Test.Framework
+import Test.Framework.Providers.HUnit
 
 test_db_name = "tmp_test.db"
 
@@ -26,16 +28,18 @@ withDatabase name = withConnectionIO (connectSqlite3 name)
 withTestDatabase = withDatabase test_db_name
 
 
-testOpenDatabase = TestCase $ withTestDatabase $ (\_ -> do
+testOpenDatabase :: Assertion
+testOpenDatabase = withTestDatabase $ (\_ -> do
                                 exists <- doesFileExist test_db_name
                                 if exists
                                     then return ()
                                     else assertFailure message)
                     where message = "Database "++test_db_name++" does not exist!"
 
-testTableList = TestCase $ withTestDatabase $ \conn -> DB.initializeDatabase conn >> commit conn >> getTables conn >>= (\tables -> when (not $ tablesEqual tables) (assertFailure $ message tables))
+testTableList :: Assertion
+testTableList =  withTestDatabase $ \conn -> DB.initializeDatabase conn >> commit conn >> getTables conn >>= (\tables -> when (not $ tablesEqual tables) (assertFailure $ message tables))
                 where tables = ["cards", "players", "hands", "matches"]
                       tablesEqual readTables = (sort tables) == (sort readTables)
                       message readTables = "Database tables don't match!  Read tables: " ++ (show readTables)
 
-tests = TestList [TestLabel "testOpenDatabase" testOpenDatabase, TestLabel "testTableList" testTableList]
+tests =  [testCase "testOpenDatabase" testOpenDatabase, testCase "testTableList" testTableList]
