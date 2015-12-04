@@ -54,9 +54,16 @@ insertPlayers conn numPlayers = insertPlayerStatement conn >>= (\insertStatement
 insertHandStatement :: (IConnection a) => a -> IO (Statement)
 insertHandStatement conn = prepare conn "INSERT INTO hands(whichPlayer, whichHand, thisCard) VALUES(?, ?, ?)"
 
---nextHandId :: (IConnection a) => a -> Int
---nextHandId conn = quickQuery' conn "SELECT MAX(whichHand) FROM hands" []
+nextHandId :: (IConnection a) => a -> IO Int
+nextHandId conn = do
+                    resArray <- quickQuery' conn "SELECT MAX(whichHand) FROM hands" []
+                    let res = ((resArray !! 0) !! 0)
+                    if res == SqlNull then return 0
+                                      else return . fromSql $ res
 
 insertHand :: (IConnection a) => Statement -> a -> Int -> IO (Int)
 -- use the connection to figure out what ID to assign this hand
+-- before running this, need to build the cards table, then run
+-- insertHandStatement once for every card in this hand, passing the rowId
+-- of the corresponding card for thisCard 
 insertHand statement conn whichPlayer = undefined
