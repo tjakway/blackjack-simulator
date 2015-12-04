@@ -57,7 +57,7 @@ executable blackjack-simulator
   -- other-extensions:    
   
   -- Other library packages from which modules are imported.
-  build-depends:       base >=4.8, random, mtl, random-shuffle, HDBC >= 2.0.0, HDBC-sqlite3
+  build-depends:       base >=4.8, random, mtl, random-shuffle, HDBC >= 2.0.0, HDBC-sqlite3, HDBC-session
   
   -- Directories containing source files.
   hs-source-dirs:      src
@@ -77,4 +77,4 @@ Test-Suite test-blackjack-simulator
   hs-source-dirs:
     src, test
 
-  build-depends:       base >=4.8, random, mtl, random-shuffle, HDBC >= 2.0.0, HDBC-sqlite3, HUnit, directory
+  build-depends:       base >=4.8, random, mtl, random-shuffle, HDBC >= 2.0.0, HDBC-sqlite3, HUnit, directory, HDBC-session
