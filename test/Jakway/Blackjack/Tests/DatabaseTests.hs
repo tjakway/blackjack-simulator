@@ -32,6 +32,4 @@ testOpenDatabase = TestCase $ withTestDatabase $ (\_ -> do
                                     else assertFailure message)
                     where message = "Database "++test_db_name++" does not exist!"
 
---(assertEqual ("Make sure database"++test_db_name++" exists") (return True) (withTestDatabase (\_ -> doesFileExist test_db_name)))
-
 tests = TestList [TestLabel "testOpenDatabase" testOpenDatabase]
