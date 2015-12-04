@@ -21,6 +21,9 @@ createTables conn =
                                                             ++ "FOREIGN KEY(whichPlayer) REFERENCES players(whichPlayer), FOREIGN KEY(thisCard) REFERENCES cards(id) )",
                                         "CREATE TABLE matches (id INTEGER PRIMARY KEY AUTOINCREMENT, whichGame INTEGER, dealersHand INTEGER, thisPlayersHand INTEGER, playerResult INTEGER)" ]
 
+initializeDatabase :: (IConnection a) => a -> IO ()
+initializeDatabase conn = enableForeignKeys conn >> createTables conn
+
 insertCardStatement :: (IConnection a) => a -> IO (Statement)
 --ignore the id field
 insertCardStatement conn = prepare conn "INSERT INTO cards(cardValue, suit) VALUES(?, ?)"
