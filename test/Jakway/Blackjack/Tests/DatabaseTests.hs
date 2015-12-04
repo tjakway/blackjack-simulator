@@ -53,7 +53,8 @@ testTableList =  withTestDatabase $ \conn -> getTables conn >>= (\tables -> unle
 
 getNumPlayers :: (IConnection a) => a -> IO (Int)
 getNumPlayers conn = do
-        query <- prepare conn "SELECT * players"
+        query <- prepare conn "SELECT * FROM players"
+        execute query []
         rows <- fetchAllRows' query
         return . length $ rows
 
@@ -66,8 +67,4 @@ testInsertPlayers = withTestDatabase $ \conn -> do
                         let message = "numPlayerRows is "++(show numPlayerRows)++" (should be"++(show numPlayers)++")"
                         assertBool message (numPlayers == numPlayerRows) 
 
-                        
-                                
-                        
-
-tests =  [testCase "testOpenDatabase" testOpenDatabase, testCase "testTableList" testTableList]
+tests =  [testCase "testOpenDatabase" testOpenDatabase, testCase "testTableList" testTableList, testCase "testInsertPlayers" testInsertPlayers]
