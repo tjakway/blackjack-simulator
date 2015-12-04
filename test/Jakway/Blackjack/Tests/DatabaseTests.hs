@@ -9,7 +9,7 @@ import Database.HDBC
 import Database.HDBC.Sqlite3
 import Database.HDBC.Session (withConnectionIO')
 import Test.HUnit
-import Control.Monad (liftM, when)
+import Control.Monad (liftM, unless)
 import qualified Jakway.Blackjack.IO.Database as DB
 import Data.List (sort, delete)
 import Test.Framework
@@ -24,8 +24,14 @@ removeIfExists fileName = removeFile fileName `catch` handleExists
           | isDoesNotExistError e = return ()
           | otherwise = throwIO e
 
+-- |run the 
 withDatabase name = withConnectionIO' (connectSqlite3 name)
+
+-- |run a transaction on a database that will be deleted before and after running it
 withTempDatabase transaction dbName = removeIfExists dbName >> withDatabase dbName transaction >> removeIfExists dbName
+
+-- |initialize the database then run the transaction
+-- don't forget to commit!
 withTestDatabase transaction = withTempDatabase (\conn -> DB.enableForeignKeys conn >> DB.initializeDatabase conn >> commit conn >> transaction conn) test_db_name
 
 
@@ -38,14 +44,30 @@ testOpenDatabase = withTestDatabase $ (\_ -> do
                     where message = "Database "++test_db_name++" does not exist!"
 
 testTableList :: Assertion
-testTableList =  withTestDatabase $ \conn -> getTables conn >>= (\tables -> when (not $ tablesEqual tables) (assertFailure $ message tables))
+testTableList =  withTestDatabase $ \conn -> getTables conn >>= (\tables -> unless (tablesEqual tables) (assertFailure $ message tables))
                 where tables = ["cards", "players", "hands", "matches"]
                       -- | in case sqlite adds an extra schema table
                       tablesEqual readTables = (sort tables) == (sort . (delete "sqlite_sequence") $ readTables)
                       message readTables = "Database tables don't match!  Read tables: " ++ (show readTables)
 
---testInsertPlayers :: Assertion
---testInsertPlayers = withTestDatabase $ \conn -> do
+
+getNumPlayers :: (IConnection a) => a -> IO (Int)
+getNumPlayers conn = do
+        query <- prepare conn "SELECT * players"
+        rows <- fetchAllRows' query
+        return . length $ rows
+
+testInsertPlayers :: Assertion
+testInsertPlayers = withTestDatabase $ \conn -> do
+                        let numPlayers = 10
+                        DB.insertPlayers conn numPlayers
+                        commit conn
+                        numPlayerRows <- getNumPlayers conn
+                        let message = "numPlayerRows is "++(show numPlayerRows)++" (should be"++(show numPlayers)++")"
+                        assertBool message (numPlayers == numPlayerRows) 
+
+                        
+                                
                         
 
 tests =  [testCase "testOpenDatabase" testOpenDatabase, testCase "testTableList" testTableList]
