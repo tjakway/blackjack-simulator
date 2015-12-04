@@ -11,7 +11,7 @@ import Database.HDBC.Session (withConnectionIO')
 import Test.HUnit
 import Control.Monad (liftM, when)
 import qualified Jakway.Blackjack.IO.Database as DB
-import Data.List (sort)
+import Data.List (sort, delete)
 import Test.Framework
 import Test.Framework.Providers.HUnit
 
@@ -40,7 +40,8 @@ testOpenDatabase = withTestDatabase $ (\_ -> do
 testTableList :: Assertion
 testTableList =  withTestDatabase $ \conn -> DB.initializeDatabase conn >> commit conn >> getTables conn >>= (\tables -> when (not $ tablesEqual tables) (assertFailure $ message tables))
                 where tables = ["cards", "players", "hands", "matches"]
-                      tablesEqual readTables = (sort tables) == (sort readTables)
+                      -- | in case sqlite adds an extra schema table
+                      tablesEqual readTables = (sort tables) == (sort . (delete "sqlite_sequence") $ readTables)
                       message readTables = "Database tables don't match!  Read tables: " ++ (show readTables)
 
 tests =  [testCase "testOpenDatabase" testOpenDatabase, testCase "testTableList" testTableList]
