@@ -1,5 +1,9 @@
-module TestMain where
+module Main where
 
-import qualified Jakway.Blackjack.Tests.DatabaseTests
+import qualified Jakway.Blackjack.Tests.DatabaseTests as DatabaseTests
+import Test.HUnit (runTestTT)
 
-main = runTestTT DatabaseTests.tests
+main :: IO ()
+main = do 
+          runTestTT DatabaseTests.tests
+          return ()

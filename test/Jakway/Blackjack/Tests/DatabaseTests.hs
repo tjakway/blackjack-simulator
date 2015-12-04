@@ -1,4 +1,4 @@
-module Jakway.Blackjack.Tests.DatabaseTests where
+module Jakway.Blackjack.Tests.DatabaseTests (tests) where
 
 --see http://stackoverflow.com/questions/8502201/remove-file-if-it-exists
 import Prelude hiding (catch)
