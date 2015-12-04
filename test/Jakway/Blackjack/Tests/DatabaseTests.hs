@@ -7,7 +7,7 @@ import Control.Exception
 import System.IO.Error hiding (catch)
 import Database.HDBC
 import Database.HDBC.Sqlite3
-import Database.HDBC.Session (withConnectionIO)
+import Database.HDBC.Session (withConnectionIO')
 import Test.HUnit
 import Control.Monad (liftM, when)
 import qualified Jakway.Blackjack.IO.Database as DB
@@ -24,8 +24,9 @@ removeIfExists fileName = removeFile fileName `catch` handleExists
           | isDoesNotExistError e = return ()
           | otherwise = throwIO e
 
-withDatabase name = withConnectionIO (connectSqlite3 name)
-withTestDatabase = withDatabase test_db_name
+withDatabase name = withConnectionIO' (connectSqlite3 name)
+withTestDatabase transaction = removeIfExists test_db_name >> withDatabase test_db_name transaction >> removeIfExists test_db_name
+
 
 
 testOpenDatabase :: Assertion
