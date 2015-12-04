@@ -25,8 +25,8 @@ removeIfExists fileName = removeFile fileName `catch` handleExists
           | otherwise = throwIO e
 
 withDatabase name = withConnectionIO' (connectSqlite3 name)
-withTestDatabase transaction = removeIfExists test_db_name >> withDatabase test_db_name transaction >> removeIfExists test_db_name
-
+withTempDatabase transaction dbName = removeIfExists dbName >> withDatabase dbName transaction >> removeIfExists dbName
+withTestDatabase transaction = withTempDatabase (\conn -> DB.enableForeignKeys conn >> DB.initializeDatabase conn >> commit conn >> transaction conn) test_db_name
 
 
 testOpenDatabase :: Assertion
@@ -38,10 +38,14 @@ testOpenDatabase = withTestDatabase $ (\_ -> do
                     where message = "Database "++test_db_name++" does not exist!"
 
 testTableList :: Assertion
-testTableList =  withTestDatabase $ \conn -> DB.initializeDatabase conn >> commit conn >> getTables conn >>= (\tables -> when (not $ tablesEqual tables) (assertFailure $ message tables))
+testTableList =  withTestDatabase $ \conn -> getTables conn >>= (\tables -> when (not $ tablesEqual tables) (assertFailure $ message tables))
                 where tables = ["cards", "players", "hands", "matches"]
                       -- | in case sqlite adds an extra schema table
                       tablesEqual readTables = (sort tables) == (sort . (delete "sqlite_sequence") $ readTables)
                       message readTables = "Database tables don't match!  Read tables: " ++ (show readTables)
+
+--testInsertPlayers :: Assertion
+--testInsertPlayers = withTestDatabase $ \conn -> do
+                        
 
 tests =  [testCase "testOpenDatabase" testOpenDatabase, testCase "testTableList" testTableList]
