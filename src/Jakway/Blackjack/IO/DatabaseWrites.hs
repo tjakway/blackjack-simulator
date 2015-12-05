@@ -1,4 +1,4 @@
-module Jakway.Blackjack.IO.Database where
+module Jakway.Blackjack.IO.DatabaseWrites where
 
 import Jakway.Blackjack.Visibility
 import Jakway.Blackjack.Cards

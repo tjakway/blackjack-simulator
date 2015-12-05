@@ -10,7 +10,9 @@ import Database.HDBC.Sqlite3
 import Database.HDBC.Session (withConnectionIO')
 import Test.HUnit
 import Control.Monad (liftM, unless)
-import qualified Jakway.Blackjack.IO.Database as DB
+-- |overlapping for convenience--change if necessary
+import qualified Jakway.Blackjack.IO.DatabaseWrites as DB
+import qualified Jakway.Blackjack.IO.DatabaseReads as DB
 import Data.List (sort, delete)
 import Test.Framework
 import Test.Framework.Providers.HUnit
