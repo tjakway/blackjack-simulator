@@ -13,3 +13,15 @@ readPlayers conn = do
         -- |quickQuery' returns [[SqlValue]].  Collapse the list.
         let playerInts = map fromSql (join values)
         return playerInts
+
+readHandStatement :: (IConnection conn) => a -> IO (Statement)
+readHandStatement = undefined
+
+readHand :: Statement -> Int -> IO (Maybe Hand)
+readHand = undefined
+
+readPlayerHands :: (IConnection a) => a -> IO (Statement)
+
+readPlayerHands :: Statement -> Int -> IO (Maybe [Hand])
+readPlayerHands = undefined
+
