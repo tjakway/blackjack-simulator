@@ -14,7 +14,7 @@ readPlayers conn = do
         let playerInts = map fromSql (join values)
         return playerInts
 
-readHandStatement :: (IConnection conn) => a -> IO (Statement)
+readHandStatement :: (IConnection a) => a -> IO (Statement)
 readHandStatement conn = undefined
 
 readHand :: Statement -> Int -> IO (Maybe Hand)
