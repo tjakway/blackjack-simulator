@@ -28,6 +28,7 @@ instance Applicative Visibility where
   (Hidden f) <*> b = fmap f b
   (Shown f) <*> b = fmap f b
 
+-- |Need this instance so we can use Visibility Card in a hashmap
 instance Ord (Visibility Card) where
         compare (Hidden _) (Shown _) = LT
         compare (Shown _) (Hidden _) = GT
