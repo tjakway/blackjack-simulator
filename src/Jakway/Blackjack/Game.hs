@@ -29,7 +29,7 @@ startingHand = do
 
 foldFnSt ai = startingHand >>= play' ai
 
-playGame :: (AI a, AI b) => a -> [b] -> Deck -> Maybe (ScoreRecord, [Result])
+playGame :: AI -> [AI] -> Deck -> Maybe (ScoreRecord, [Result])
 -- |Can't play a game without any players
 playGame dealerAI [] deck = Nothing
 playGame dealerAI allPlayers deck = flip evalState deck $ do
@@ -46,7 +46,7 @@ playGame dealerAI allPlayers deck = flip evalState deck $ do
 -- |returns a tuple of (dealersHand, playerHands, playerResults)
 -- |dealer score record is redundant and not returned (just the opposite of
 -- every Result)
-evalGame :: (AI a, AI b) => a -> [b] -> Deck -> Maybe (Hand, [Hand], [Result])
+evalGame :: AI -> [AI] -> Deck -> Maybe (Hand, [Hand], [Result])
 evalGame dealerAI [] deck = Nothing
 evalGame dealerAI allPlayers deck = flip evalState deck $ do
   dealersStartingHand <- startingHand
@@ -65,7 +65,7 @@ first f (a, b) = (f a, b)
 both :: (a -> b) -> (a, a) -> (b, b)
 both f (a, b) = (f a, f b)
 
-play' :: (AI a) => a -> Hand -> Blackjack Hand
+play' :: AI -> Hand -> Blackjack Hand
 play' ai hand = do
   deck <- get
   let (resultingHand, resDeck) = play ai hand deck
