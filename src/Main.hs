@@ -5,9 +5,11 @@ import Data.Maybe (fromJust)
 import Jakway.Blackjack.AI
 import Jakway.Blackjack.Game
 import Jakway.Blackjack.Cards
+import Jakway.Blackjack.CardOps
 import Jakway.Blackjack.Result
 import Jakway.Blackjack.Visibility
-import Jakway.Blackjack.IO.Database
+import Jakway.Blackjack.IO.DatabaseWrites
+import Jakway.Blackjack.IO.DatabaseReads
 
 {-
 -- |no need to create the empty list of starting records--it'll be
