@@ -1,9 +1,12 @@
+{-# LANGUAGE FlexibleInstances #-}
 module Jakway.Blackjack.Visibility where
 
+import Jakway.Blackjack.Cards
 import Control.Applicative
 import Control.Monad
 
 data Visibility a = Hidden a | Shown a
+                  deriving Eq
 
 unwrapVisibility :: Visibility a -> a
 unwrapVisibility (Hidden a) = a
@@ -24,3 +27,9 @@ instance Applicative Visibility where
   pure = return
   (Hidden f) <*> b = fmap f b
   (Shown f) <*> b = fmap f b
+
+instance Ord (Visibility Card) where
+        compare (Hidden _) (Shown _) = LT
+        compare (Shown _) (Hidden _) = GT
+        compare (Hidden a) (Hidden b) = compare a b
+        compare (Shown a) (Shown b) = compare a b
