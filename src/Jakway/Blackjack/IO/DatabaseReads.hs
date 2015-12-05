@@ -15,14 +15,13 @@ readPlayers conn = do
         return playerInts
 
 readHandStatement :: (IConnection conn) => a -> IO (Statement)
-readHandStatement = undefined
+readHandStatement conn = undefined
 
 readHand :: Statement -> Int -> IO (Maybe Hand)
-readHand = undefined
+readHand statement whichHand = undefined
 
 readPlayerStatement :: (IConnection a) => a -> IO (Statement)
-readPlayerStatement = undefined
+readPlayerStatement conn = undefined
 
 readPlayerHands :: Statement -> Int -> IO (Maybe [Hand])
-readPlayerHands = undefined
-
+readPlayerHands statement whichPlayer = undefined
