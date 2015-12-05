@@ -1,9 +1,5 @@
 module Jakway.Blackjack.Cards where
 
-import Control.Monad.State
-import System.Random
-import System.Random.Shuffle
-
 data Suit
   = Spade 
   | Club 

@@ -3,10 +3,11 @@
 -- has basic type definitions and an instance or two
 module Jakway.Blackjack.CardOps where
 
-
-
 import Jakway.Blackjack.Cards
 import Jakway.Blackjack.Visibility
+import Control.Monad.State
+import System.Random
+import System.Random.Shuffle
 
 --disambiguate between a player's hand and the deck--both are lists of cards
 type Deck = [Card]

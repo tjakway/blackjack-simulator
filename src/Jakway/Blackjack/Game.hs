@@ -1,6 +1,7 @@
 module Jakway.Blackjack.Game where
 
 import Jakway.Blackjack.Cards
+import Jakway.Blackjack.CardOps
 import Jakway.Blackjack.AI
 import Jakway.Blackjack.Result
 import Jakway.Blackjack.Visibility
