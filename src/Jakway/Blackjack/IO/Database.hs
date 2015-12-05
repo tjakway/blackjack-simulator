@@ -2,6 +2,7 @@ module Jakway.Blackjack.IO.Database where
 
 import Jakway.Blackjack.Visibility
 import Jakway.Blackjack.Cards
+import Jakway.Blackjack.CardOps
 import Database.HDBC
 import Data.Maybe (fromJust)
 import qualified Data.Map.Strict as HashMap

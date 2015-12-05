@@ -1,4 +1,3 @@
-{-# LANGUAGE FlexibleInstances #-}
 module Jakway.Blackjack.Cards where
 
 import Control.Monad.State

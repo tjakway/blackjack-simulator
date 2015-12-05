@@ -1,7 +1,7 @@
 -- |This module exists to break the dependency cycle between Visibility and
 -- Cards.  It has logic that acts on cards, but Jakway.Blackjack.Cards only
 -- has basic type definitions and an instance or two
-module Jakway.Blackjack.CardsOps where
+module Jakway.Blackjack.CardOps where
 
 
 
@@ -37,7 +37,6 @@ infiniteShuffledDeck :: (RandomGen a) => a -> Deck
 infiniteShuffledDeck gen = shuffledDeck ++ infiniteShuffledDeck gen
   where shuffledDeck = shuffleDeck gen newDeck
 
-
 -- |draws 1 card and returns a tuple of that card and the resulting deck
 -- this function intentionally DOES NOT pattern match on []--the deck is
 -- supposed to be infinite so if we got an empty list it's a bug
@@ -46,7 +45,6 @@ drawCard = do
   card <- gets head
   modify tail
   return card
-
 
 drawCard' :: Deck -> (Card, Deck)
 drawCard' (x:xs) = (x, xs)
