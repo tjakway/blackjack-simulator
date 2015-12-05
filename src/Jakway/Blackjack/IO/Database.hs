@@ -3,6 +3,7 @@ module Jakway.Blackjack.IO.Database where
 import Jakway.Blackjack.Visibility
 import Jakway.Blackjack.Cards
 import Database.HDBC
+import qualified Data.Map.Strict as HashMap
 
 enableForeignKeys :: IConnection a => a -> IO Integer
 enableForeignKeys conn = run conn "PRAGMA foreign_keys = ON;" []
@@ -35,9 +36,16 @@ singleCardToSqlValues :: Visibility Card -> [SqlValue]
 singleCardToSqlValues (Shown (Card suit val))   = (cardSqlArr suit val) ++ [iToSql 0]
 singleCardToSqlValues (Hidden (Card suit val))  = (cardSqlArr suit val) ++ [iToSql 1]
 
+cardPermutations :: [Visibility Card]
+cardPermutations = (Shown <$> newDeck) ++ (Hidden <$> newDeck) 
+
+cardIdMap :: HashMap.Map Int (Visibility Card)
+cardIdMap = HashMap.fromList $ zip ids cardPermutations
+    where ids = [1..(length cardPermutations)]
+
 cardsSqlValues :: [[SqlValue]]
 cardsSqlValues = map (\ (id, cardSqlValues) -> (toSql id) : cardSqlValues) (zip ids cardsWithoutIds)
-    where cardsWithoutIds = singleCardToSqlValues <$> (Shown <$> newDeck) ++ (Hidden <$> newDeck) 
+    where cardsWithoutIds = singleCardToSqlValues <$> cardPermutations
           -- |SQL ids count up from 1
           ids = [1..(length cardsWithoutIds)]
 
