@@ -3,6 +3,7 @@ module Jakway.Blackjack.IO.Database where
 import Jakway.Blackjack.Visibility
 import Jakway.Blackjack.Cards
 import Database.HDBC
+import Data.Maybe (fromJust)
 import qualified Data.Map.Strict as HashMap
 
 enableForeignKeys :: IConnection a => a -> IO Integer
@@ -39,9 +40,13 @@ singleCardToSqlValues (Hidden (Card suit val))  = (cardSqlArr suit val) ++ [iToS
 cardPermutations :: [Visibility Card]
 cardPermutations = (Shown <$> newDeck) ++ (Hidden <$> newDeck) 
 
-cardIdMap :: HashMap.Map Int (Visibility Card)
-cardIdMap = HashMap.fromList $ zip ids cardPermutations
+cardIdMap :: HashMap.Map (Visibility Card) Int
+cardIdMap = HashMap.fromList $ zip cardPermutations ids
     where ids = [1..(length cardPermutations)]
+
+
+cardToForeignKeyId :: Visibility Card -> Maybe Int
+cardToForeignKeyId card = HashMap.lookup card cardIdMap
 
 cardsSqlValues :: [[SqlValue]]
 cardsSqlValues = map (\ (id, cardSqlValues) -> (toSql id) : cardSqlValues) (zip ids cardsWithoutIds)
@@ -67,16 +72,29 @@ insertPlayers conn numPlayers = insertPlayerStatement conn >>= (\insertStatement
 insertHandStatement :: (IConnection a) => a -> IO (Statement)
 insertHandStatement conn = prepare conn "INSERT INTO hands(whichPlayer, whichHand, thisCard) VALUES(?, ?, ?)"
 
-nextHandId :: (IConnection a) => a -> IO Int
+-- |need this function because insertHand returns the whichHand value of the inserted
+-- hand
+-- there are many fewer whichHand values than id values because one hand is
+-- spread over many columns (one per card)
+nextHandId :: (IConnection a) => a -> IO (Int)
 nextHandId conn = do
                     resArray <- quickQuery' conn "SELECT MAX(whichHand) FROM hands" []
                     let res = ((resArray !! 0) !! 0)
                     if res == SqlNull then return 0
                                       else return . fromSql $ res
 
-insertHand :: (IConnection a) => Statement -> a -> Int -> IO (Int)
--- use the connection to figure out what ID to assign this hand
+insertHand :: (IConnection a) => Statement -> a -> Int -> Hand -> IO (Int)
+-- use the connection to figure out what whichHand ID to assign this hand
+-- (this is NOT the database id column!)
 -- before running this, need to build the cards table, then run
 -- insertHandStatement once for every card in this hand, passing the rowId
 -- of the corresponding card for thisCard 
-insertHand statement conn whichPlayer = undefined
+insertHand insertStatement conn whichPlayer hand = do
+        handId <- nextHandId conn
+        -- |if cardtoForeignKeyId returns Nothing it's an unrecoverable
+        -- error anyways
+        let values = map (\thisCard -> [toSql whichPlayer, toSql handId, toSql $ fromJust $ cardToForeignKeyId thisCard]) hand
+        executeMany insertStatement values
+        -- return the handId we inserted
+        -- you can get the hand back by querying all rows where whichHand == handId
+        return handId
