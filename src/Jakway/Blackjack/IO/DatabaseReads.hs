@@ -20,7 +20,8 @@ readHandStatement = undefined
 readHand :: Statement -> Int -> IO (Maybe Hand)
 readHand = undefined
 
-readPlayerHands :: (IConnection a) => a -> IO (Statement)
+readPlayerStatement :: (IConnection a) => a -> IO (Statement)
+readPlayerStatement = undefined
 
 readPlayerHands :: Statement -> Int -> IO (Maybe [Hand])
 readPlayerHands = undefined
