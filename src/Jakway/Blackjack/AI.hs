@@ -1,7 +1,6 @@
 module Jakway.Blackjack.AI where
 
 import Jakway.Blackjack.Visibility
-import Jakway.Blackjack.Cards
 import Jakway.Blackjack.CardOps
 import Jakway.Blackjack.Points
 import Control.Monad.State
