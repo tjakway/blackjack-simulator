@@ -13,7 +13,7 @@ flipInner2 f x y z = f x z y
 createTables :: IConnection a => a -> IO ()
 createTables conn =
             sequence_ $ map (flipInner2 run conn []) createTableStatements
-        where createTableStatements = [ "CREATE TABLE cards (id INTEGER PRIMARY KEY AUTOINCREMENT, cardValue INTEGER NOT NULL, suit INTEGER NOT NULL, visibile INTEGER NOT NULL)",
+        where createTableStatements = [ "CREATE TABLE cards (id INTEGER PRIMARY KEY AUTOINCREMENT, cardValue INTEGER NOT NULL, suit INTEGER NOT NULL, visible INTEGER NOT NULL)",
                                       -- ^ Sqlite doesn't have a boolean
                                       -- data type, see https://www.sqlite.org/datatype3.html and http://stackoverflow.com/questions/843780/store-boolean-value-in-sqlite
                                         "CREATE TABLE players (whichPlayer INTEGER PRIMARY KEY)",
@@ -26,22 +26,27 @@ initializeDatabase conn = enableForeignKeys conn >> createTables conn
 
 insertCardStatement :: (IConnection a) => a -> IO (Statement)
 --ignore the id field
-insertCardStatement conn = prepare conn "INSERT INTO cards(cardValue, suit) VALUES(?, ?)"
+insertCardStatement conn = prepare conn "INSERT INTO cards(id, cardValue, suit, visible) VALUES(?, ?, ?, ?)"
 
 -- | XXX: for some reason this function wouldn't work in a where binding?
 cardSqlArr :: Suit -> CardValue -> [SqlValue]
 cardSqlArr s v = [toSql . fromEnum $ v, toSql . fromEnum $ s]
-cardToSqlValues :: Visibility Card -> [SqlValue]
-cardToSqlValues (Shown (Card suit val))   = (cardSqlArr suit val) ++ [iToSql 0]
-cardToSqlValues (Hidden (Card suit val))  = (cardSqlArr suit val) ++ [iToSql 1]
+singleCardToSqlValues :: Visibility Card -> [SqlValue]
+singleCardToSqlValues (Shown (Card suit val))   = (cardSqlArr suit val) ++ [iToSql 0]
+singleCardToSqlValues (Hidden (Card suit val))  = (cardSqlArr suit val) ++ [iToSql 1]
+
+cardsSqlValues :: [[SqlValue]]
+cardsSqlValues = map (\ (id, cardSqlValues) -> (toSql id) : cardSqlValues) (zip ids cardsWithoutIds)
+    where cardsWithoutIds = singleCardToSqlValues <$> (Shown <$> newDeck) ++ (Hidden <$> newDeck) 
+          -- |SQL ids count up from 1
+          ids = [1..(length cardsWithoutIds)]
 
 
 insertAllCards :: (IConnection a) => a -> IO ()
 insertAllCards conn = do 
-                         let cardSqlValues = cardToSqlValues <$> (Shown <$> newDeck) ++ (Hidden <$> newDeck) 
-                             -- ^ newDeck is a (sorted) array of all possible card values
+                         -- ^ newDeck is a (sorted) array of all possible card values
                          insertStatement <- insertCardStatement conn
-                         executeMany insertStatement cardSqlValues
+                         executeMany insertStatement cardsSqlValues
 
 insertPlayerStatement :: (IConnection a) => a -> IO (Statement)
 insertPlayerStatement conn = prepare conn "INSERT INTO players(whichPlayer) VALUES(?)"
