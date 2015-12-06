@@ -6,7 +6,7 @@ import Control.Applicative
 import Control.Monad
 
 data Visibility a = Hidden a | Shown a
-                  deriving Eq
+                  deriving (Eq, Show)
 
 unwrapVisibility :: Visibility a -> a
 unwrapVisibility (Hidden a) = a
