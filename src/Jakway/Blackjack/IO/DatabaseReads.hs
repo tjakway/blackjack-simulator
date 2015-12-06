@@ -21,7 +21,7 @@ readPlayers conn = do
 readHandStatement :: (IConnection a) => a -> IO (Statement)
 readHandStatement conn = prepare conn "SELECT thisCard FROM hands WHERE whichHand=?"
 
-readHand :: Statement -> Int -> IO (Maybe Hand)
+readHand :: Statement -> Integer -> IO (Maybe Hand)
 readHand statement whichHand = do
         execute statement [toSql whichHand]
         handRows <- fetchAllRows' statement
