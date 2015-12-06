@@ -85,5 +85,6 @@ testInsertOneHand = withTestDatabase $ \conn -> do
        case res of Nothing -> assertFailure "Could not read hand id!"
                    Just resHand -> assertEqual "" hand resHand
 
+--testInsertHands :: [Hand] -> Assertion
 
-tests =  [testCase "testOpenDatabase" testOpenDatabase, testCase "testTableList" testTableList, testCase "testInsertPlayers" testInsertPlayers]
+tests =  [testCase "testOpenDatabase" testOpenDatabase, testCase "testTableList" testTableList, testCase "testInsertPlayers" testInsertPlayers, testCase "testInsertOneHand" testInsertOneHand]
