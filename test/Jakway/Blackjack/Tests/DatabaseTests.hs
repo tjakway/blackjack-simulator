@@ -13,6 +13,8 @@ import Control.Monad (liftM, unless)
 -- |overlapping for convenience--change if necessary
 import qualified Jakway.Blackjack.IO.DatabaseWrites as DB
 import qualified Jakway.Blackjack.IO.DatabaseReads as DB
+import Jakway.Blackjack.Cards
+import Jakway.Blackjack.Visibility
 import Data.List (sort, delete)
 import Test.Framework
 import Test.Framework.Providers.HUnit
@@ -68,5 +70,20 @@ testInsertPlayers = withTestDatabase $ \conn -> do
                         numPlayerRows <- getNumPlayers conn
                         let message = "numPlayerRows is "++(show numPlayerRows)++" (should be"++(show numPlayers)++")"
                         assertBool message (numPlayers == numPlayerRows) 
+
+testInsertOneHand :: Assertion
+testInsertOneHand = withTestDatabase $ \conn -> do
+       let whichPlayer = 1
+       DB.insertPlayers conn 2
+       let hand = [Hidden (Card Spade Ace), Shown (Card Diamond King)] 
+       insertStatement <- DB.insertHandStatement conn
+       whichHand <- DB.insertHand insertStatement conn whichPlayer hand
+       commit conn
+
+       readStatement <- DB.readHandStatement conn 
+       res <- DB.readHand readStatement whichHand
+       case res of Nothing -> assertFailure "Could not read hand id!"
+                   Just resHand -> assertEqual "" hand resHand
+
 
 tests =  [testCase "testOpenDatabase" testOpenDatabase, testCase "testTableList" testTableList, testCase "testInsertPlayers" testInsertPlayers]
