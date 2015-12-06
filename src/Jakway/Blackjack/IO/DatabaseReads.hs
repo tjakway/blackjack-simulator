@@ -1,5 +1,6 @@
 module Jakway.Blackjack.IO.DatabaseReads where
 
+import Prelude hiding (lookup)
 import Jakway.Blackjack.Visibility
 import Jakway.Blackjack.Cards
 import Jakway.Blackjack.CardOps
@@ -24,7 +25,8 @@ readHand :: Statement -> Int -> IO (Maybe Hand)
 readHand statement whichHand = do
         execute statement [toSql whichHand]
         handRows <- fetchAllRows' statement
-        let cardIds = join handRows
+        let cardIds = (map fromSql (join handRows)) :: [Int]
+        return $ Just $ foldr (\thisId hand -> (fromJust $ HashMap.lookup thisId idCardMap) : hand) [] cardIds
 
 
 readPlayerStatement :: (IConnection a) => a -> IO (Statement)

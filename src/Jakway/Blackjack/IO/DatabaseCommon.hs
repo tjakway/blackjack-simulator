@@ -8,8 +8,8 @@ import Data.Maybe (fromJust)
 import qualified Data.Map.Strict as HashMap
 
 -- |reverse operation of cardToForeignId
-foreignKeyIdToCard :: Int -> Visibility Card
-foreignKeyIdToCard id = fromJust $ lookup id idCardMap
+foreignKeyIdToCard :: Int -> Maybe (Visibility Card)
+foreignKeyIdToCard id = HashMap.lookup id idCardMap
 
 
 -- | XXX: for some reason this function wouldn't work in a where binding?
