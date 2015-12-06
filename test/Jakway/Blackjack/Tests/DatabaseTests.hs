@@ -14,6 +14,9 @@ import Control.Monad (liftM, unless)
 import qualified Jakway.Blackjack.IO.DatabaseWrites as DB
 import qualified Jakway.Blackjack.IO.DatabaseReads as DB
 import Jakway.Blackjack.Cards
+import Jakway.Blackjack.CardOps
+import Control.Monad (when)
+import Data.Maybe (fromJust)
 import Jakway.Blackjack.Visibility
 import Data.List (sort, delete)
 import Test.Framework
@@ -85,6 +88,27 @@ testInsertOneHand = withTestDatabase $ \conn -> do
        case res of Nothing -> assertFailure "Could not read hand id!"
                    Just resHand -> assertEqual "" hand resHand
 
---testInsertHands :: [Hand] -> Assertion
+testInsertHands :: (IConnection a) => a -> Int -> [Hand] -> Assertion
+testInsertHands conn whichPlayer hands
+                            | whichPlayer < 0 = assertFailure ("Invalid player id: "++ (show whichPlayer))
+                            | hands == [] = assertFailure "Attempted to insert empty list of hands"
+                            | otherwise = do
+                                -- |insert the ids then read them back from
+                                -- the DB
+                                insertStatement <- DB.insertHandStatement conn
+                                handIds <- DB.insertHands insertStatement conn whichPlayer hands
+                                commit conn
+
+                                readStatement <- DB.readHandStatement conn
+                                res <- sequence $ map (DB.readHand readStatement) handIds
+                                --make sure there weren't any problems
+                                when (res `elem` Nothing) $ assertFailure "failed to insert a hand!"
+
+                                --unwrap the maybes
+                                let readHands = map fromJust res
+                                assertBool "Ought to have read the same hands we inserted into the database" ((sort hands) == (sort readHands))
+
+
+                                
 
 tests =  [testCase "testOpenDatabase" testOpenDatabase, testCase "testTableList" testTableList, testCase "testInsertPlayers" testInsertPlayers, testCase "testInsertOneHand" testInsertOneHand]
