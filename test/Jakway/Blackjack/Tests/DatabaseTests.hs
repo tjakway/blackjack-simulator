@@ -21,6 +21,9 @@ import Jakway.Blackjack.Visibility
 import Data.List (sort, delete)
 import Test.Framework
 import Test.Framework.Providers.HUnit
+import System.Random
+import Control.Monad.State
+import Jakway.Blackjack.Game
 
 test_db_name = "tmp_test.db"
 
@@ -87,6 +90,29 @@ testInsertOneHand = withTestDatabase $ \conn -> do
        res <- DB.readHand readStatement whichHand
        case res of Nothing -> assertFailure "Could not read hand id!"
                    Just resHand -> assertEqual "" hand resHand
+
+testInsertRandStartingHands :: Assertion
+testInsertRandStartingHands = withTestDatabase $ \conn -> do
+       let whichPlayer = 0
+       DB.insertPlayers conn 2
+       commit conn
+
+       --insert between 10 and 100 hands
+       numHands <- randomRIO (10, 100)
+       gen <- getStdGen
+       let deck = infiniteShuffledDeck gen
+       
+        --redo this into a fold (without the state monad), using the fold
+        --to replace each previous deck (and passing in the shuffled deck
+        --as the starting value)
+        --make it a tuple of ([[Hand]], Deck)--fst is the list of hands
+        --you're accumulating, snd is the state of the current deck
+       let hands = flip evalState deck $ do
+            foldr (\_ drawnHands -> startingHand >>= (\thisHand -> thisHand : drawnHands)) [] [1..numHands]
+            -- ^ first argument is the dummy counter, ignore it
+
+       testInsertHands 
+       return ()
 
 testInsertHands :: (IConnection a) => a -> Int -> [Hand] -> Assertion
 testInsertHands conn whichPlayer hands
