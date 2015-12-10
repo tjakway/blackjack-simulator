@@ -100,6 +100,3 @@ insertHands insertStatement conn whichPlayer hands = do
        let values = map (\(thisHandId, thisHand) -> handToSqlValues whichPlayer thisHandId thisHand) $ zip handIds hands
        sequence $ map (executeMany insertStatement) values
        return handIds
-       
-
-
