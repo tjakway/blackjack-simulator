@@ -24,6 +24,7 @@ import Test.Framework.Providers.HUnit
 import System.Random
 import Control.Monad.State
 import Jakway.Blackjack.Game
+import Data.Monoid (mempty)
 
 test_db_name = "tmp_test.db"
 
@@ -107,11 +108,16 @@ testInsertRandStartingHands = withTestDatabase $ \conn -> do
         --as the starting value)
         --make it a tuple of ([[Hand]], Deck)--fst is the list of hands
         --you're accumulating, snd is the state of the current deck
-       let hands = flip evalState deck $ do
-            foldr (\_ drawnHands -> startingHand >>= (\thisHand -> thisHand : drawnHands)) [] [1..numHands]
-            -- ^ first argument is the dummy counter, ignore it
+        
+        --don't need the state monad here--use a fold to keep track of
+        --state
+       let hands= fst $ foldr (\_ (accumulatedHands, thisDeck) -> let (drawnHand, resDeck) = runState startingHand thisDeck
+               in (drawnHand : accumulatedHands, resDeck)) mempty ([1..numHands] :: [Int])
+               -- ^ start with an empty list of hands
+       --let hands = flip evalState deck $ do
+       --     foldr (\_ drawnHands -> startingHand >>= (\thisHand -> thisHand : drawnHands)) [] [1..numHands]
 
-       testInsertHands 
+       testInsertHands conn whichPlayer hands
        return ()
 
 testInsertHands :: (IConnection a) => a -> Int -> [Hand] -> Assertion
