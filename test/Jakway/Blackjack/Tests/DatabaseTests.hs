@@ -101,11 +101,11 @@ testInsertRandStartingHands = withTestDatabase $ \conn -> do
        --insert between 10 and 100 hands
        numHands <- randomRIO (10, 100)
        gen <- getStdGen
-       let deck = infiniteShuffledDeck gen
+       let startingDeck = infiniteShuffledDeck gen
        
         --don't need the state monad here--use a fold to keep track of state
        let hands= fst $ foldr (\_ (accumulatedHands, thisDeck) -> let (drawnHand, resDeck) = runState startingHand thisDeck
-               in (drawnHand : accumulatedHands, resDeck)) mempty ([1..numHands] :: [Int])
+               in (drawnHand : accumulatedHands, resDeck)) (mempty, startingDeck) ([1..numHands] :: [Int])
                -- ^ start with an empty list of hands
 
        testInsertHands conn whichPlayer hands
@@ -134,4 +134,4 @@ testInsertHands conn whichPlayer hands
 
                                 
 
-tests =  [testCase "testOpenDatabase" testOpenDatabase, testCase "testTableList" testTableList, testCase "testInsertPlayers" testInsertPlayers, testCase "testInsertOneHand" testInsertOneHand]
+tests =  [testCase "testOpenDatabase" testOpenDatabase, testCase "testTableList" testTableList, testCase "testInsertPlayers" testInsertPlayers, testCase "testInsertOneHand" testInsertOneHand, testCase "testInsertRandStartingHands" testInsertRandStartingHands]
