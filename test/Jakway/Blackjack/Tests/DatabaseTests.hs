@@ -103,19 +103,10 @@ testInsertRandStartingHands = withTestDatabase $ \conn -> do
        gen <- getStdGen
        let deck = infiniteShuffledDeck gen
        
-        --redo this into a fold (without the state monad), using the fold
-        --to replace each previous deck (and passing in the shuffled deck
-        --as the starting value)
-        --make it a tuple of ([[Hand]], Deck)--fst is the list of hands
-        --you're accumulating, snd is the state of the current deck
-        
-        --don't need the state monad here--use a fold to keep track of
-        --state
+        --don't need the state monad here--use a fold to keep track of state
        let hands= fst $ foldr (\_ (accumulatedHands, thisDeck) -> let (drawnHand, resDeck) = runState startingHand thisDeck
                in (drawnHand : accumulatedHands, resDeck)) mempty ([1..numHands] :: [Int])
                -- ^ start with an empty list of hands
-       --let hands = flip evalState deck $ do
-       --     foldr (\_ drawnHands -> startingHand >>= (\thisHand -> thisHand : drawnHands)) [] [1..numHands]
 
        testInsertHands conn whichPlayer hands
        return ()
