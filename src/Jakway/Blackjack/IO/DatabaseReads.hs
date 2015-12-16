@@ -26,7 +26,10 @@ readHand statement whichHand = do
         execute statement [toSql whichHand]
         handRows <- fetchAllRows' statement
         let cardIds = (map fromSql (join handRows)) :: [Int]
-        return $ Just $ foldr (\thisId hand -> (fromJust $ HashMap.lookup thisId idCardMap) : hand) [] cardIds
+        return $ Just $ foldr (\thisId hand -> let card = getCard thisId in
+                              case hand of [] -> return card
+                                           _  ->  card : hand) [] cardIds
+        where getCard thisId = (fromJust $ HashMap.lookup thisId idCardMap)
 
 
 readPlayerStatement :: (IConnection a) => a -> IO (Statement)

@@ -35,15 +35,14 @@ removeIfExists fileName = removeFile fileName `catch` handleExists
           | isDoesNotExistError e = return ()
           | otherwise = throwIO e
 
--- |run the 
-withDatabase name = withConnectionIO' (connectSqlite3 name)
+withDatabase name = withConnectionIO' (connectSqlite3 name) 
 
 -- |run a transaction on a database that will be deleted before and after running it
 withTempDatabase transaction dbName = removeIfExists dbName >> withDatabase dbName transaction >> removeIfExists dbName
 
 -- |initialize the database then run the transaction
 -- don't forget to commit!
-withTestDatabase transaction = withTempDatabase (\conn -> DB.enableForeignKeys conn >> DB.initializeDatabase conn >> commit conn >> transaction conn) test_db_name
+withTestDatabase transaction = withTempDatabase (\conn -> DB.enableForeignKeys conn >> DB.initializeDatabase conn >> DB.insertAllCards conn >> commit conn >> transaction conn) test_db_name
 
 
 testOpenDatabase :: Assertion
@@ -123,6 +122,7 @@ testInsertHands conn whichPlayer hands
                                 commit conn
 
                                 readStatement <- DB.readHandStatement conn
+                                commit conn
                                 res <- sequence $ map (DB.readHand readStatement) handIds
                                 --make sure there weren't any problems
                                 when (res `elem` Nothing) $ assertFailure "failed to insert a hand!"
