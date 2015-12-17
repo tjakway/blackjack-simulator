@@ -38,3 +38,12 @@ oppositeResult :: Result -> Result
 oppositeResult Win = Lose
 oppositeResult Tie = Tie
 oppositeResult Lose = Win
+
+-- |no need to create the empty list of starting records--it'll be
+-- generated automatically
+foldOverResults :: [ScoreRecord] -> [Result] -> [ScoreRecord]
+foldOverResults [] results = foldOverResults (flip replicate mempty . length $ results) results 
+foldOverResults startingRecords [] = startingRecords
+foldOverResults startingRecords results = map (\(thisRecord, thisScore) -> thisRecord `addResult` thisScore) zippedArgs
+                    where zippedArgs = zip startingRecords results
+                          -- ^ TODO: come up with a better name...
