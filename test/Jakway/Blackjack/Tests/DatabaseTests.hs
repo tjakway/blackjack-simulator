@@ -110,6 +110,23 @@ testInsertRandStartingHands = withTestDatabase $ \conn -> do
        testInsertHands conn whichPlayer hands
        return ()
 
+testInsertThreeCardHand :: Assertion
+testInsertThreeCardHand = withTestDatabase $ \conn -> do
+       let whichPlayer = 0
+       DB.insertPlayers conn 2
+       commit conn
+
+       gen <- getStdGen
+       let deck = infiniteShuffledDeck gen
+       let hand = return $ flip evalState deck $ do
+           firstCard <- drawCard
+           secondCard <- drawCard
+           thirdCard <- drawCard
+           return [Hidden firstCard, Shown secondCard, Hidden thirdCard]
+
+       testInsertHands conn 1 hand
+    
+
 testInsertHands :: (IConnection a) => a -> Int -> [Hand] -> Assertion
 testInsertHands conn whichPlayer hands
                             | whichPlayer < 0 = assertFailure ("Invalid player id: "++ (show whichPlayer))
@@ -134,4 +151,4 @@ testInsertHands conn whichPlayer hands
 
                                 
 
-tests =  [testCase "testOpenDatabase" testOpenDatabase, testCase "testTableList" testTableList, testCase "testInsertPlayers" testInsertPlayers, testCase "testInsertOneHand" testInsertOneHand, testCase "testInsertRandStartingHands" testInsertRandStartingHands]
+tests =  [testCase "testOpenDatabase" testOpenDatabase, testCase "testTableList" testTableList, testCase "testInsertPlayers" testInsertPlayers, testCase "testInsertOneHand" testInsertOneHand, testCase "testInsertRandStartingHands" testInsertRandStartingHands, testCase "testInsertThreeCardHand" testInsertThreeCardHand]
