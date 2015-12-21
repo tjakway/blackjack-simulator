@@ -100,3 +100,19 @@ insertHands insertStatement conn whichPlayer hands = do
        let values = map (\(thisHandId, thisHand) -> handToSqlValues whichPlayer thisHandId thisHand) $ zip handIds hands
        sequence $ map (executeMany insertStatement) values
        return handIds
+
+-- |like nextHandId but for whichGame
+nextGameId :: (IConnection a) => a -> IO (Integer)
+nextGameId conn = do
+                    resArray <- quickQuery' conn "SELECT MAX(whichGame) FROM matches" []
+                    let res = ((resArray !! 0) !! 0)
+                    if res == SqlNull then return 0
+                                      else return . (+1) . fromSql $ res
+
+insertMatchStatement :: (IConnection a) => a -> IO (Statement)
+insertMatchStatement conn = prepare conn "INSERT INTO matches (whichGame, dealersHand, thisPlayersHand, playerResult) VALUES(?, ?, ?, ?)"
+
+insertMatch :: (IConnection a) => a -> Statement -> Hand -> ([Hand], [Result]) -> IO ()
+insertMatch conn insertStatement dealersHand (playerHands, playerResults) = do
+    nextGameId <- nextGameId conn
+
