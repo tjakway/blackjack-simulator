@@ -115,8 +115,9 @@ nextGameId conn = do
 insertMatchStatement :: (IConnection a) => a -> IO (Statement)
 insertMatchStatement conn = prepare conn "INSERT INTO matches (whichGame, dealersHand, thisPlayersHand, playerResult) VALUES(?, ?, ?, ?)"
 
-insertMatch :: (IConnection a) => Statement -> Statement -> a -> Hand -> ([Hand], [Result]) -> IO ()
-insertMatch insertMatchStatement insertHandStatement conn dealersHand (playerHands, playerResults) = do
-    nextGameId <- nextGameId conn
-    map (insertHands insertHandStatement conn ) playerHands
+insertMatch :: (IConnection a) => Statement -> Statement -> a -> Hand -> ([Hand], [Int], [Result]) -> IO ()
+insertMatch insertMatchStatement insertHandStatement conn dealersHand (playerHands, playerIds, playerResults) = do
+    gameId <- nextGameId conn
+    insertedHandIds <- sequence . map (insertHands insertHandStatement conn) $ zip playerHands playerIds
+    
 
