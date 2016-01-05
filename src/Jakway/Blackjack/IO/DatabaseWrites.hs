@@ -86,9 +86,12 @@ insertHand insertStatement conn whichPlayer hand = do
         return handId
 
 
-insertHands :: (IConnection a) => Statement -> a -> Int -> [Hand] -> IO ([Integer])
-insertHands insertStatement conn whichPlayer [] = return []
-insertHands insertStatement conn whichPlayer hands = do
+{-FIXME: NEED TO CHANGE whichPlayer to whichPlayers
+    When inserting multiple hands, need to have the player id for each hand too-}
+-- |Should this return the player ids with each hand id in a tuple?
+insertHands :: (IConnection a) => Statement -> a -> ([Int], [Hand]) -> IO ([Integer])
+insertHands insertStatement conn (whichPlayers, []) = return []
+insertHands insertStatement conn (whichPlayers, hands) = do
        handId <- nextHandId conn
        -- |don't query the database for hand we'll insert
        -- since nextHandId just returns the next highest available hand ID
@@ -112,7 +115,8 @@ nextGameId conn = do
 insertMatchStatement :: (IConnection a) => a -> IO (Statement)
 insertMatchStatement conn = prepare conn "INSERT INTO matches (whichGame, dealersHand, thisPlayersHand, playerResult) VALUES(?, ?, ?, ?)"
 
-insertMatch :: (IConnection a) => a -> Statement -> Hand -> ([Hand], [Result]) -> IO ()
-insertMatch conn insertStatement dealersHand (playerHands, playerResults) = do
+insertMatch :: (IConnection a) => Statement -> Statement -> a -> Hand -> ([Hand], [Result]) -> IO ()
+insertMatch insertMatchStatement insertHandStatement conn dealersHand (playerHands, playerResults) = do
     nextGameId <- nextGameId conn
+    map (insertHands insertHandStatement conn ) playerHands
 
