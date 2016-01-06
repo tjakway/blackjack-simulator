@@ -88,9 +88,8 @@ insertHand insertStatement conn whichPlayer hand = do
         return handId
 
 
-{-FIXME: NEED TO CHANGE whichPlayer to whichPlayers
-    When inserting multiple hands, need to have the player id for each hand too-}
 -- |Should this return the player ids with each hand id in a tuple?
+-- FIXME: change the tuple to 2 separate parameters
 insertHands :: (IConnection a) => Statement -> a -> ([Int], [Hand]) -> IO ([Integer])
 insertHands insertStatement conn (whichPlayers, []) = return []
 insertHands insertStatement conn (whichPlayers, hands) = do
