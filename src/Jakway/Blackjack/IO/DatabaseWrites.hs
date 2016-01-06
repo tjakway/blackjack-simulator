@@ -118,12 +118,12 @@ insertMatchStatement :: (IConnection a) => a -> IO (Statement)
 insertMatchStatement conn = prepare conn "INSERT INTO matches (whichGame, dealersHand, whichPlayer, thisPlayersHand, playerResult) VALUES(?, ?, ?, ?, ?)"
 
 insertMatch :: (IConnection a) => Statement -> Statement -> a -> Hand -> ([Hand], [Int], [Result]) -> IO ()
-insertMatch insertMatchStatement insertHandStatement conn dealersHand (playerHands, playerIds, playerResults) = do
+insertMatch insMatchStatement insHandStatement conn dealersHand (playerHands, playerIds, playerResults) = do
     gameId <- nextGameId conn
 
     --FIXME: dealer's ID is assumed to be 0!  Change if rewriting this
-    dealersHandId <- insertHand insertHandStatement conn 0 dealersHand
+    dealersHandId <- insertHand insHandStatement conn 0 dealersHand
 
-    insertedHandIds <- insertHands insertHandStatement conn (playerIds, playerHands)
+    insertedHandIds <- insertHands insHandStatement conn (playerIds, playerHands)
     let values = map (\(hId, pId, pRes) -> map toSql $ [gameId, dealersHandId, hId, toInteger pId, toInteger . fromEnum $ pRes]) $ zip3 insertedHandIds playerIds playerResults
-    executeMany insertMatchStatement values
+    executeMany insMatchStatement values
