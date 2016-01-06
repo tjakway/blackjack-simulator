@@ -135,7 +135,9 @@ testInsertHands conn whichPlayer hands
                                 -- |insert the ids then read them back from
                                 -- the DB
                                 insertStatement <- DB.insertHandStatement conn
-                                handIds <- DB.insertHands insertStatement conn whichPlayer hands
+                                --player ids don't really matter here
+                                let playerIds = replicate (length hands) whichPlayer
+                                handIds <- DB.insertHands insertStatement conn (playerIds, hands)
                                 commit conn
 
                                 readStatement <- DB.readHandStatement conn
