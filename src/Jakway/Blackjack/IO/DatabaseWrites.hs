@@ -126,4 +126,4 @@ insertMatch insertMatchStatement insertHandStatement conn dealersHand (playerHan
 
     insertedHandIds <- insertHands insertHandStatement conn (playerIds, playerHands)
     let values = map (\(hId, pId, pRes) -> map toSql $ [gameId, dealersHandId, hId, toInteger pId, toInteger . fromEnum $ pRes]) $ zip3 insertedHandIds playerIds playerResults
-    mapM_ (executeMany insertMatchStatement) values
+    executeMany insertMatchStatement values
