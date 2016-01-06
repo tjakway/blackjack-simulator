@@ -15,8 +15,7 @@ readPlayers :: (IConnection a) => a -> IO ([Int])
 readPlayers conn = do
         values <- quickQuery' conn "SELECT whichPlayer FROM players" []
         -- |quickQuery' returns [[SqlValue]].  Collapse the list.
-        let playerInts = map fromSql (join values)
-        return playerInts
+        (return . (map fromSql)) (join values)
 
 readHandStatement :: (IConnection a) => a -> IO (Statement)
 readHandStatement conn = prepare conn "SELECT thisCard FROM hands WHERE whichHand=?"
@@ -31,20 +30,8 @@ readHand statement whichHand = do
                                            _  ->  card : hand) [] cardIds
         where getCard thisId = (fromJust $ HashMap.lookup thisId idCardMap)
 
-
-readPlayerStatement :: (IConnection a) => a -> IO (Statement)
-readPlayerStatement conn = prepare conn "SELECT whichPlayer FROM players"
-
-readPlayers :: Statement -> IO ([Int])
-readPlayers statement = do
-        execute statement []
-        --could this be replaced with a single line
-        --return . join . fetchAllRows' $ statement  ?
-        playerRows <- join $ fetchAllRows' statement
-        return playerRows
-
 readPlayerHands :: Statement -> Int -> IO (Maybe [Hand])
 readPlayerHands statement whichPlayer = undefined
 
 readMatchStatement :: (IConnection a) => a -> IO (Statement)
-readMatchStatement conn = undefined
+readMatchStatement conn = prepare conn "SELECT "
