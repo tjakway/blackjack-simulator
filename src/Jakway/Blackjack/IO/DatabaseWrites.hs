@@ -124,6 +124,6 @@ insertMatch insertMatchStatement insertHandStatement conn dealersHand (playerHan
     --FIXME: dealer's ID is assumed to be 0!  Change if rewriting this
     dealersHandId <- insertHand insertHandStatement conn 0 dealersHand
 
-    insertedHandIds <- sequence . map (insertHands insertHandStatement conn) $ zip playerHands playerIds
-    let values = map (\(hId, pId, pRes) -> map toSql $ [gameId, dealersHandId, hId, pId, pRes]) $ zip3 insertedHandIds playerIds playerResults
-    sequence $ map (executeMany insertMatchStatement) values
+    insertedHandIds <- insertHands insertHandStatement conn (playerIds, playerHands)
+    let values = map (\(hId, pId, pRes) -> map toSql $ [gameId, dealersHandId, hId, toInteger pId, toInteger . fromEnum $ pRes]) $ zip3 insertedHandIds playerIds playerResults
+    mapM_ (executeMany insertMatchStatement) values
