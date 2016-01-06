@@ -27,7 +27,8 @@ createTables conn =
                                         -- AUTOINCREMENT
                                         "CREATE TABLE hands (id INTEGER PRIMARY KEY AUTOINCREMENT, whichPlayer INTEGER, whichHand BIGINT, thisCard INTEGER, "
                                                             ++ "FOREIGN KEY(whichPlayer) REFERENCES players(whichPlayer), FOREIGN KEY(thisCard) REFERENCES cards(id) )",
-                                        "CREATE TABLE matches (id INTEGER PRIMARY KEY AUTOINCREMENT, whichGame INTEGER, dealersHand BIGINT, thisPlayersHand BIGINT, playerResult INTEGER)" ]
+                                        "CREATE TABLE matches (id INTEGER PRIMARY KEY AUTOINCREMENT, whichGame INTEGER, dealersHand BIGINT, whichPlayer INTEGER, thisPlayersHand BIGINT, playerResult INTEGER, " ++
+                                                              "FOREIGN KEY(dealersHand) REFERENCES hands(whichHand), FOREIGN KEY(whichPlayer) REFERENCES players(whichPlayer), FOREIGN KEY(thisPlayersHand) REFERENCES hands(whichHand) ) " ]
 
 initializeDatabase :: (IConnection a) => a -> IO ()
 initializeDatabase conn = enableForeignKeys conn >> createTables conn
