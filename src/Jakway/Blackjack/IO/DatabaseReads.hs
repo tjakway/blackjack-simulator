@@ -33,7 +33,18 @@ readHand statement whichHand = do
 
 
 readPlayerStatement :: (IConnection a) => a -> IO (Statement)
-readPlayerStatement conn = undefined
+readPlayerStatement conn = prepare conn "SELECT whichPlayer FROM players"
+
+readPlayers :: Statement -> IO ([Int])
+readPlayers statement = do
+        execute statement []
+        --could this be replaced with a single line
+        --return . join . fetchAllRows' $ statement  ?
+        playerRows <- join $ fetchAllRows' statement
+        return playerRows
 
 readPlayerHands :: Statement -> Int -> IO (Maybe [Hand])
 readPlayerHands statement whichPlayer = undefined
+
+readMatchStatement :: (IConnection a) => a -> IO (Statement)
+readMatchStatement conn = undefined
