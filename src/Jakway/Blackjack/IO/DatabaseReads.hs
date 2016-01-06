@@ -44,7 +44,7 @@ readPlayerHandIds conn whichPlayer = do
         --see https://www.sqlite.org/lang_select.html and http://www.postgresql.org/docs/9.0/static/sql-select.html
         values <- (liftM join) $ (quickQuery' conn "SELECT DISTINCT whichHand" [])
         case values of [] -> return Nothing
-                       _  -> return . (map fromSql) $ values
+                       _  -> return . return . (map fromSql) $ values
 
 readPlayerHands :: Statement -> Int -> IO (Maybe [Hand])
 readPlayerHands statement whichPlayer = undefined
