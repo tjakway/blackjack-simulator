@@ -1,4 +1,12 @@
-module Jakway.Blackjack.IO.DatabaseReads where
+module Jakway.Blackjack.IO.DatabaseReads 
+(readPlayers,
+ readHandStatement,
+ readHand,
+ readPlayerHands,
+ readMatchStatement,
+ readMatch 
+)
+where
 
 import Prelude hiding (lookup)
 import Jakway.Blackjack.Visibility
@@ -8,7 +16,7 @@ import Jakway.Blackjack.IO.DatabaseCommon
 import Database.HDBC
 import qualified Data.Map.Strict as HashMap
 import Data.Maybe (fromJust)
-import Control.Monad (join)
+import Control.Monad (join, liftM)
 
 
 readPlayers :: (IConnection a) => a -> IO ([Int])
@@ -30,8 +38,18 @@ readHand statement whichHand = do
                                            _  ->  card : hand) [] cardIds
         where getCard thisId = (fromJust $ HashMap.lookup thisId idCardMap)
 
+readPlayerHandIds :: (IConnection a) => a -> Int -> IO (Maybe [Int])
+readPlayerHandIds conn whichPlayer = do
+        --DISTINCT removes duplicates
+        --see https://www.sqlite.org/lang_select.html and http://www.postgresql.org/docs/9.0/static/sql-select.html
+        values <- (liftM join) $ (quickQuery' conn "SELECT DISTINCT whichHand" [])
+        case values of [] -> return Nothing
+                       _  -> return . (map fromSql) $ values
+
 readPlayerHands :: Statement -> Int -> IO (Maybe [Hand])
 readPlayerHands statement whichPlayer = undefined
 
 readMatchStatement :: (IConnection a) => a -> IO (Statement)
 readMatchStatement conn = prepare conn "SELECT "
+
+readMatch = undefined
