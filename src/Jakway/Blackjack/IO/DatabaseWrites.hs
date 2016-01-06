@@ -3,6 +3,7 @@ module Jakway.Blackjack.IO.DatabaseWrites where
 import Jakway.Blackjack.Visibility
 import Jakway.Blackjack.Cards
 import Jakway.Blackjack.CardOps
+import Jakway.Blackjack.Result
 import Jakway.Blackjack.IO.DatabaseCommon
 import Database.HDBC
 import Data.Maybe (fromJust)
@@ -101,7 +102,7 @@ insertHands insertStatement conn (whichPlayers, hands) = do
        -- insertHands running simultaneously (though for real
        -- multithreading we'd have to make nextHandId atomic anyways)
        let handIds = ([handId.. (handId + (toInteger $ (length hands) - 1))]) :: [Integer]
-       let values = map (\(thisHandId, thisHand) -> handToSqlValues whichPlayer thisHandId thisHand) $ zip handIds hands
+       let values = map (\(thisPlayerId, thisHandId, thisHand) -> handToSqlValues thisPlayerId thisHandId thisHand) $ zip3 whichPlayers handIds hands
        sequence $ map (executeMany insertStatement) values
        return handIds
 
