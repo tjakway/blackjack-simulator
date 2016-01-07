@@ -50,6 +50,15 @@ readPlayerHands :: Statement -> Int -> IO (Maybe [Hand])
 readPlayerHands statement whichPlayer = undefined
 
 readMatchStatement :: (IConnection a) => a -> IO (Statement)
-readMatchStatement conn = prepare conn "SELECT "
+readMatchStatement conn = prepare conn "SELECT (dealersHand, whichPlayer, thisPlayersHand, playerResult) FROM matches WHERE whichGame=?"
 
-readMatch = undefined
+readMatch :: Statement -> Statement -> Int -> IO (Maybe Match)
+readMatch rMatchStatement rHandStatement whichGame = do
+        execute rMatchStatement [iToSql whichGame]
+        matchRows <- fetchAllRows' rMatchStatement
+        case matchRows of [[]] -> return Nothing
+                          _ -> do
+
+        where extractResults rows = 
+
+
