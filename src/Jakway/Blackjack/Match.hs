@@ -1,8 +1,8 @@
 module Jakway.Blackjack.Match where
 
-data Result = Result
+data Match = Match
             { dealersHand :: Hand
-            , playersHands :: [Hand]
             , playerIds :: [Int]
+            , playersHands :: [Hand]
             , playerResults :: [Result]
             }
