@@ -17,6 +17,7 @@ import Database.HDBC
 import qualified Data.Map.Strict as HashMap
 import Data.Maybe (fromJust)
 import Control.Monad (join, liftM)
+import Data.List (unzip3)
 
 
 readPlayers :: (IConnection a) => a -> IO ([Int])
@@ -57,8 +58,20 @@ readMatch rMatchStatement rHandStatement whichGame = do
         execute rMatchStatement [iToSql whichGame]
         matchRows <- fetchAllRows' rMatchStatement
         case matchRows of [[]] -> return Nothing
-                          _ -> do
+                          _ -> extractResults matchRows
 
-        where extractResults rows = 
+        where extractResults rows = do
+            --get the dealer's hand ID
+            --it's the same dealer's hand for every game in this match so just get the ID from the first row
+            let dHandId = ((matchRows !! 0) !! 0) --we already checked that the array isn't null
+            dHand <- readHand rHandStatement dHandId
 
+            (pIds, pHands, pResults) <- (unzip3 . flip . map) rows (\(_, playerId, playersHandId, playersResult) -> readHand rHandStatement >>= 
+                                        (\playersReadHand -> return (playerId, playersReadHand, playersResult))
 
+            --TODO: rewrite this using bind?
+            if (elem Nothing) . snd $ playerData then return Nothing
+                                                 --the fromJust is OK
+                                                 --because we're checking
+                                                 --that it isn't Nothing
+                                                 else Match dHand (map fromJust pHands) 
