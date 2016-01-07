@@ -71,6 +71,8 @@ readMatch rMatchStatement rHandStatement whichGame = do
             (pIds, pHands, pResults) <- (unzip3 . flip . map) rows (\(_, playerId, playersHandId, playersResult) -> readHand rHandStatement >>= 
                                         (\playersReadHand -> return (playerId, playersReadHand, playersResult))
 
+
+            -- **********************************
             --TODO: rewrite this using bind?
             if (elem Nothing) . snd $ playerData then return Nothing
                                                  --the fromJust is OK
