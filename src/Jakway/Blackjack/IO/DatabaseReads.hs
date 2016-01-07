@@ -18,7 +18,6 @@ import qualified Data.Map.Strict as HashMap
 import Data.Maybe (fromJust)
 import Control.Monad (join, liftM)
 
-
 readPlayers :: (IConnection a) => a -> IO ([Int])
 readPlayers conn = do
         values <- quickQuery' conn "SELECT whichPlayer FROM players" []
@@ -46,10 +45,14 @@ readPlayerHandIds conn whichPlayer = do
         case values of [] -> return Nothing
                        _  -> return . return . (map fromSql) $ values
 
-readPlayerHands :: Statement -> Int -> IO (Maybe [Hand])
-readPlayerHands statement whichPlayer = undefined
+readPlayerHands :: (IConnection a) => Statement -> a -> Int -> IO (Maybe [Hand])
+readPlayerHands statement whichPlayer = do
+        mayHandIds <- readPlayerHandIds conn whichPlayer
+        case mayHandsIds of Nothing -> return Nothing
+                            Just (ids) -> 
 
 readMatchStatement :: (IConnection a) => a -> IO (Statement)
 readMatchStatement conn = prepare conn "SELECT "
+
 
 readMatch = undefined
