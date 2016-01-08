@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 module Jakway.Blackjack.IO.DatabaseReads 
 (readPlayers,
  readHandStatement,
@@ -64,14 +65,15 @@ readMatch rMatchStatement rHandStatement whichGame = do
         case matchRows of [[]] -> return Nothing
                           _ -> extractResults matchRows
 
-        where extractResults rows = do
+        where extractResults :: [[SqlValue]] -> IO (Maybe Match)
+              extractResults rows = do
                 --get the dealer's hand ID
                 --it's the same dealer's hand for every game in this match so just get the ID from the first row
-                let dHandId = ((rows !! 0) !! 0) --we already checked that the array isn't null
+                let dHandId = fromSql ((rows !! 0) !! 0) --we already checked that the array isn't null
                 dHand <- readHand rHandStatement dHandId
 
-                (pIds, pHands, pResults) <- (unzip3 . flip . map) rows (\(_, playerId, playersHandId, playersResult) -> readHand rHandStatement >>= 
-                                            (\playersReadHand -> return (playerId, playersReadHand, playersResult)))
+                (pIds, pHands, pResults) <- unzip3 $ map (\(_, playerId, playersHandId, playersResult) -> readHand rHandStatement >>= 
+                                            (\playersReadHand -> return (playerId, playersReadHand, playersResult))) rows
 
                 -- **********************************
                 --TODO: rewrite this using bind?
