@@ -12,6 +12,7 @@ import Prelude hiding (lookup)
 import Jakway.Blackjack.Visibility
 import Jakway.Blackjack.Cards
 import Jakway.Blackjack.CardOps
+import Jakway.Blackjack.Match
 import Jakway.Blackjack.IO.DatabaseCommon
 import Database.HDBC
 import qualified Data.Map.Strict as HashMap
@@ -47,10 +48,11 @@ readPlayerHandIds conn whichPlayer = do
                        _  -> return . return . (map fromSql) $ values
 
 readPlayerHands :: (IConnection a) => Statement -> a -> Int -> IO (Maybe [Hand])
-readPlayerHands statement whichPlayer = do
-        mayHandIds <- readPlayerHandIds conn whichPlayer
-        case mayHandsIds of Nothing -> return Nothing
-                            Just (ids) -> 
+readPlayerHands statement whichPlayer = undefined
+--readPlayerHands statement whichPlayer = do
+--        mayHandIds <- readPlayerHandIds conn whichPlayer
+--        case mayHandsIds of Nothing -> return Nothing
+--                            Just (ids) -> 
 
 readMatchStatement :: (IConnection a) => a -> IO (Statement)
 readMatchStatement conn = prepare conn "SELECT (dealersHand, whichPlayer, thisPlayersHand, playerResult) FROM matches WHERE whichGame=?"
@@ -63,19 +65,18 @@ readMatch rMatchStatement rHandStatement whichGame = do
                           _ -> extractResults matchRows
 
         where extractResults rows = do
-            --get the dealer's hand ID
-            --it's the same dealer's hand for every game in this match so just get the ID from the first row
-            let dHandId = ((matchRows !! 0) !! 0) --we already checked that the array isn't null
-            dHand <- readHand rHandStatement dHandId
+                --get the dealer's hand ID
+                --it's the same dealer's hand for every game in this match so just get the ID from the first row
+                let dHandId = ((rows !! 0) !! 0) --we already checked that the array isn't null
+                dHand <- readHand rHandStatement dHandId
 
-            (pIds, pHands, pResults) <- (unzip3 . flip . map) rows (\(_, playerId, playersHandId, playersResult) -> readHand rHandStatement >>= 
-                                        (\playersReadHand -> return (playerId, playersReadHand, playersResult))
+                (pIds, pHands, pResults) <- (unzip3 . flip . map) rows (\(_, playerId, playersHandId, playersResult) -> readHand rHandStatement >>= 
+                                            (\playersReadHand -> return (playerId, playersReadHand, playersResult)))
 
-
-            -- **********************************
-            --TODO: rewrite this using bind?
-            if (elem Nothing) . snd $ playerData then return Nothing
-                                                 --the fromJust is OK
-                                                 --because we're checking
-                                                 --that it isn't Nothing
-                                                 else Match dHand (map fromJust pHands) 
+                -- **********************************
+                --TODO: rewrite this using bind?
+                if elem Nothing pHands then return Nothing
+                                                --the fromJust is OK
+                                                --because we're checking
+                                                --that it isn't Nothing
+                                       else Match dHand pIds  (map fromJust pHands) pResults
