@@ -18,7 +18,7 @@ import Jakway.Blackjack.IO.DatabaseCommon
 import Database.HDBC
 import qualified Data.Map.Strict as HashMap
 import Data.Maybe (fromJust)
-import Control.Monad (join, liftM)
+import Control.Monad (join, liftM, when)
 import Data.List (unzip3)
 
 readPlayers :: (IConnection a) => a -> IO ([Int])
@@ -71,14 +71,15 @@ readMatch rMatchStatement rHandStatement whichGame = do
                 --it's the same dealer's hand for every game in this match so just get the ID from the first row
                 let dHandId = fromSql ((rows !! 0) !! 0) --we already checked that the array isn't null
                 dHand <- readHand rHandStatement dHandId
+                --make sure the dealers hand exists
+                if dHand == Nothing then return Nothing else do
+                    (pIds, pHands, pResults) <- unzip3 $ map (\(_, playerId, playersHandId, playersResult) -> readHand rHandStatement playersHandId >>= 
+                                                (\playersReadHand -> (playerId, playersReadHand, playersResult))) rows
 
-                (pIds, pHands, pResults) <- unzip3 $ map (\(_, playerId, playersHandId, playersResult) -> readHand rHandStatement >>= 
-                                            (\playersReadHand -> return (playerId, playersReadHand, playersResult))) rows
-
-                -- **********************************
-                --TODO: rewrite this using bind?
-                if elem Nothing pHands then return Nothing
-                                                --the fromJust is OK
-                                                --because we're checking
-                                                --that it isn't Nothing
-                                       else Match dHand pIds  (map fromJust pHands) pResults
+                    -- **********************************
+                    --TODO: rewrite this using bind?
+                    if elem Nothing pHands then return Nothing
+                                                    --the fromJust is OK
+                                                    --because we're checking
+                                                    --that it isn't Nothing
+                                        else return $ Match (fromJust dHand) pIds (map fromJust pHands) pResults
