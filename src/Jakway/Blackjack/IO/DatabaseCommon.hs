@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveDataTypeable #-}
 module Jakway.Blackjack.IO.DatabaseCommon where
 
 import Jakway.Blackjack.Visibility
@@ -6,6 +7,8 @@ import Jakway.Blackjack.CardOps
 import Database.HDBC
 import Data.Maybe (fromJust)
 import qualified Data.Map.Strict as HashMap
+import Control.Exception
+import Data.Typeable
 
 -- |reverse operation of cardToForeignId
 foreignKeyIdToCard :: Int -> Maybe (Visibility Card)
@@ -40,3 +43,13 @@ cardsSqlValues = map (\ (id, cardSqlValues) -> (toSql id) : cardSqlValues) (zip 
     where cardsWithoutIds = singleCardToSqlValues <$> cardPermutations
           -- |SQL ids count up from 1
           ids = [1..(length cardsWithoutIds)]
+
+--An exception is appropriate for certain cases when reading from the
+--database
+--Foreign key constraints mean errors *should* never happen, however most
+--functions still return Maybe.  If handling the maybe makes an (IO) interface
+--unnecessarily complicated it's better to use an exception
+data BlackjackDatabaseException = HandReadException
+    deriving (Show, Typeable)
+
+instance Exception BlackjackDatabaseException

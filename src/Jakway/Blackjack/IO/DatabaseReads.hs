@@ -20,6 +20,7 @@ import qualified Data.Map.Strict as HashMap
 import Data.Maybe (fromJust)
 import Control.Monad (join, liftM, when)
 import Data.List (unzip3)
+import Control.Exception
 
 readPlayers :: (IConnection a) => a -> IO ([Int])
 readPlayers conn = do
@@ -58,6 +59,8 @@ readPlayerHands statement whichPlayer = undefined
 readMatchStatement :: (IConnection a) => a -> IO (Statement)
 readMatchStatement conn = prepare conn "SELECT (dealersHand, whichPlayer, thisPlayersHand, playerResult) FROM matches WHERE whichGame=?"
 
+mapTuple4 f (a,b,c,d) = (f a, f b, f c, f d)
+
 readMatch :: Statement -> Statement -> Int -> IO (Maybe Match)
 readMatch rMatchStatement rHandStatement whichGame = do
         execute rMatchStatement [iToSql whichGame]
@@ -65,21 +68,31 @@ readMatch rMatchStatement rHandStatement whichGame = do
         case matchRows of [[]] -> return Nothing
                           _ -> extractResults matchRows
 
-        where extractResults :: [[SqlValue]] -> IO (Maybe Match)
+        where rowToTuple :: [SqlValue] -> Maybe (a,b,c,d)
+              rowToTuple thisRow
+                            | (length thisRow) < 4 = Nothing
+                            | otherwise = return $ mapTuple4 fromSql (thisRow !! 0, thisRow !! 1, thisRow !! 2, thisRow !! 3)
+              extractResults :: [[SqlValue]] -> IO (Maybe Match)
               extractResults rows = do
-                --get the dealer's hand ID
-                --it's the same dealer's hand for every game in this match so just get the ID from the first row
-                let dHandId = fromSql ((rows !! 0) !! 0) --we already checked that the array isn't null
-                dHand <- readHand rHandStatement dHandId
-                --make sure the dealers hand exists
-                if dHand == Nothing then return Nothing else do
-                    (pIds, pHands, pResults) <- unzip3 $ map (\(_, playerId, playersHandId, playersResult) -> readHand rHandStatement playersHandId >>= 
-                                                (\playersReadHand -> (playerId, playersReadHand, playersResult))) rows
 
-                    -- **********************************
-                    --TODO: rewrite this using bind?
-                    if elem Nothing pHands then return Nothing
-                                                    --the fromJust is OK
-                                                    --because we're checking
-                                                    --that it isn't Nothing
-                                        else return $ Match (fromJust dHand) pIds (map fromJust pHands) pResults
+                let mayCheckedRows = map rowToTuple rows
+                if elem Nothing mayCheckedRows then return Nothing
+                                               else do
+                
+                    let checkedRows = map fromJust mayCheckedRows
+                    --get the dealer's hand ID
+                    --it's the same dealer's hand for every game in this match so just get the ID from the first row
+                    let dHandId = fromSql ((rows !! 0) !! 0) --we already checked that the array isn't empty, so it must have at least 1 array with 1 item
+                    dHand <- readHand rHandStatement dHandId
+                    --make sure the dealers hand exists
+                    if dHand == Nothing then return Nothing else do
+                        (pIds, pHands, pResults) <- unzip3 $ map (\(_, playerId, playersHandId, playersResult) -> readHand rHandStatement (fromSql playersHandId) >>= 
+                                                    (\playersReadHand -> if playersReadHand == Nothing then throw HandReadException else return (fromSql playerId, fromJust playersReadHand, fromSql playersResult))) checkedRows
+
+                        -- **********************************
+                        --TODO: rewrite this using bind?
+                        if elem Nothing pHands then return Nothing
+                                                        --the fromJust is OK
+                                                        --because we're checking
+                                                        --that it isn't Nothing
+                                            else return $ Match (fromJust dHand) pIds (map fromJust pHands) pResults
