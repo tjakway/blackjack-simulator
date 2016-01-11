@@ -60,27 +60,29 @@ readPlayerHands statement whichPlayer = undefined
 readMatchStatement :: (IConnection a) => a -> IO (Statement)
 readMatchStatement conn = prepare conn "SELECT (dealersHand, whichPlayer, thisPlayersHand, playerResult) FROM matches WHERE whichGame=?"
 
-mapTuple4 f (a,b,c,d) = (f a, f b, f c, f d)
+innerMapTuple4 f (a,b,c,d) = (f a, f b, f c, f d)
 
 readMatch :: Statement -> Statement -> Int -> IO (Maybe Match)
 readMatch rMatchStatement rHandStatement whichGame = do
         execute rMatchStatement [iToSql whichGame]
         matchRows <- fetchAllRows' rMatchStatement
         case matchRows of [[]] -> return Nothing
-                          _ -> extractResults rHandStatement matchRows
+                          _ -> extractMatchData rHandStatement matchRows
 
 
 rowToTuple :: (Convertible SqlValue a) => [SqlValue] -> Maybe (a,a,a,a)
 rowToTuple thisRow
                 | (length thisRow) < 4 = Nothing
-                | otherwise = return $ mapTuple4 fromSql (thisRow !! 0, thisRow !! 1, thisRow !! 2, thisRow !! 3)
+                | otherwise = return $ innerMapTuple4 fromSql (thisRow !! 0, thisRow !! 1, thisRow !! 2, thisRow !! 3)
 
 
 
 
 
-extractResults :: Statement -> [[SqlValue]] -> IO (Maybe Match)
-extractResults rHandStatement rows = do
+extractMatchData :: Statement -> [[SqlValue]] -> IO (Maybe Match)
+extractMatchData rHandStatement rows = do
+        --TODO: there must be a more elegant way to check if there's
+        --a Nothing in an array and bind it
     let mayCheckedRows = map rowToTuple rows
     if elem Nothing mayCheckedRows then return Nothing
                                     else do
@@ -92,8 +94,8 @@ extractResults rHandStatement rows = do
         dHand <- readHand rHandStatement dHandId
         --make sure the dealers hand exists
         if dHand == Nothing then return Nothing else do
-            (pIds, pHands, pResults) <- unzip3 $ map (\(_, playerId, playersHandId, playersResult) -> readHand rHandStatement (fromSql playersHandId) >>= 
-                                        (\playersReadHand -> if playersReadHand == Nothing then throw HandReadException else return (fromSql playerId, fromJust playersReadHand, fromSql playersResult))) checkedRows
+            (pIds, pHands, pResults) <- unzip3 $ map (\(_, playerId, playersHandId, playersResult) -> readHand rHandStatement playersHandId >>= 
+                                        (\playersReadHand -> if playersReadHand == Nothing then throw HandReadException else return (playerId, fromJust playersReadHand, playersResult))) checkedRows
 
             -- **********************************
             --TODO: rewrite this using bind?
