@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 module Jakway.Blackjack.IO.DatabaseReads 
 (readPlayers,
  readHandStatement,
@@ -20,6 +21,7 @@ import Data.Maybe (fromJust)
 import Control.Monad (join, liftM, when)
 import Data.List (unzip3)
 import Control.Exception
+import Data.Convertible
 
 readPlayers :: (IConnection a) => a -> IO ([Int])
 readPlayers conn = do
@@ -68,7 +70,7 @@ readMatch rMatchStatement rHandStatement whichGame = do
                           _ -> extractResults rHandStatement matchRows
 
 
-rowToTuple :: [SqlValue] -> Maybe (a,b,c,d)
+rowToTuple :: (Convertible SqlValue a) => [SqlValue] -> Maybe (a,a,a,a)
 rowToTuple thisRow
                 | (length thisRow) < 4 = Nothing
                 | otherwise = return $ mapTuple4 fromSql (thisRow !! 0, thisRow !! 1, thisRow !! 2, thisRow !! 3)
