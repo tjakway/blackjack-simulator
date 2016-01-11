@@ -88,14 +88,14 @@ extractMatchData rHandStatement rows = do
     if elem Nothing mayCheckedRows then return Nothing
                                     else do
 
-        let checkedRows = (map fromJust mayCheckedRows) :: [(Integer, Integer, Integer, Integer)]
+        let checkedRows = (convResult (map fromJust mayCheckedRows)) :: [(Integer, Int, Integer, Result)]
         --get the dealer's hand ID
         --it's the same dealer's hand for every game in this match so just get the ID from the first row
         let dHandId = fstIn4 . head $ checkedRows --we already checked that the array isn't empty, so it must have at least 1 array with 1 item
         dHand <- readHand rHandStatement dHandId
         --make sure the dealers hand exists
         if dHand == Nothing then return Nothing else do
-            (pIds, pHands, pResults) <- unzip3 $ map (\(_, playerId, playersHandId, playersResult) -> readHand rHandStatement playersHandId >>= 
+            (pIds, pHands, pResults) <- unzip3 $ sequence $ map (\(_, playerId, playersHandId, playersResult) -> readHand rHandStatement playersHandId >>= 
                                         (\playersReadHand -> if playersReadHand == Nothing then throw HandReadException else return ((playerId) :: Int, (fromJust playersReadHand) :: Hand, (playersResult) :: Result))) checkedRows
 
             -- **********************************
@@ -104,6 +104,9 @@ extractMatchData rHandStatement rows = do
                                             --the fromJust is OK
                                             --because we're checking
                                             --that it isn't Nothing
-                                else return . return $ Match (fromJust dHand) pIds (map fromJust pHands) pResults
+                                else return . return $ Match (fromJust dHand) pIds pHands pResults
 
     where fstIn4 (a,_,_,_) = a
+          -- |convert the player result from an integer (its database
+          -- representation) back to an enum
+          convResult = map (\(a,b,c,d) -> (a,b,c, toEnum d))
