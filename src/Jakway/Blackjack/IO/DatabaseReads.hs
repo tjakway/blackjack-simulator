@@ -15,6 +15,7 @@ import Jakway.Blackjack.Cards
 import Jakway.Blackjack.CardOps
 import Jakway.Blackjack.Match
 import Jakway.Blackjack.IO.DatabaseCommon
+import Jakway.Blackjack.Result
 import Database.HDBC
 import qualified Data.Map.Strict as HashMap
 import Data.Maybe (fromJust)
@@ -87,15 +88,15 @@ extractMatchData rHandStatement rows = do
     if elem Nothing mayCheckedRows then return Nothing
                                     else do
 
-        let checkedRows = map fromJust mayCheckedRows
+        let checkedRows = (map fromJust mayCheckedRows) :: [(Integer, Integer, Integer, Integer)]
         --get the dealer's hand ID
         --it's the same dealer's hand for every game in this match so just get the ID from the first row
-        let dHandId = fromSql ((rows !! 0) !! 0) --we already checked that the array isn't empty, so it must have at least 1 array with 1 item
+        let dHandId = fstIn4 . head $ checkedRows --we already checked that the array isn't empty, so it must have at least 1 array with 1 item
         dHand <- readHand rHandStatement dHandId
         --make sure the dealers hand exists
         if dHand == Nothing then return Nothing else do
             (pIds, pHands, pResults) <- unzip3 $ map (\(_, playerId, playersHandId, playersResult) -> readHand rHandStatement playersHandId >>= 
-                                        (\playersReadHand -> if playersReadHand == Nothing then throw HandReadException else return (playerId, fromJust playersReadHand, playersResult))) checkedRows
+                                        (\playersReadHand -> if playersReadHand == Nothing then throw HandReadException else return ((playerId) :: Int, (fromJust playersReadHand) :: Hand, (playersResult) :: Result))) checkedRows
 
             -- **********************************
             --TODO: rewrite this using bind?
@@ -103,4 +104,6 @@ extractMatchData rHandStatement rows = do
                                             --the fromJust is OK
                                             --because we're checking
                                             --that it isn't Nothing
-                                else return $ Match (fromJust dHand) pIds (map fromJust pHands) pResults
+                                else return . return $ Match (fromJust dHand) pIds (map fromJust pHands) pResults
+
+    where fstIn4 (a,_,_,_) = a
