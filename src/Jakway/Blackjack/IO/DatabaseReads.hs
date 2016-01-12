@@ -61,8 +61,6 @@ readPlayerHands statement whichPlayer = undefined
 readMatchStatement :: (IConnection a) => a -> IO (Statement)
 readMatchStatement conn = prepare conn "SELECT (dealersHand, whichPlayer, thisPlayersHand, playerResult) FROM matches WHERE whichGame=?"
 
-innerMapTuple4 f (a,b,c,d) = (f a, f b, f c, f d)
-
 readMatch :: Statement -> Statement -> Int -> IO (Maybe Match)
 readMatch rMatchStatement rHandStatement whichGame = do
         execute rMatchStatement [iToSql whichGame]
@@ -71,10 +69,12 @@ readMatch rMatchStatement rHandStatement whichGame = do
                           _ -> extractMatchData rHandStatement matchRows
 
 
-rowToTuple :: (Convertible SqlValue a) => [SqlValue] -> Maybe (a,a,a,a)
+rowToTuple :: [SqlValue] -> Maybe (Integer, Int, Integer, Int)
 rowToTuple thisRow
                 | (length thisRow) < 4 = Nothing
-                | otherwise = return $ innerMapTuple4 fromSql (thisRow !! 0, thisRow !! 1, thisRow !! 2, thisRow !! 3)
+                | otherwise = return  . (innerMapTuple2and4 fromIntegral) . (innerMapTuple4 fromSql) $ (thisRow !! 0, thisRow !! 1, thisRow !! 2, thisRow !! 3)
+                where innerMapTuple4 f (a,b,c,d) = (f a, f b, f c, f d)
+                      innerMapTuple2and4 f (a,b,c,d) = (a, f b, c, f d)
 
 
 
@@ -95,7 +95,7 @@ extractMatchData rHandStatement rows = do
         dHand <- readHand rHandStatement dHandId
         --make sure the dealers hand exists
         if dHand == Nothing then return Nothing else do
-            (pIds, pHands, pResults) <- unzip3 $ sequence $ map (\(_, playerId, playersHandId, playersResult) -> readHand rHandStatement playersHandId >>= 
+            (pIds, pHands, pResults) <- (liftM unzip3) $ sequence $ map (\(_, playerId, playersHandId, playersResult) -> readHand rHandStatement playersHandId >>= 
                                         (\playersReadHand -> if playersReadHand == Nothing then throw HandReadException else return ((playerId) :: Int, (fromJust playersReadHand) :: Hand, (playersResult) :: Result))) checkedRows
 
             -- **********************************
