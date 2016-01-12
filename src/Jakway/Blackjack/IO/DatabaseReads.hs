@@ -96,7 +96,7 @@ extractMatchData rHandStatement rows = do
         --make sure the dealers hand exists
         if dHand == Nothing then return Nothing else do
             (pIds, pHands, pResults) <- (liftM unzip3) $ sequence $ map (\(_, playerId, playersHandId, playersResult) -> readHand rHandStatement playersHandId >>= 
-                                        (\playersReadHand -> if playersReadHand == Nothing then throw HandReadException else return ((playerId) :: Int, (fromJust playersReadHand) :: Hand, (playersResult) :: Result))) checkedRows
+                                        (\playersReadHand -> return ((playerId) :: Int, (playersReadHand) :: Maybe Hand, (playersResult) :: Result))) checkedRows
 
             -- **********************************
             --TODO: rewrite this using bind?
@@ -104,7 +104,7 @@ extractMatchData rHandStatement rows = do
                                             --the fromJust is OK
                                             --because we're checking
                                             --that it isn't Nothing
-                                else return . return $ Match (fromJust dHand) pIds pHands pResults
+                                else return . return $ Match (fromJust dHand) pIds (map fromJust pHands) pResults
 
     where fstIn4 (a,_,_,_) = a
           -- |convert the player result from an integer (its database
