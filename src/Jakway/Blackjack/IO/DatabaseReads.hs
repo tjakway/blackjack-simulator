@@ -95,7 +95,7 @@ extractMatchData rHandStatement rows = do
         dHand <- readHand rHandStatement dHandId
         --make sure the dealers hand exists
         if dHand == Nothing then return Nothing else do
-            (pIds, pHands, pResults) <- (liftM unzip3) $ sequence $ map (\(_, playerId, playersHandId, playersResult) -> readHand rHandStatement playersHandId >>= 
+            (pIds, pHands, pResults) <- (liftM unzip3) . sequence $ map (\(_, playerId, playersHandId, playersResult) -> readHand rHandStatement playersHandId >>= 
                                         (\playersReadHand -> return (playerId, playersReadHand, playersResult))) checkedRows
 
             -- **********************************
