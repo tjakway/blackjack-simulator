@@ -16,6 +16,7 @@ import Jakway.Blackjack.CardOps
 import Jakway.Blackjack.Match
 import Jakway.Blackjack.IO.DatabaseCommon
 import Jakway.Blackjack.Result
+import Jakway.Blackjack.Util (innerMapTuple4)
 import Database.HDBC
 import qualified Data.Map.Strict as HashMap
 import Data.Maybe (fromJust)
@@ -73,12 +74,7 @@ rowToTuple :: [SqlValue] -> Maybe (Integer, Int, Integer, Int)
 rowToTuple thisRow
                 | (length thisRow) < 4 = Nothing
                 | otherwise = return  . (innerMapTuple2and4 fromIntegral) . (innerMapTuple4 fromSql) $ (thisRow !! 0, thisRow !! 1, thisRow !! 2, thisRow !! 3)
-                where innerMapTuple4 f (a,b,c,d) = (f a, f b, f c, f d)
-                      innerMapTuple2and4 f (a,b,c,d) = (a, f b, c, f d)
-
-
-
-
+                where innerMapTuple2and4 f (a,b,c,d) = (a, f b, c, f d)
 
 extractMatchData :: Statement -> [[SqlValue]] -> IO (Maybe Match)
 extractMatchData rHandStatement rows = do

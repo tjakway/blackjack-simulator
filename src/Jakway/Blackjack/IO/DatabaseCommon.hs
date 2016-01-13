@@ -9,11 +9,12 @@ import Data.Maybe (fromJust)
 import qualified Data.Map.Strict as HashMap
 import Control.Exception
 import Data.Typeable
+import Jakway.Blackjack.Util (innerMapTuple4)
+
 
 -- |reverse operation of cardToForeignId
 foreignKeyIdToCard :: Int -> Maybe (Visibility Card)
 foreignKeyIdToCard id = HashMap.lookup id idCardMap
-
 
 -- | XXX: for some reason this function wouldn't work in a where binding?
 cardSqlArr :: Suit -> CardValue -> [SqlValue]
