@@ -19,6 +19,17 @@ baseTableNames = ("cards_", "players_", "hands_", "matches_")
 getTableNames :: String -> TableNames
 getTableNames suffix = innerMapTuple4 (++ suffix) baseTableNames
 
+getCardTableName :: TableNames -> String
+getCardTableName (name,_,_,_) = name
+
+getPlayerTableName :: TableNames -> String
+getPlayerTableName (_,name,_,_) = name
+
+getHandTableName :: TableNames -> String
+getHandTableName (_,_,name,_) = name
+
+getMatchTableName :: TableNames -> String
+getMatchTableName (_,_,_,name) = name
 
 -- |reverse operation of cardToForeignId
 foreignKeyIdToCard :: Int -> Maybe (Visibility Card)
