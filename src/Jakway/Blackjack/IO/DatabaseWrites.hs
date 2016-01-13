@@ -15,20 +15,21 @@ enableForeignKeys conn = run conn "PRAGMA foreign_keys = ON;" []
 flipInner2 :: (a -> b -> c -> d) -> a -> c -> b -> d
 flipInner2 f x y z = f x z y
 
-createTables :: IConnection a => a -> IO ()
-createTables conn =
-            sequence_ $ map (flipInner2 run conn []) createTableStatements
-        where createTableStatements = [ "CREATE TABLE cards (id INTEGER PRIMARY KEY AUTOINCREMENT, cardValue INTEGER NOT NULL, suit INTEGER NOT NULL, visible INTEGER NOT NULL)",
+createTables :: IConnection a => a -> String -> IO ()
+createTables conn suffix =
+            sequence_ $ map (flipInner2 run conn tableNames) createTableStatements
+        where tableNames = getTableNames suffix
+              createTableStatements = [ "CREATE TABLE ? (id INTEGER PRIMARY KEY AUTOINCREMENT, cardValue INTEGER NOT NULL, suit INTEGER NOT NULL, visible INTEGER NOT NULL)",
                                       -- ^ Sqlite doesn't have a boolean
                                       -- data type, see https://www.sqlite.org/datatype3.html and http://stackoverflow.com/questions/843780/store-boolean-value-in-sqlite
-                                        "CREATE TABLE players (whichPlayer INTEGER PRIMARY KEY)",
+                                        "CREATE TABLE ? (whichPlayer INTEGER PRIMARY KEY)",
                                         -- | Note that SQLite doesn't allow
                                         -- any datatype other than INTEGER
                                         -- to be declared PRIMARY KEY
                                         -- AUTOINCREMENT
-                                        "CREATE TABLE hands (id INTEGER PRIMARY KEY AUTOINCREMENT, whichPlayer INTEGER, whichHand BIGINT, thisCard INTEGER, "
+                                        "CREATE TABLE ? (id INTEGER PRIMARY KEY AUTOINCREMENT, whichPlayer INTEGER, whichHand BIGINT, thisCard INTEGER, "
                                                             ++ "FOREIGN KEY(whichPlayer) REFERENCES players(whichPlayer), FOREIGN KEY(thisCard) REFERENCES cards(id) )",
-                                        "CREATE TABLE matches (id INTEGER PRIMARY KEY AUTOINCREMENT, whichGame INTEGER, dealersHand BIGINT, whichPlayer INTEGER, thisPlayersHand BIGINT, playerResult INTEGER, " ++
+                                        "CREATE TABLE ? (id INTEGER PRIMARY KEY AUTOINCREMENT, whichGame INTEGER, dealersHand BIGINT, whichPlayer INTEGER, thisPlayersHand BIGINT, playerResult INTEGER, " ++
                                                               "FOREIGN KEY(dealersHand) REFERENCES hands(whichHand), FOREIGN KEY(whichPlayer) REFERENCES players(whichPlayer), FOREIGN KEY(thisPlayersHand) REFERENCES hands(whichHand) ) " ]
 
 initializeDatabase :: (IConnection a) => a -> IO ()
