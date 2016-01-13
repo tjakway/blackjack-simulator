@@ -5,6 +5,7 @@ import Jakway.Blackjack.Cards
 import Jakway.Blackjack.CardOps
 import Jakway.Blackjack.Result
 import Jakway.Blackjack.IO.DatabaseCommon
+import Jakway.Blackjack.Util
 import Database.HDBC
 import Data.Maybe (fromJust)
 import qualified Data.Map.Strict as HashMap
@@ -18,7 +19,7 @@ flipInner2 f x y z = f x z y
 createTables :: IConnection a => a -> String -> IO ()
 createTables conn suffix =
             sequence_ $ map (flipInner2 run conn tableNames) createTableStatements
-        where tableNames = getTableNames suffix
+        where tableNames = tableNamesToSql (getTableNames suffix)
               createTableStatements = [ "CREATE TABLE ? (id INTEGER PRIMARY KEY AUTOINCREMENT, cardValue INTEGER NOT NULL, suit INTEGER NOT NULL, visible INTEGER NOT NULL)",
                                       -- ^ Sqlite doesn't have a boolean
                                       -- data type, see https://www.sqlite.org/datatype3.html and http://stackoverflow.com/questions/843780/store-boolean-value-in-sqlite
@@ -32,8 +33,8 @@ createTables conn suffix =
                                         "CREATE TABLE ? (id INTEGER PRIMARY KEY AUTOINCREMENT, whichGame INTEGER, dealersHand BIGINT, whichPlayer INTEGER, thisPlayersHand BIGINT, playerResult INTEGER, " ++
                                                               "FOREIGN KEY(dealersHand) REFERENCES hands(whichHand), FOREIGN KEY(whichPlayer) REFERENCES players(whichPlayer), FOREIGN KEY(thisPlayersHand) REFERENCES hands(whichHand) ) " ]
 
-initializeDatabase :: (IConnection a) => a -> IO ()
-initializeDatabase conn = enableForeignKeys conn >> createTables conn
+initializeDatabase :: (IConnection a) => a -> [TableNames]-> IO ()
+initializeDatabase conn tableNames = enableForeignKeys conn >> createTables conn
 
 insertCardStatement :: (IConnection a) => a -> IO (Statement)
 --ignore the id field

@@ -31,6 +31,9 @@ getHandTableName (_,_,name,_) = name
 getMatchTableName :: TableNames -> String
 getMatchTableName (_,_,_,name) = name
 
+tableNamesToSql :: TableNames -> [SqlValue]
+tableNamesToSql (a,b,c,d) = map toSql [a,b,c,d]
+
 -- |reverse operation of cardToForeignId
 foreignKeyIdToCard :: Int -> Maybe (Visibility Card)
 foreignKeyIdToCard id = HashMap.lookup id idCardMap
