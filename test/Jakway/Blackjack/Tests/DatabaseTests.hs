@@ -77,13 +77,13 @@ testInsertPlayers = withTestDatabase $ \conn -> do
 testInsertOneHand :: Assertion
 testInsertOneHand = withTestDatabase $ \conn -> do
        let whichPlayer = 1
-       DB.insertPlayers conn 2
+       DB.insertPlayers conn testTableNames 2
        let hand = [Hidden (Card Spade Ace), Shown (Card Diamond King)] 
        insertStatement <- DB.insertHandStatement conn testTableNames
        whichHand <- DB.insertHand insertStatement conn testTableNames whichPlayer hand
        commit conn
 
-       readStatement <- DB.readHandStatement conn 
+       readStatement <- DB.readHandStatement conn testTableNames
        res <- DB.readHand readStatement whichHand
        case res of Nothing -> assertFailure "Could not read hand id!"
                    Just resHand -> assertEqual "" hand resHand
@@ -91,7 +91,7 @@ testInsertOneHand = withTestDatabase $ \conn -> do
 testInsertRandStartingHands :: Assertion
 testInsertRandStartingHands = withTestDatabase $ \conn -> do
        let whichPlayer = 0
-       DB.insertPlayers conn 2
+       DB.insertPlayers conn testTableNames 2
        commit conn
 
        --insert between 10 and 100 hands
@@ -110,7 +110,7 @@ testInsertRandStartingHands = withTestDatabase $ \conn -> do
 testInsertThreeCardHand :: Assertion
 testInsertThreeCardHand = withTestDatabase $ \conn -> do
        let whichPlayer = 0
-       DB.insertPlayers conn 2
+       DB.insertPlayers conn testTableNames 2
        commit conn
 
        gen <- getStdGen
@@ -131,13 +131,13 @@ testInsertHands conn whichPlayer hands
                             | otherwise = do
                                 -- |insert the ids then read them back from
                                 -- the DB
-                                insertStatement <- DB.insertHandStatement conn
+                                insertStatement <- DB.insertHandStatement conn testTableNames
                                 --player ids don't really matter here
                                 let playerIds = replicate (length hands) whichPlayer
-                                handIds <- DB.insertHands insertStatement conn (playerIds, hands)
+                                handIds <- DB.insertHands insertStatement conn testTableNames (playerIds, hands)
                                 commit conn
 
-                                readStatement <- DB.readHandStatement conn
+                                readStatement <- DB.readHandStatement conn testTableNames
                                 commit conn
                                 res <- sequence $ map (DB.readHand readStatement) handIds
                                 --make sure there weren't any problems
