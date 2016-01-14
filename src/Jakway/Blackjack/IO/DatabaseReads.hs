@@ -25,14 +25,16 @@ import Data.List (unzip3)
 import Control.Exception
 import Data.Convertible
 
-readPlayers :: (IConnection a) => a -> IO ([Int])
-readPlayers conn = do
-        values <- quickQuery' conn "SELECT whichPlayer FROM players" []
+readPlayers :: (IConnection a) => a -> TableNames -> IO ([Int])
+readPlayers conn tableNames = do
+        values <- quickQuery' conn ("SELECT whichPlayer FROM " ++ playerTable) []
         -- |quickQuery' returns [[SqlValue]].  Collapse the list.
         (return . (map fromSql)) (join values)
+        where playerTable = getPlayerTableName tableNames
 
-readHandStatement :: (IConnection a) => a -> IO (Statement)
-readHandStatement conn = prepare conn "SELECT thisCard FROM hands WHERE whichHand=?"
+readHandStatement :: (IConnection a) => a -> TableNames -> IO (Statement)
+readHandStatement conn tableNames = prepare conn "SELECT thisCard FROM " ++ handTable ++ " WHERE whichHand=?"
+        where handTable = getHandTableName tableNames
 
 readHand :: Statement -> Integer -> IO (Maybe Hand)
 readHand statement whichHand = do
@@ -44,13 +46,14 @@ readHand statement whichHand = do
                                            _  ->  card : hand) [] cardIds
         where getCard thisId = (fromJust $ HashMap.lookup thisId idCardMap)
 
-readPlayerHandIds :: (IConnection a) => a -> Int -> IO (Maybe [Int])
-readPlayerHandIds conn whichPlayer = do
+readPlayerHandIds :: (IConnection a) => a -> TableNames -> Int -> IO (Maybe [Int])
+readPlayerHandIds conn tableNames whichPlayer = do
         --DISTINCT removes duplicates
         --see https://www.sqlite.org/lang_select.html and http://www.postgresql.org/docs/9.0/static/sql-select.html
-        values <- (liftM join) $ (quickQuery' conn "SELECT DISTINCT whichHand" [])
+        values <- (liftM join) $ (quickQuery' conn ("SELECT DISTINCT whichHand FROM " ++ playerTable) [])
         case values of [] -> return Nothing
                        _  -> return . return . (map fromSql) $ values
+        where playerTable = getPlayerTableName tableNames
 
 readPlayerHands :: (IConnection a) => Statement -> a -> Int -> IO (Maybe [Hand])
 readPlayerHands statement whichPlayer = undefined
@@ -59,8 +62,9 @@ readPlayerHands statement whichPlayer = undefined
 --        case mayHandsIds of Nothing -> return Nothing
 --                            Just (ids) -> 
 
-readMatchStatement :: (IConnection a) => a -> IO (Statement)
-readMatchStatement conn = prepare conn "SELECT (dealersHand, whichPlayer, thisPlayersHand, playerResult) FROM matches WHERE whichGame=?"
+readMatchStatement :: (IConnection a) => a -> TableNames -> IO (Statement)
+readMatchStatement conn tableNames = prepare conn "SELECT (dealersHand, whichPlayer, thisPlayersHand, playerResult) FROM " ++ matchesTable ++ " WHERE whichGame=?"
+            where matchesTable = getMatchTableName tableNames
 
 readMatch :: Statement -> Statement -> Int -> IO (Maybe Match)
 readMatch rMatchStatement rHandStatement whichGame = do
