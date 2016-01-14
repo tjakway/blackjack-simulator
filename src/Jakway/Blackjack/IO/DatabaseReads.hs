@@ -33,7 +33,7 @@ readPlayers conn tableNames = do
         where playerTable = getPlayerTableName tableNames
 
 readHandStatement :: (IConnection a) => a -> TableNames -> IO (Statement)
-readHandStatement conn tableNames = prepare conn "SELECT thisCard FROM " ++ handTable ++ " WHERE whichHand=?"
+readHandStatement conn tableNames = prepare conn $ "SELECT thisCard FROM " ++ handTable ++ " WHERE whichHand=?"
         where handTable = getHandTableName tableNames
 
 readHand :: Statement -> Integer -> IO (Maybe Hand)
@@ -63,7 +63,7 @@ readPlayerHands statement whichPlayer = undefined
 --                            Just (ids) -> 
 
 readMatchStatement :: (IConnection a) => a -> TableNames -> IO (Statement)
-readMatchStatement conn tableNames = prepare conn "SELECT (dealersHand, whichPlayer, thisPlayersHand, playerResult) FROM " ++ matchesTable ++ " WHERE whichGame=?"
+readMatchStatement conn tableNames = prepare conn $ "SELECT (dealersHand, whichPlayer, thisPlayersHand, playerResult) FROM " ++ matchesTable ++ " WHERE whichGame=?"
             where matchesTable = getMatchTableName tableNames
 
 readMatch :: Statement -> Statement -> Int -> IO (Maybe Match)
