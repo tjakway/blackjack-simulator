@@ -62,6 +62,14 @@ readPlayerHands statement whichPlayer = undefined
 --        case mayHandsIds of Nothing -> return Nothing
 --                            Just (ids) -> 
 
+getNumPlayers :: (IConnection a) => a -> TableNames -> IO (Int)
+getNumPlayers conn tableNames = do
+        query <- prepare conn ("SELECT * FROM " ++ playerTable)
+        execute query []
+        rows <- fetchAllRows' query
+        return . length $ rows
+        where playerTable = DB.getPlayerTableName tableNames
+
 readMatchStatement :: (IConnection a) => a -> TableNames -> IO (Statement)
 readMatchStatement conn tableNames = prepare conn $ "SELECT (dealersHand, whichPlayer, thisPlayersHand, playerResult) FROM " ++ matchesTable ++ " WHERE whichGame=?"
             where matchesTable = getMatchTableName tableNames

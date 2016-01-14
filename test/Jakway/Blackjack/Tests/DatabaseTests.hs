@@ -64,18 +64,11 @@ testTableList =  withTestDatabase $ \conn -> getTables conn >>= (\tables -> unle
                       message readTables = "Database tables don't match!  Read tables: " ++ (show readTables)
 
 
-getNumPlayers :: (IConnection a) => a -> IO (Int)
-getNumPlayers conn = do
-        query <- prepare conn ("SELECT * FROM " ++ playerTable)
-        execute query []
-        rows <- fetchAllRows' query
-        return . length $ rows
-        where playerTable = DB.getPlayerTableName testTableNames
 
 testInsertPlayers :: Assertion
 testInsertPlayers = withTestDatabase $ \conn -> do
                         let numPlayers = 10
-                        DB.insertPlayers conn numPlayers
+                        DB.insertPlayers conn testTableNames numPlayers
                         commit conn
                         numPlayerRows <- getNumPlayers conn
                         let message = "numPlayerRows is "++(show numPlayerRows)++" (should be"++(show numPlayers)++")"
