@@ -1,10 +1,7 @@
 module Jakway.Blackjack.Tests.DatabaseTests.BasicTests (tests) where
 
---see http://stackoverflow.com/questions/8502201/remove-file-if-it-exists
-import Prelude hiding (catch)
+import Jakway.Blackjack.Tests.DatabaseTests.Common
 import System.Directory
-import Control.Exception
-import System.IO.Error hiding (catch)
 import Database.HDBC
 import Database.HDBC.Sqlite3
 import Database.HDBC.Session (withConnectionIO')
@@ -30,18 +27,6 @@ import Data.Monoid (mempty)
 test_db_name = "tmp_test.db"
 
 testTableNames = DB.getTableNames "test1"
-
---see http://stackoverflow.com/questions/8502201/remove-file-if-it-exists
-removeIfExists :: FilePath -> IO ()
-removeIfExists fileName = removeFile fileName `catch` handleExists
-  where handleExists e
-          | isDoesNotExistError e = return ()
-          | otherwise = throwIO e
-
-withDatabase name = withConnectionIO' (connectSqlite3 name) 
-
--- |run a transaction on a database that will be deleted before and after running it
-withTempDatabase transaction dbName = removeIfExists dbName >> withDatabase dbName transaction >> removeIfExists dbName
 
 -- |initialize the database then run the transaction
 -- don't forget to commit!
