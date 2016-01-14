@@ -4,8 +4,9 @@ module Jakway.Blackjack.IO.DatabaseReads
  readHandStatement,
  readHand,
  readPlayerHands,
+ getNumPlayers,
  readMatchStatement,
- readMatch 
+ readMatch
 )
 where
 
