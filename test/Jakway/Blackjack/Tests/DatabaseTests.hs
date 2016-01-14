@@ -70,7 +70,7 @@ testInsertPlayers = withTestDatabase $ \conn -> do
                         let numPlayers = 10
                         DB.insertPlayers conn testTableNames numPlayers
                         commit conn
-                        numPlayerRows <- getNumPlayers conn
+                        numPlayerRows <- DB.getNumPlayers conn testTableNames
                         let message = "numPlayerRows is "++(show numPlayerRows)++" (should be"++(show numPlayers)++")"
                         assertBool message (numPlayers == numPlayerRows) 
 
