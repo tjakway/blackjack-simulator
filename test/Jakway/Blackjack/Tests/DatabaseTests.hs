@@ -28,6 +28,8 @@ import Data.Monoid (mempty)
 
 test_db_name = "tmp_test.db"
 
+testTableNames = getTableNames "test1"
+
 --see http://stackoverflow.com/questions/8502201/remove-file-if-it-exists
 removeIfExists :: FilePath -> IO ()
 removeIfExists fileName = removeFile fileName `catch` handleExists
@@ -42,7 +44,7 @@ withTempDatabase transaction dbName = removeIfExists dbName >> withDatabase dbNa
 
 -- |initialize the database then run the transaction
 -- don't forget to commit!
-withTestDatabase transaction = withTempDatabase (\conn -> DB.enableForeignKeys conn >> DB.initializeDatabase conn >> DB.insertAllCards conn >> commit conn >> transaction conn) test_db_name
+withTestDatabase transaction = withTempDatabase (\conn -> DB.enableForeignKeys conn >> DB.initializeDatabase conn [testTableNames] >> DB.insertAllCards conn >> commit conn >> transaction conn) test_db_name
 
 
 testOpenDatabase :: Assertion
@@ -55,7 +57,7 @@ testOpenDatabase = withTestDatabase $ (\_ -> do
 
 testTableList :: Assertion
 testTableList =  withTestDatabase $ \conn -> getTables conn >>= (\tables -> unless (tablesEqual tables) (assertFailure $ message tables))
-                where tables = ["cards", "players", "hands", "matches"]
+                where tables = ["cards", getPlayerTableName testTableNames, getHandTableName testTableNames, getMatchTableName testTableNames]
                       -- | in case sqlite adds an extra schema table
                       tablesEqual readTables = (sort tables) == (sort . (delete "sqlite_sequence") $ readTables)
                       message readTables = "Database tables don't match!  Read tables: " ++ (show readTables)
@@ -63,10 +65,11 @@ testTableList =  withTestDatabase $ \conn -> getTables conn >>= (\tables -> unle
 
 getNumPlayers :: (IConnection a) => a -> IO (Int)
 getNumPlayers conn = do
-        query <- prepare conn "SELECT * FROM players"
+        query <- prepare conn ("SELECT * FROM " ++ playerTable)
         execute query []
         rows <- fetchAllRows' query
         return . length $ rows
+        where playerTable = getPlayerTableName testTableNames
 
 testInsertPlayers :: Assertion
 testInsertPlayers = withTestDatabase $ \conn -> do
@@ -82,8 +85,8 @@ testInsertOneHand = withTestDatabase $ \conn -> do
        let whichPlayer = 1
        DB.insertPlayers conn 2
        let hand = [Hidden (Card Spade Ace), Shown (Card Diamond King)] 
-       insertStatement <- DB.insertHandStatement conn
-       whichHand <- DB.insertHand insertStatement conn whichPlayer hand
+       insertStatement <- DB.insertHandStatement conn testTableNames
+       whichHand <- DB.insertHand insertStatement conn testTableNames whichPlayer hand
        commit conn
 
        readStatement <- DB.readHandStatement conn 
