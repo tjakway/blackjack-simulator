@@ -1,4 +1,4 @@
-module Jakway.Blackjack.Tests.DatabaseTests (tests) where
+module Jakway.Blackjack.Tests.DatabaseTests.BasicTests (tests) where
 
 --see http://stackoverflow.com/questions/8502201/remove-file-if-it-exists
 import Prelude hiding (catch)
@@ -150,4 +150,4 @@ testInsertHands conn whichPlayer hands
 
                                 
 
-tests =  [testCase "testOpenDatabase" testOpenDatabase, testCase "testTableList" testTableList, testCase "testInsertPlayers" testInsertPlayers, testCase "testInsertOneHand" testInsertOneHand, testCase "testInsertRandStartingHands" testInsertRandStartingHands, testCase "testInsertThreeCardHand" testInsertThreeCardHand]
+tests =  testGroup "BasicTests" [testCase "testOpenDatabase" testOpenDatabase, testCase "testTableList" testTableList, testCase "testInsertPlayers" testInsertPlayers, testCase "testInsertOneHand" testInsertOneHand, testCase "testInsertRandStartingHands" testInsertRandStartingHands, testCase "testInsertThreeCardHand" testInsertThreeCardHand]
