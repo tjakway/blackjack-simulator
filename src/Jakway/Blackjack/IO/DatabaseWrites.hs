@@ -89,7 +89,7 @@ insertHand :: (IConnection a) => Statement -> a -> TableNames -> Int -> Hand -> 
 -- before running this, need to build the cards table, then run
 -- insertHandStatement once for every card in this hand, passing the rowId
 -- of the corresponding card for thisCard 
-insertHand insertStatement conn whichPlayer hand = do
+insertHand insertStatement conn tableNames whichPlayer hand = do
         handId <- nextHandId conn tableNames
         -- |if cardtoForeignKeyId returns Nothing it's an unrecoverable
         -- error anyways
@@ -102,9 +102,9 @@ insertHand insertStatement conn whichPlayer hand = do
 
 -- |Should this return the player ids with each hand id in a tuple?
 -- FIXME: change the tuple to 2 separate parameters
-insertHands :: (IConnection a) => Statement -> a -> tableNames -> ([Int], [Hand]) -> IO ([Integer])
-insertHands insertStatement conn (whichPlayers, []) _ = return []
-insertHands insertStatement conn (whichPlayers, hands) tableNames = do
+insertHands :: (IConnection a) => Statement -> a -> TableNames -> ([Int], [Hand]) -> IO ([Integer])
+insertHands insertStatement conn tableNames (whichPlayers, []) = return []
+insertHands insertStatement conn tableNames (whichPlayers, hands) = do
        handId <- nextHandId conn tableNames
        -- |don't query the database for hand we'll insert
        -- since nextHandId just returns the next highest available hand ID
@@ -126,7 +126,7 @@ nextGameId conn tableNames = do
                                       else return . (+1) . fromSql $ res
                 where matchesTable = getMatchTableName tableNames
 
-insertMatchStatement :: (IConnection a) => a -> IO (Statement)
+insertMatchStatement :: (IConnection a) => a -> TableNames -> IO (Statement)
 insertMatchStatement conn tableNames = prepare conn ("INSERT INTO " ++ matchesTable ++ " (whichGame, dealersHand, whichPlayer, thisPlayersHand, playerResult) VALUES(?, ?, ?, ?, ?)")
                 where matchesTable = getMatchTableName tableNames
 

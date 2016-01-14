@@ -9,7 +9,7 @@ import Data.Maybe (fromJust)
 import qualified Data.Map.Strict as HashMap
 import Control.Exception
 import Data.Typeable
-import Jakway.Blackjack.Util (innerMapTuple4)
+import Jakway.Blackjack.Util
 
 --only need 3 table names because the cards table is reused
 type TableNames = (String, String, String)
