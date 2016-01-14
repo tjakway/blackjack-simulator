@@ -68,7 +68,7 @@ getNumPlayers conn tableNames = do
         execute query []
         rows <- fetchAllRows' query
         return . length $ rows
-        where playerTable = DB.getPlayerTableName tableNames
+        where playerTable = getPlayerTableName tableNames
 
 readMatchStatement :: (IConnection a) => a -> TableNames -> IO (Statement)
 readMatchStatement conn tableNames = prepare conn $ "SELECT (dealersHand, whichPlayer, thisPlayersHand, playerResult) FROM " ++ matchesTable ++ " WHERE whichGame=?"
