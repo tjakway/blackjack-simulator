@@ -13,6 +13,7 @@ import Control.Monad (liftM, unless)
 -- |overlapping for convenience--change if necessary
 import qualified Jakway.Blackjack.IO.DatabaseWrites as DB
 import qualified Jakway.Blackjack.IO.DatabaseReads as DB
+import qualified Jakway.Blackjack.IO.DatabaseCommon as DB
 import Jakway.Blackjack.Cards
 import Jakway.Blackjack.CardOps
 import Control.Monad (when)
@@ -28,7 +29,7 @@ import Data.Monoid (mempty)
 
 test_db_name = "tmp_test.db"
 
-testTableNames = getTableNames "test1"
+testTableNames = DB.getTableNames "test1"
 
 --see http://stackoverflow.com/questions/8502201/remove-file-if-it-exists
 removeIfExists :: FilePath -> IO ()
@@ -57,7 +58,7 @@ testOpenDatabase = withTestDatabase $ (\_ -> do
 
 testTableList :: Assertion
 testTableList =  withTestDatabase $ \conn -> getTables conn >>= (\tables -> unless (tablesEqual tables) (assertFailure $ message tables))
-                where tables = ["cards", getPlayerTableName testTableNames, getHandTableName testTableNames, getMatchTableName testTableNames]
+                where tables = ["cards", DB.getPlayerTableName testTableNames, DB.getHandTableName testTableNames, DB.getMatchTableName testTableNames]
                       -- | in case sqlite adds an extra schema table
                       tablesEqual readTables = (sort tables) == (sort . (delete "sqlite_sequence") $ readTables)
                       message readTables = "Database tables don't match!  Read tables: " ++ (show readTables)
@@ -69,7 +70,7 @@ getNumPlayers conn = do
         execute query []
         rows <- fetchAllRows' query
         return . length $ rows
-        where playerTable = getPlayerTableName testTableNames
+        where playerTable = DB.getPlayerTableName testTableNames
 
 testInsertPlayers :: Assertion
 testInsertPlayers = withTestDatabase $ \conn -> do
