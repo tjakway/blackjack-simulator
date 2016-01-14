@@ -46,7 +46,7 @@ initializeDatabase conn allTableNames = enableForeignKeys conn >> mapM_ (createT
 --there's only one cards table
 insertCardStatement :: (IConnection a) => a -> IO (Statement)
 --ignore the id field
-insertCardStatement conn = prepare conn "INSERT INTO cards(id, cardValue, suit, visible) VALUES(?, ?, ?, ?)"
+insertCardStatement conn = prepare conn ("INSERT INTO cards(id, cardValue, suit, visible) VALUES(?, ?, ?, ?)")
 
 
 insertAllCards :: (IConnection a) => a -> IO ()
@@ -55,39 +55,42 @@ insertAllCards conn = do
                          insertStatement <- insertCardStatement conn
                          executeMany insertStatement cardsSqlValues
 
-insertPlayerStatement :: (IConnection a) => a -> IO (Statement)
-insertPlayerStatement conn = prepare conn "INSERT INTO players(whichPlayer) VALUES(?)"
+insertPlayerStatement :: (IConnection a) => a -> TableNames -> IO (Statement)
+insertPlayerStatement conn tableNames = prepare conn ("INSERT INTO " ++ playersTable ++ "(whichPlayer) VALUES(?)")
+                        where playersTable = getPlayerTableName tableNames
 
 insertPlayers :: (IConnection a) => a -> Int -> IO ()
 insertPlayers conn numPlayers = insertPlayerStatement conn >>= (\insertStatement -> executeMany insertStatement insValues)
                         where insValues = map ((: []) . toSql) [0..(numPlayers-1)]
                             -- ^ player number 0 is the dealer!
 
-insertHandStatement :: (IConnection a) => a -> IO (Statement)
-insertHandStatement conn = prepare conn "INSERT INTO hands(whichPlayer, whichHand, thisCard) VALUES(?, ?, ?)"
+insertHandStatement :: (IConnection a) => a -> TableNames -> IO (Statement)
+insertHandStatement conn tableNames = prepare conn ("INSERT INTO " ++ handTable ++ "(whichPlayer, whichHand, thisCard) VALUES(?, ?, ?)")
+                        where handTable = getHandTableName tableNames
 
 -- |need this function because insertHand returns the whichHand value of the inserted
 -- hand
 -- there are many fewer whichHand values than id values because one hand is
 -- spread over many columns (one per card)
-nextHandId :: (IConnection a) => a -> IO (Integer)
-nextHandId conn = do
-                    resArray <- quickQuery' conn "SELECT MAX(whichHand) FROM hands" []
+nextHandId :: (IConnection a) => a -> TableNames -> IO (Integer)
+nextHandId conn tableNames = do
+                    resArray <- quickQuery' conn ("SELECT MAX(whichHand) FROM " ++ handTable) []
                     let res = ((resArray !! 0) !! 0)
                     if res == SqlNull then return 0
                                       else return . (+1) . fromSql $ res
+                where handTable = getHandTableName tableNames
 
 handToSqlValues :: Int -> Integer -> Hand -> [[SqlValue]]
 handToSqlValues whichPlayer handId hand = map (\thisCard -> [toSql whichPlayer, toSql handId, toSql $ fromJust $ cardToForeignKeyId thisCard]) hand
 
-insertHand :: (IConnection a) => Statement -> a -> Int -> Hand -> IO (Integer)
+insertHand :: (IConnection a) => Statement -> a -> TableNames -> Int -> Hand -> IO (Integer)
 -- use the connection to figure out what whichHand ID to assign this hand
 -- (this is NOT the database id column!)
 -- before running this, need to build the cards table, then run
 -- insertHandStatement once for every card in this hand, passing the rowId
 -- of the corresponding card for thisCard 
 insertHand insertStatement conn whichPlayer hand = do
-        handId <- nextHandId conn
+        handId <- nextHandId conn tableNames
         -- |if cardtoForeignKeyId returns Nothing it's an unrecoverable
         -- error anyways
         let values = handToSqlValues whichPlayer handId hand
@@ -99,10 +102,10 @@ insertHand insertStatement conn whichPlayer hand = do
 
 -- |Should this return the player ids with each hand id in a tuple?
 -- FIXME: change the tuple to 2 separate parameters
-insertHands :: (IConnection a) => Statement -> a -> ([Int], [Hand]) -> IO ([Integer])
-insertHands insertStatement conn (whichPlayers, []) = return []
-insertHands insertStatement conn (whichPlayers, hands) = do
-       handId <- nextHandId conn
+insertHands :: (IConnection a) => Statement -> a -> tableNames -> ([Int], [Hand]) -> IO ([Integer])
+insertHands insertStatement conn (whichPlayers, []) _ = return []
+insertHands insertStatement conn (whichPlayers, hands) tableNames = do
+       handId <- nextHandId conn tableNames
        -- |don't query the database for hand we'll insert
        -- since nextHandId just returns the next highest available hand ID
        -- we can just keep incrementing that
@@ -115,19 +118,21 @@ insertHands insertStatement conn (whichPlayers, hands) = do
        return handIds
 
 -- |like nextHandId but for whichGame
-nextGameId :: (IConnection a) => a -> IO (Integer)
-nextGameId conn = do
-                    resArray <- quickQuery' conn "SELECT MAX(whichGame) FROM matches" []
+nextGameId :: (IConnection a) => a -> TableNames -> IO (Integer)
+nextGameId conn tableNames = do
+                    resArray <- quickQuery' conn ("SELECT MAX(whichGame) FROM " ++ matchesTable) []
                     let res = ((resArray !! 0) !! 0)
                     if res == SqlNull then return 0
                                       else return . (+1) . fromSql $ res
+                where matchesTable = getMatchTableName tableNames
 
 insertMatchStatement :: (IConnection a) => a -> IO (Statement)
-insertMatchStatement conn = prepare conn "INSERT INTO matches (whichGame, dealersHand, whichPlayer, thisPlayersHand, playerResult) VALUES(?, ?, ?, ?, ?)"
+insertMatchStatement conn tableNames = prepare conn ("INSERT INTO " ++ matchesTable ++ " (whichGame, dealersHand, whichPlayer, thisPlayersHand, playerResult) VALUES(?, ?, ?, ?, ?)")
+                where matchesTable = getMatchTableName tableNames
 
-insertMatch :: (IConnection a) => Statement -> Statement -> a -> Hand -> ([Hand], [Int], [Result]) -> IO ()
-insertMatch insMatchStatement insHandStatement conn dealersHand (playerHands, playerIds, playerResults) = do
-    gameId <- nextGameId conn
+insertMatch :: (IConnection a) => Statement -> Statement -> a -> TableNames -> Hand -> ([Hand], [Int], [Result]) -> IO ()
+insertMatch insMatchStatement insHandStatement conn tableNames dealersHand (playerHands, playerIds, playerResults) = do
+    gameId <- nextGameId conn tableNames
 
     --FIXME: dealer's ID is assumed to be 0!  Change if rewriting this
     dealersHandId <- insertHand insHandStatement conn 0 dealersHand
