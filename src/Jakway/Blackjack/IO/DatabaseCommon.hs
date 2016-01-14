@@ -11,28 +11,26 @@ import Control.Exception
 import Data.Typeable
 import Jakway.Blackjack.Util (innerMapTuple4)
 
-type TableNames = (String, String, String, String)
+--only need 3 table names because the cards table is reused
+type TableNames = (String, String, String)
 
 baseTableNames :: TableNames
-baseTableNames = ("cards_", "players_", "hands_", "matches_")
+baseTableNames = ("players_", "hands_", "matches_")
 
 getTableNames :: String -> TableNames
-getTableNames suffix = innerMapTuple4 (++ suffix) baseTableNames
-
-getCardTableName :: TableNames -> String
-getCardTableName (name,_,_,_) = name
+getTableNames suffix = innerMapTuple3 (++ suffix) baseTableNames
 
 getPlayerTableName :: TableNames -> String
-getPlayerTableName (_,name,_,_) = name
+getPlayerTableName (name,_,_) = name
 
 getHandTableName :: TableNames -> String
-getHandTableName (_,_,name,_) = name
+getHandTableName (_,name,_) = name
 
 getMatchTableName :: TableNames -> String
-getMatchTableName (_,_,_,name) = name
+getMatchTableName (_,_,name) = name
 
 tableNamesToSql :: TableNames -> [SqlValue]
-tableNamesToSql (a,b,c,d) = map toSql [a,b,c,d]
+tableNamesToSql (a,b,c) = map toSql [a,b,c]
 
 -- |reverse operation of cardToForeignId
 foreignKeyIdToCard :: Int -> Maybe (Visibility Card)
