@@ -19,4 +19,4 @@ removeIfExists fileName = removeFile fileName `catch` handleExists
 withDatabase name = withConnectionIO' (connectSqlite3 name) 
 
 -- |run a transaction on a database that will be deleted before and after running it
-withTempDatabase transaction dbName = removeIfExists dbName >> withDatabase dbName transaction >> removeIfExists dbName
+withTempDatabase dbName transaction = removeIfExists dbName >> withDatabase dbName transaction >> removeIfExists dbName

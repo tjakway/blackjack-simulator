@@ -12,9 +12,11 @@ basicTwoTableNames = map DB.getTableNames ["t1", "t2"]
 alphabeticTableNames = map DB.getTableNames ["abc", "def", "ghi", "jkl", "mno", "pqr", "stu", "wxy", "z"]
 numericTableNames = map DB.getTableNames ["123", "456", "298512003", "3", "10", "34986092809809809322022"]
 
+withMultiTableTestDatabase = withTempDatabase "multi_table_test.db"
+
 createMultiTableTests :: Assertion
-createMultiTableTests = withTempDatabase $ \conn -> do
-       map DB.createTables $ basicTwoTableNames ++ alphabeticTableNames ++ numericTableNames
+createMultiTableTests = withMultiTableTestDatabase $ \conn -> do
+       sequence_ . (map $ DB.createTables conn) $ basicTwoTableNames ++ alphabeticTableNames ++ numericTableNames
 
 
 tests = testGroup "MultiTableTests" [testCase "createMultiTableTests" createMultiTableTests]

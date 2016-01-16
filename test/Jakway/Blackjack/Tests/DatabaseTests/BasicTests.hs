@@ -30,7 +30,7 @@ testTableNames = DB.getTableNames "test1"
 
 -- |initialize the database then run the transaction
 -- don't forget to commit!
-withTestDatabase transaction = withTempDatabase (\conn -> DB.enableForeignKeys conn >> DB.initializeDatabase conn [testTableNames] >> DB.insertAllCards conn >> commit conn >> transaction conn) test_db_name
+withTestDatabase transaction = withTempDatabase test_db_name (\conn -> DB.enableForeignKeys conn >> DB.initializeDatabase conn [testTableNames] >> DB.insertAllCards conn >> commit conn >> transaction conn)
 
 
 testOpenDatabase :: Assertion
