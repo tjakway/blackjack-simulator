@@ -19,7 +19,7 @@ flipInner2 f x y z = f x z y
 createTables :: IConnection a => a -> TableNames -> IO ()
 createTables conn tableNames =
             sequence_ $ map (flipInner2 run conn []) createTableStatements
-        where createTableStatements = [ "CREATE TABLE cards (id INTEGER PRIMARY KEY AUTOINCREMENT, cardValue INTEGER NOT NULL, suit INTEGER NOT NULL, visible INTEGER NOT NULL)",
+        where createTableStatements = [ "CREATE TABLE IF NOT EXISTS cards (id INTEGER PRIMARY KEY AUTOINCREMENT, cardValue INTEGER NOT NULL, suit INTEGER NOT NULL, visible INTEGER NOT NULL)",
                                       -- ^ Sqlite doesn't have a boolean
                                       -- data type, see https://www.sqlite.org/datatype3.html and http://stackoverflow.com/questions/843780/store-boolean-value-in-sqlite
                                       -- ****IMPORTANT****
