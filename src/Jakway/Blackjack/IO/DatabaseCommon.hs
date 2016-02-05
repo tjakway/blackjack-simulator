@@ -5,7 +5,6 @@ import Jakway.Blackjack.Visibility
 import Jakway.Blackjack.Cards
 import Jakway.Blackjack.CardOps
 import Database.HDBC
-import Data.Maybe (fromJust)
 import qualified Data.Map.Strict as HashMap
 import Control.Exception
 import Data.Typeable
@@ -34,7 +33,7 @@ tableNamesToSql (a,b,c) = map toSql [a,b,c]
 
 -- |reverse operation of cardToForeignId
 foreignKeyIdToCard :: Int -> Maybe (Visibility Card)
-foreignKeyIdToCard id = HashMap.lookup id idCardMap
+foreignKeyIdToCard pId = HashMap.lookup pId idCardMap
 
 -- | XXX: for some reason this function wouldn't work in a where binding?
 cardSqlArr :: Suit -> CardValue -> [SqlValue]
@@ -60,10 +59,10 @@ cardToForeignKeyId :: Visibility Card -> Maybe Int
 cardToForeignKeyId card = HashMap.lookup card cardIdMap
 
 cardsSqlValues :: [[SqlValue]]
-cardsSqlValues = map (\ (id, cardSqlValues) -> (toSql id) : cardSqlValues) (zip ids cardsWithoutIds)
+cardsSqlValues = map (\ (pIds, cardSqlValues) -> (toSql pIds) : cardSqlValues) (zip pIds cardsWithoutIds)
     where cardsWithoutIds = singleCardToSqlValues <$> cardPermutations
           -- |SQL ids count up from 1
-          ids = [1..(length cardsWithoutIds)]
+          pIds = [1..(length cardsWithoutIds)]
 
 --An exception is appropriate for certain cases when reading from the
 --database
