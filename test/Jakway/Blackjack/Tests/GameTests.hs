@@ -2,7 +2,10 @@ module Jakway.Blackjack.Tests.GameTests (tests) where
 
 import Jakway.Blackjack.Tests.Constants
 import Jakway.Blackjack.CardOps
-import Control.Monad.State
+import Jakway.Blackjack.AI
+import Jakway.Blackjack.Game
+import Data.Maybe (fromJust)
+import Control.Monad.State (evalState)
 import Test.HUnit
 import Test.Framework
 import Test.Framework.Providers.HUnit
@@ -15,4 +18,11 @@ sanityCheck = let resCards = (flip evalState) testDeck $ do
                   message = "Should have drawn 2 cards."
                   in assertBool message (length resCards == 2)
 
-tests = testGroup "GameTests" [testCase "sanityCheck" sanityCheck]
+tie_1v1 :: Assertion
+tie_1v1 = do
+        let (dealerHand, playerHand, res) = fromJust $ evalGame BasicDealer [BasicPlayer] testDeck
+        let message = "Both players should have 3 cards"
+        assertBool message (length dealerHand == 3)
+        assertBool message (length (playerHand !! 0) == 3)
+
+tests = testGroup "GameTests" [testCase "sanityCheck" sanityCheck, testCase "tie_1v1" tie_1v1]
