@@ -4,6 +4,7 @@ import Jakway.Blackjack.Visibility
 import Jakway.Blackjack.Cards
 import Jakway.Blackjack.CardOps
 import Jakway.Blackjack.Result
+import Jakway.Blackjack.Match
 import Jakway.Blackjack.IO.DatabaseCommon
 import Jakway.Blackjack.Util
 import Database.HDBC
@@ -132,8 +133,8 @@ insertMatchStatement :: (IConnection a) => a -> TableNames -> IO (Statement)
 insertMatchStatement conn tableNames = prepare conn ("INSERT INTO " ++ matchesTable ++ " (whichGame, dealersHand, whichPlayer, thisPlayersHand, playerResult) VALUES(?, ?, ?, ?, ?)")
                 where matchesTable = getMatchTableName tableNames
 
-insertMatch :: (IConnection a) => Statement -> Statement -> a -> TableNames -> Hand -> ([Hand], [Int], [Result]) -> IO (Integer)
-insertMatch insMatchStatement insHandStatement conn tableNames dealersHand (playerHands, playerIds, playerResults) = do
+insertMatch :: (IConnection a) => Statement -> Statement -> a -> TableNames -> Match -> IO (Integer)
+insertMatch insMatchStatement insHandStatement conn tableNames (Match dealersHand  playerIds playerHands playerResults) = do
     gameId <- nextGameId conn tableNames
 
     --FIXME: dealer's ID is assumed to be 0!  Change if rewriting this
