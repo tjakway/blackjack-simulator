@@ -1,15 +1,10 @@
 module Jakway.Blackjack.IO.DatabaseWrites where
 
-import Jakway.Blackjack.Visibility
-import Jakway.Blackjack.Cards
 import Jakway.Blackjack.CardOps
-import Jakway.Blackjack.Result
 import Jakway.Blackjack.Match
 import Jakway.Blackjack.IO.DatabaseCommon
-import Jakway.Blackjack.Util
 import Database.HDBC
 import Data.Maybe (fromJust)
-import qualified Data.Map.Strict as HashMap
 
 enableForeignKeys :: IConnection a => a -> IO Integer
 enableForeignKeys conn = run conn "PRAGMA foreign_keys = ON;" []
@@ -106,7 +101,7 @@ insertHand insertStatement conn tableNames whichPlayer hand = do
 -- |Should this return the player ids with each hand id in a tuple?
 -- FIXME: change the tuple to 2 separate parameters
 insertHands :: (IConnection a) => Statement -> a -> TableNames -> ([Int], [Hand]) -> IO ([Integer])
-insertHands insertStatement conn tableNames (whichPlayers, []) = return []
+insertHands _ _ _ (_, []) = return []
 insertHands insertStatement conn tableNames (whichPlayers, hands) = do
        handId <- nextHandId conn tableNames
        -- |don't query the database for hand we'll insert
@@ -117,7 +112,7 @@ insertHands insertStatement conn tableNames (whichPlayers, hands) = do
        -- multithreading we'd have to make nextHandId atomic anyways)
        let handIds = ([handId.. (handId + (toInteger $ (length hands) - 1))]) :: [Integer]
        let values = map (\(thisPlayerId, thisHandId, thisHand) -> handToSqlValues thisPlayerId thisHandId thisHand) $ zip3 whichPlayers handIds hands
-       sequence $ map (executeMany insertStatement) values
+       sequence_ $ map (executeMany insertStatement) values
        return handIds
 
 -- |like nextHandId but for whichGame
@@ -134,13 +129,13 @@ insertMatchStatement conn tableNames = prepare conn ("INSERT INTO " ++ matchesTa
                 where matchesTable = getMatchTableName tableNames
 
 insertMatch :: (IConnection a) => Statement -> Statement -> a -> TableNames -> Match -> IO (Integer)
-insertMatch insMatchStatement insHandStatement conn tableNames (Match dealersHand  playerIds playerHands playerResults) = do
+insertMatch insMatchStatement insHandStatement conn tableNames (Match dHand pIds pHands pResults) = do
     gameId <- nextGameId conn tableNames
 
     --FIXME: dealer's ID is assumed to be 0!  Change if rewriting this
-    dealersHandId <- insertHand insHandStatement conn tableNames 0 dealersHand
+    dealersHandId <- insertHand insHandStatement conn tableNames 0 dHand
 
-    insertedHandIds <- insertHands insHandStatement conn tableNames (playerIds, playerHands)
-    let values = map (\(hId, pId, pRes) -> map toSql $ [gameId, dealersHandId, hId, toInteger pId, toInteger . fromEnum $ pRes]) $ zip3 insertedHandIds playerIds playerResults
+    insertedHandIds <- insertHands insHandStatement conn tableNames (pIds, pHands)
+    let values = map (\(hId, pId, pRes) -> map toSql $ [gameId, dealersHandId, hId, toInteger pId, toInteger . fromEnum $ pRes]) $ zip3 insertedHandIds pIds pResults
     executeMany insMatchStatement values
     return gameId
