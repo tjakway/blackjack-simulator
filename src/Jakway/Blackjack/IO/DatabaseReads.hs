@@ -72,7 +72,7 @@ getNumPlayers conn tableNames = do
         where playerTable = getPlayerTableName tableNames
 
 readMatchStatement :: (IConnection a) => a -> TableNames -> IO (Statement)
-readMatchStatement conn tableNames = prepare conn $ "SELECT (dealersHand, whichPlayer, thisPlayersHand, playerResult) FROM " ++ matchesTable ++ " WHERE whichGame=?"
+readMatchStatement conn tableNames = prepare conn $ "SELECT dealersHand, whichPlayer, thisPlayersHand, playerResult FROM " ++ matchesTable ++ " WHERE whichGame=?"
             where matchesTable = getMatchTableName tableNames
 
 readMatch :: Statement -> Statement -> Integer -> IO (Maybe Match)
