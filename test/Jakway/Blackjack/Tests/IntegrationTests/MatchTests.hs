@@ -21,8 +21,8 @@ testReadWrite1v1 = withSingleTableTestDatabase $ \conn -> do
         --there's only one player and player 0 is the dealer
 
         insertPlayers conn basicTestTableNames 2
-        insMatchStatement <- insertMatchStatement conn
-        insHandStatement <- insertHandStatement conn
+        insMatchStatement <- insertMatchStatement conn basicTestTableNames
+        insHandStatement <- insertHandStatement conn basicTestTableNames
         gameID <- insertMatch insMatchStatement insHandStatement conn basicTestTableNames (Match origDealersHand playerID origPlayersHand origRes)
 
         rMatchStatement <- readMatchStatement conn basicTestTableNames

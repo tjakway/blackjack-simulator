@@ -75,9 +75,9 @@ readMatchStatement :: (IConnection a) => a -> TableNames -> IO (Statement)
 readMatchStatement conn tableNames = prepare conn $ "SELECT (dealersHand, whichPlayer, thisPlayersHand, playerResult) FROM " ++ matchesTable ++ " WHERE whichGame=?"
             where matchesTable = getMatchTableName tableNames
 
-readMatch :: Statement -> Statement -> Int -> IO (Maybe Match)
+readMatch :: Statement -> Statement -> Integer -> IO (Maybe Match)
 readMatch rMatchStatement rHandStatement whichGame = do
-        execute rMatchStatement [iToSql whichGame]
+        execute rMatchStatement [iToSql (fromInteger whichGame)]
         matchRows <- fetchAllRows' rMatchStatement
         case matchRows of [[]] -> return Nothing
                           _ -> extractMatchData rHandStatement matchRows
