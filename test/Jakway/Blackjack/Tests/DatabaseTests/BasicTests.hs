@@ -26,15 +26,10 @@ import Data.Monoid (mempty)
 
 test_db_name = "tmp_test.db"
 
-testTableNames = DB.getTableNames "test1"
-
--- |initialize the database then run the transaction
--- don't forget to commit!
-withTestDatabase transaction = withTempDatabase test_db_name (\conn -> DB.enableForeignKeys conn >> DB.initializeDatabase conn [testTableNames] >> DB.insertAllCards conn >> commit conn >> transaction conn)
 
 
 testOpenDatabase :: Assertion
-testOpenDatabase = withTestDatabase $ (\_ -> do
+testOpenDatabase = withSingleTableTestDatabase $ (\_ -> do
                                 exists <- doesFileExist test_db_name
                                 if exists
                                     then return ()
@@ -42,8 +37,8 @@ testOpenDatabase = withTestDatabase $ (\_ -> do
                     where message = "Database "++test_db_name++" does not exist!"
 
 testTableList :: Assertion
-testTableList =  withTestDatabase $ \conn -> getTables conn >>= (\tables -> unless (tablesEqual tables) (assertFailure $ message tables))
-                where tables = ["cards", DB.getPlayerTableName testTableNames, DB.getHandTableName testTableNames, DB.getMatchTableName testTableNames]
+testTableList =  withSingleTableTestDatabase $ \conn -> getTables conn >>= (\tables -> unless (tablesEqual tables) (assertFailure $ message tables))
+                where tables = ["cards", DB.getPlayerTableName basicTestTableNames, DB.getHandTableName basicTestTableNames, DB.getMatchTableName basicTestTableNames]
                       -- | in case sqlite adds an extra schema table
                       tablesEqual readTables = (sort tables) == (sort . (delete "sqlite_sequence") $ readTables)
                       message readTables = "Database tables don't match!  Read tables: " ++ (show readTables)
@@ -51,32 +46,32 @@ testTableList =  withTestDatabase $ \conn -> getTables conn >>= (\tables -> unle
 
 
 testInsertPlayers :: Assertion
-testInsertPlayers = withTestDatabase $ \conn -> do
+testInsertPlayers = withSingleTableTestDatabase $ \conn -> do
                         let numPlayers = 10
-                        DB.insertPlayers conn testTableNames numPlayers
+                        DB.insertPlayers conn basicTestTableNames numPlayers
                         commit conn
-                        numPlayerRows <- DB.getNumPlayers conn testTableNames
+                        numPlayerRows <- DB.getNumPlayers conn basicTestTableNames
                         let message = "numPlayerRows is "++(show numPlayerRows)++" (should be"++(show numPlayers)++")"
                         assertBool message (numPlayers == numPlayerRows) 
 
 testInsertOneHand :: Assertion
-testInsertOneHand = withTestDatabase $ \conn -> do
+testInsertOneHand = withSingleTableTestDatabase $ \conn -> do
        let whichPlayer = 1
-       DB.insertPlayers conn testTableNames 2
+       DB.insertPlayers conn basicTestTableNames 2
        let hand = [Hidden (Card Spade Ace), Shown (Card Diamond King)] 
-       insertStatement <- DB.insertHandStatement conn testTableNames
-       whichHand <- DB.insertHand insertStatement conn testTableNames whichPlayer hand
+       insertStatement <- DB.insertHandStatement conn basicTestTableNames
+       whichHand <- DB.insertHand insertStatement conn basicTestTableNames whichPlayer hand
        commit conn
 
-       readStatement <- DB.readHandStatement conn testTableNames
+       readStatement <- DB.readHandStatement conn basicTestTableNames
        res <- DB.readHand readStatement whichHand
        case res of Nothing -> assertFailure "Could not read hand id!"
                    Just resHand -> assertEqual "" hand resHand
 
 testInsertRandStartingHands :: Assertion
-testInsertRandStartingHands = withTestDatabase $ \conn -> do
+testInsertRandStartingHands = withSingleTableTestDatabase $ \conn -> do
        let whichPlayer = 0
-       DB.insertPlayers conn testTableNames 2
+       DB.insertPlayers conn basicTestTableNames 2
        commit conn
 
        --insert between 10 and 100 hands
@@ -93,9 +88,9 @@ testInsertRandStartingHands = withTestDatabase $ \conn -> do
        return ()
 
 testInsertThreeCardHand :: Assertion
-testInsertThreeCardHand = withTestDatabase $ \conn -> do
+testInsertThreeCardHand = withSingleTableTestDatabase $ \conn -> do
        let whichPlayer = 0
-       DB.insertPlayers conn testTableNames 2
+       DB.insertPlayers conn basicTestTableNames 2
        commit conn
 
        gen <- getStdGen
@@ -116,13 +111,13 @@ testInsertHands conn whichPlayer hands
                             | otherwise = do
                                 -- |insert the ids then read them back from
                                 -- the DB
-                                insertStatement <- DB.insertHandStatement conn testTableNames
+                                insertStatement <- DB.insertHandStatement conn basicTestTableNames
                                 --player ids don't really matter here
                                 let playerIds = replicate (length hands) whichPlayer
-                                handIds <- DB.insertHands insertStatement conn testTableNames (playerIds, hands)
+                                handIds <- DB.insertHands insertStatement conn basicTestTableNames (playerIds, hands)
                                 commit conn
 
-                                readStatement <- DB.readHandStatement conn testTableNames
+                                readStatement <- DB.readHandStatement conn basicTestTableNames
                                 commit conn
                                 res <- sequence $ map (DB.readHand readStatement) handIds
                                 --make sure there weren't any problems

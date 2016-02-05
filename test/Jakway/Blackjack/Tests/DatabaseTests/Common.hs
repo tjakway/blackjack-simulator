@@ -20,3 +20,9 @@ withDatabase name = withConnectionIO' (connectSqlite3 name)
 
 -- |run a transaction on a database that will be deleted before and after running it
 withTempDatabase dbName transaction = removeIfExists dbName >> withDatabase dbName transaction >> removeIfExists dbName
+
+basicTestTableNames = DB.getTableNames "test1"
+
+-- |initialize the database then run the transaction
+-- don't forget to commit!
+withSingleTableTestDatabase transaction = withTempDatabase test_db_name (\conn -> DB.enableForeignKeys conn >> DB.initializeDatabase conn [testTableNames] >> DB.insertAllCards conn >> commit conn >> transaction conn)
