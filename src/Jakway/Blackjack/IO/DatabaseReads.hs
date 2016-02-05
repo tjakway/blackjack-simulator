@@ -11,8 +11,6 @@ module Jakway.Blackjack.IO.DatabaseReads
 where
 
 import Prelude hiding (lookup)
-import Jakway.Blackjack.Visibility
-import Jakway.Blackjack.Cards
 import Jakway.Blackjack.CardOps
 import Jakway.Blackjack.Match
 import Jakway.Blackjack.IO.DatabaseCommon
@@ -21,10 +19,7 @@ import Jakway.Blackjack.Util (innerMapTuple4)
 import Database.HDBC
 import qualified Data.Map.Strict as HashMap
 import Data.Maybe (fromJust)
-import Control.Monad (join, liftM, when)
-import Data.List (unzip3)
-import Control.Exception
-import Data.Convertible
+import Control.Monad (join, liftM)
 
 readPlayers :: (IConnection a) => a -> TableNames -> IO ([Int])
 readPlayers conn tableNames = do
@@ -39,7 +34,7 @@ readHandStatement conn tableNames = prepare conn $ "SELECT thisCard FROM " ++ ha
 
 readHand :: Statement -> Integer -> IO (Maybe Hand)
 readHand statement whichHand = do
-        execute statement [toSql whichHand]
+        _ <- execute statement [toSql whichHand]
         handRows <- fetchAllRows' statement
         let cardIds = (map fromSql (join handRows)) :: [Int]
         return $ Just $ foldr (\thisId hand -> let card = getCard thisId in
@@ -66,7 +61,7 @@ readPlayerHands statement whichPlayer = undefined
 getNumPlayers :: (IConnection a) => a -> TableNames -> IO (Int)
 getNumPlayers conn tableNames = do
         query <- prepare conn ("SELECT * FROM " ++ playerTable)
-        execute query []
+        _ <- execute query []
         rows <- fetchAllRows' query
         return . length $ rows
         where playerTable = getPlayerTableName tableNames
@@ -77,7 +72,7 @@ readMatchStatement conn tableNames = prepare conn $ "SELECT dealersHand, whichPl
 
 readMatch :: Statement -> Statement -> Integer -> IO (Maybe Match)
 readMatch rMatchStatement rHandStatement whichGame = do
-        execute rMatchStatement [iToSql (fromInteger whichGame)]
+        _ <- execute rMatchStatement [iToSql (fromInteger whichGame)]
         matchRows <- fetchAllRows' rMatchStatement
         case matchRows of [[]] -> return Nothing
                           _ -> extractMatchData rHandStatement matchRows
