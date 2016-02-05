@@ -10,6 +10,7 @@ import Data.Maybe (fromJust)
 import Test.HUnit
 import Test.Framework
 import Test.Framework.Providers.HUnit
+import Database.HDBC
 
 --run a very simple match, write it to the database, and read it back
 testReadWrite1v1 :: Assertion
@@ -24,6 +25,7 @@ testReadWrite1v1 = withSingleTableTestDatabase $ \conn -> do
         insMatchStatement <- insertMatchStatement conn basicTestTableNames
         insHandStatement <- insertHandStatement conn basicTestTableNames
         gameID <- insertMatch insMatchStatement insHandStatement conn basicTestTableNames (Match origDealersHand playerID origPlayersHand origRes)
+        commit conn
 
         rMatchStatement <- readMatchStatement conn basicTestTableNames
         rHandStatement <- readHandStatement conn basicTestTableNames
