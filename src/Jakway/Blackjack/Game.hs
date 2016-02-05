@@ -6,6 +6,7 @@ import Jakway.Blackjack.AI
 import Jakway.Blackjack.Result
 import Jakway.Blackjack.Visibility
 import Jakway.Blackjack.Points
+import Jakway.Blackjack.Match
 import Control.Monad.State
 import Data.Ord
 import Data.Monoid
@@ -46,15 +47,17 @@ playGame dealerAI allPlayers deck = flip evalState deck $ do
 -- |returns a tuple of (dealersHand, playerHands, playerResults)
 -- |dealer score record is redundant and not returned (just the opposite of
 -- every Result)
-evalGame :: AI -> [AI] -> Deck -> Maybe (Hand, [Hand], [Result])
+evalGame :: AI -> [AI] -> Deck -> Maybe (Match)
 evalGame dealerAI [] deck = Nothing
 evalGame dealerAI allPlayers deck = flip evalState deck $ do
   dealersStartingHand <- startingHand
   playerHands <- reverse <$> mapM foldFnSt allPlayers
   dealerHand <- play' dealerAI dealersStartingHand
   let results = reverse . map (whoWon' dealerHand)
-  return . Just $ (dealerHand, playerHands, results playerHands)
+  return . Just $ Match dealerHand playerIDs playerHands (results playerHands)
+--  return . Just $ (dealerHand, playerHands, results playerHands)
   -- ^ TODO: REFACTOR TO ELIMINATE DUPLICATE CODE WITH playGame
+  where playerIDs = [1.. ((length allPlayers) - 1)]
 
 infixl 8 &&&
 (f &&& g) a = (f a, g a)
