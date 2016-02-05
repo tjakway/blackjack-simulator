@@ -3,6 +3,7 @@ module Jakway.Blackjack.Tests.GameTests (tests, test_1v1_game) where
 import Jakway.Blackjack.Tests.Constants
 import Jakway.Blackjack.CardOps
 import Jakway.Blackjack.AI
+import Jakway.Blackjack.Match
 import Jakway.Blackjack.Game
 import Data.Maybe (fromJust)
 import Control.Monad.State (evalState)
@@ -22,7 +23,7 @@ test_1v1_game = fromJust $ evalGame BasicDealer [BasicPlayer] testDeck
 
 tie_1v1 :: Assertion
 tie_1v1 = do
-        let (dealerHand, playerHand, res) = test_1v1_game
+        let (Match dealerHand _ playerHand res) = test_1v1_game
         let message = "Both players should have 3 cards"
         assertBool message (length dealerHand == 3)
         assertBool message (length (playerHand !! 0) == 3)
