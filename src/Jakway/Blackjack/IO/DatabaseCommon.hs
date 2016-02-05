@@ -59,7 +59,7 @@ cardToForeignKeyId :: Visibility Card -> Maybe Int
 cardToForeignKeyId card = HashMap.lookup card cardIdMap
 
 cardsSqlValues :: [[SqlValue]]
-cardsSqlValues = map (\ (pIds, cardSqlValues) -> (toSql pIds) : cardSqlValues) (zip pIds cardsWithoutIds)
+cardsSqlValues = map (\ (cIds, cardSqlValues) -> (toSql cIds) : cardSqlValues) (zip pIds cardsWithoutIds)
     where cardsWithoutIds = singleCardToSqlValues <$> cardPermutations
           -- |SQL ids count up from 1
           pIds = [1..(length cardsWithoutIds)]
