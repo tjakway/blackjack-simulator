@@ -29,7 +29,9 @@ testReadWrite1v1 = withSingleTableTestDatabase $ \conn -> do
 
         rMatchStatement <- readMatchStatement conn basicTestTableNames
         rHandStatement <- readHandStatement conn basicTestTableNames
+        commit conn
         rMatch <- readMatch rMatchStatement rHandStatement gameID
+        commit conn
         assertBool "readMatch failed" (rMatch /= Nothing)
         assertBool "Match database error" ((fromJust rMatch) == test_1v1_game)
 
