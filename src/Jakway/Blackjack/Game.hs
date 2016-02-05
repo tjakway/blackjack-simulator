@@ -1,3 +1,4 @@
+{-# LANGUAGE ExistentialQuantification #-}
 module Jakway.Blackjack.Game where
 
 import Jakway.Blackjack.Cards
@@ -59,6 +60,7 @@ evalGame dealerAI allPlayers deck = flip evalState deck $ do
   where playerIDs = [1.. ((length allPlayers) - 1)]
 
 infixl 8 &&&
+(&&&) :: forall t t1 t2. (t2 -> t) -> (t2 -> t1) -> t2 -> (t, t1)
 (f &&& g) a = (f a, g a)
 
 first :: (a -> b) -> (a, c) -> (b, c)
