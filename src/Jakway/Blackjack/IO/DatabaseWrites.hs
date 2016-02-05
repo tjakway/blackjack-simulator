@@ -59,6 +59,8 @@ insertPlayerStatement :: (IConnection a) => a -> TableNames -> IO (Statement)
 insertPlayerStatement conn tableNames = prepare conn ("INSERT INTO " ++ playersTable ++ "(whichPlayer) VALUES(?)")
                         where playersTable = getPlayerTableName tableNames
 
+-- |note: include the dealer in the number of players you're inserting
+-- if you pass 1 you won't have anyone to play against
 insertPlayers :: (IConnection a) => a -> TableNames -> Int -> IO ()
 insertPlayers conn tableNames numPlayers = insertPlayerStatement conn tableNames >>= (\insertStatement -> executeMany insertStatement insValues)
                         where insValues = map ((: []) . toSql) [0..(numPlayers-1)]
