@@ -2,8 +2,6 @@
 module Jakway.Blackjack.Visibility where
 
 import Jakway.Blackjack.Cards
-import Control.Applicative
-import Control.Monad
 
 data Visibility a = Hidden a | Shown a
                   deriving (Eq, Show)
