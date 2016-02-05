@@ -94,7 +94,7 @@ extractMatchData rHandStatement rows = do
         --TODO: there must be a more elegant way to check if there's
         --a Nothing in an array and bind it
     let mayCheckedRows = map rowToTuple rows
-    if elem Nothing mayCheckedRows then return Nothing
+    if mayCheckedRows == [] || (elem Nothing mayCheckedRows) then return Nothing
                                     else do
 
         let checkedRows = (convResult (map fromJust mayCheckedRows)) :: [(Integer, Int, Integer, Result)]
