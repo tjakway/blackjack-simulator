@@ -1,4 +1,4 @@
-module Jakway.Blackjack.Tests.IntegrationTests (tests) where
+module Jakway.Blackjack.Tests.IntegrationTests.MatchTests (tests) where
 
 import Jakway.Blackjack.Tests.GameTests (test_1v1_game)
 import Jakway.Blackjack.IO.DatabaseCommon
@@ -14,8 +14,8 @@ testReadWrite1v1 = withSingleTableTestDatabase $ \conn -> do
         let origDealersHand = dealersHand test_1v1_game
             origPlayersHand = playersHands test_1v1_game
             origRes = playerResults test_1v1_game
+            playerID = playerIds test_1v1_game
         --there's only one player and player 0 is the dealer
-        let playerID = [1]
 
         insertPlayers conn basicTestTableNames 2
         insMatchStatement <- insertMatchStatement conn
