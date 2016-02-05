@@ -1,6 +1,7 @@
 module Jakway.Blackjack.Points where
 
 import Jakway.Blackjack.Cards
+import Jakway.Blackjack.CardOps
 import Data.Monoid
 
 cardPoints :: CardValue -> Int
@@ -14,9 +15,9 @@ cardPoints cardValue
   | otherwise = 2 + fromEnum cardValue
 
 handPoints :: [Card] -> Int
-handPoints hand = 
-  if total <= 21
-     then total
-     else total - 10
-  where
-    total = getSum $ foldMap (Sum . cardPoints . cardValue) hand
+handPoints hand
+                | total <= 21 = total 
+                | total > 21 && hasAce = total - 10
+                | otherwise = total
+            where hasAce = hasCard hand Ace
+                  total = getSum $ foldMap (Sum . cardPoints . cardValue) hand 
