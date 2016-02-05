@@ -18,7 +18,12 @@ testReadWrite1v1 = withSingleTableTestDatabase $ \conn -> do
         insertPlayers conn basicTestTableNames 2
         insMatchStatement <- insertMatchStatement conn
         insHandStatement <- insertHandStatement conn
-        insertMatch insMatchStatement insHandStatement conn basicTestTableNames origDealersHand (origPlayersHand, playerID, origRes)
+        gameID <- insertMatch insMatchStatement insHandStatement conn basicTestTableNames origDealersHand (origPlayersHand, playerID, origRes)
+
+        rMatchStatement <- readMatchStatement conn basicTestTableNames
+        rHandStatement <- readHandStatement conn basicTestTableNames
+        rMatch <- readMatch rMatchStatement rHandStatement gameID
+        assertBool "readMatch failed" (rMatch /= Nothing)
 
 
 tests = testGroup "IntegrationTests" [testCase "testReadWrite1v1" testReadWrite1v1]
