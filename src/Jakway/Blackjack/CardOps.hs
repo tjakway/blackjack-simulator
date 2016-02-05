@@ -47,8 +47,5 @@ drawCard = do
   modify tail
   return card
 
-drawCard' :: Deck -> (Card, Deck)
-drawCard' (x:xs) = (x, xs)
-
 hasCard :: [Card] -> CardValue -> Bool
 hasCard cards whichCard = any ((whichCard ==) . cardValue) cards
