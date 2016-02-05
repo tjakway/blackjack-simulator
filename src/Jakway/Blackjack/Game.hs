@@ -115,8 +115,8 @@ whoWon firstPlayerHand secondPlayerHand
     secondPlayerScore = handPoints $ map unwrapVisibility secondPlayerHand
   
 whoWon' :: Hand -> Hand -> Result
-whoWon' first second = ordToResult $ bust <> scores
+whoWon' firstHand secondHand = ordToResult $ bust <> scores
   where
     busted = isBust . map unwrapVisibility 
-    bust = comparing busted first second
-    scores = comparing (handPoints . map unwrapVisibility) first second
+    bust = comparing busted firstHand secondHand
+    scores = comparing (handPoints . map unwrapVisibility) firstHand secondHand
