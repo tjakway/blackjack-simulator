@@ -24,10 +24,6 @@ import Control.Monad.State
 import Jakway.Blackjack.Game
 import Data.Monoid (mempty)
 
-test_db_name = "tmp_test.db"
-
-
-
 testOpenDatabase :: Assertion
 testOpenDatabase = withSingleTableTestDatabase $ (\_ -> do
                                 exists <- doesFileExist test_db_name
