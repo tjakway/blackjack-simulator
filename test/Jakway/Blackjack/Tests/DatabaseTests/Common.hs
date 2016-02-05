@@ -31,4 +31,4 @@ basicTestTableNames = DB.getTableNames "test1"
 
 -- |initialize the database then run the transaction
 -- don't forget to commit!
-withSingleTableTestDatabase transaction = withTempDatabase test_db_name (\conn -> DB.enableForeignKeys conn >> DB.initializeDatabase conn [basicTestTableNames] >> DB.insertAllCards conn >> commit conn >> transaction conn)
+withSingleTableTestDatabase transaction = withTempDatabase test_db_name (\conn -> DB.enableForeignKeys conn >> DB.initializeDatabase conn [basicTestTableNames] >> DB.insertAllCards conn >> commit conn >> (handleSqlError $ transaction conn))
