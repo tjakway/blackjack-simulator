@@ -92,10 +92,10 @@ testInsertThreeCardHand = withSingleTableTestDatabase $ \conn -> do
        gen <- getStdGen
        let deck = infiniteShuffledDeck gen
        let hand = return $ flip evalState deck $ do
-           firstCard <- drawCard
-           secondCard <- drawCard
-           thirdCard <- drawCard
-           return [Hidden firstCard, Shown secondCard, Hidden thirdCard]
+                    firstCard <- drawCard
+                    secondCard <- drawCard
+                    thirdCard <- drawCard
+                    return [Hidden firstCard, Shown secondCard, Hidden thirdCard]
 
        testInsertHands conn 1 hand
     
