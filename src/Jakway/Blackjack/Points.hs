@@ -5,14 +5,14 @@ import Jakway.Blackjack.CardOps
 import Data.Monoid
 
 cardPoints :: CardValue -> Int
-cardPoints cardValue 
-  | cardValue == Jack  = 10
-  | cardValue == Queen = 10
-  | cardValue == King  = 10
+cardPoints cardVal 
+  | cardVal == Jack  = 10
+  | cardVal == Queen = 10
+  | cardVal == King  = 10
   --count aces as 11 now, can decrement 10 later as necessary
-  | cardValue == Ace   = 11
+  | cardVal == Ace   = 11
   --enums count up from 0 but the first card type is 2
-  | otherwise = 2 + fromEnum cardValue
+  | otherwise = 2 + fromEnum cardVal
 
 handPoints :: [Card] -> Int
 handPoints hand
