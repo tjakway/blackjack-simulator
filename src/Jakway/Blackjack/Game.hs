@@ -55,7 +55,6 @@ evalGame dealerAI allPlayers deck = flip evalState deck $ do
   dealerHand <- play' dealerAI dealersStartingHand
   let results = reverse . map (whoWon' dealerHand)
   return . Just $ Match dealerHand playerIDs playerHands (results playerHands)
---  return . Just $ (dealerHand, playerHands, results playerHands)
   -- ^ TODO: REFACTOR TO ELIMINATE DUPLICATE CODE WITH playGame
   where playerIDs = [1.. ((length allPlayers) - 1)]
 
