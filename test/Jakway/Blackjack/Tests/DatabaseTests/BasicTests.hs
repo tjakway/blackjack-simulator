@@ -97,8 +97,31 @@ testInsertThreeCardHand = withSingleTableTestDatabase $ \conn -> do
                     return [Hidden firstCard, Shown secondCard, Hidden thirdCard]
 
        testInsertHands conn 1 hand
-    
 
+testGetNextHandId :: Assertion
+testGetNextHandId = withSingleTableTestDatabase $ \conn -> do
+       let whichPlayer = 1
+       DB.insertPlayers conn basicTestTableNames 2
+       commit conn
+
+       firstHand <- newHand (infiniteShuffledDeck $ mkStdGen 23)
+       secondHand <- newHand (infiniteShuffledDeck $ mkStdGen 25)
+
+       insHandStatement <- DB.insertHandStatement conn basicTestTableNames
+       DB.insertHands insHandStatement conn basicTestTableNames ([whichPlayer, whichPlayer], [firstHand, secondHand]) 
+       commit conn
+
+       next_hand_id <- DB.nextHandId conn basicTestTableNames
+       let message = "Could not identify the next hand id!"
+       assertBool message (next_hand_id == 2)
+        
+    where newHand whichDeck = return $ flip evalState whichDeck $ do
+                firstCard <- drawCard
+                secondCard <- drawCard
+                thirdCard <- drawCard
+                return [Hidden firstCard, Shown secondCard, Hidden thirdCard]
+
+    
 testInsertHands :: (IConnection a) => a -> Int -> [Hand] -> Assertion
 testInsertHands conn whichPlayer hands
                             | whichPlayer < 0 = assertFailure ("Invalid player id: "++ (show whichPlayer))
@@ -125,4 +148,4 @@ testInsertHands conn whichPlayer hands
 
                                 
 
-tests =  testGroup "BasicTests" [testCase "testOpenDatabase" testOpenDatabase, testCase "testTableList" testTableList, testCase "testInsertPlayers" testInsertPlayers, testCase "testInsertOneHand" testInsertOneHand, testCase "testInsertRandStartingHands" testInsertRandStartingHands, testCase "testInsertThreeCardHand" testInsertThreeCardHand]
+tests =  testGroup "BasicTests" [testCase "testOpenDatabase" testOpenDatabase, testCase "testTableList" testTableList, testCase "testInsertPlayers" testInsertPlayers, testCase "testInsertOneHand" testInsertOneHand, testCase "testInsertRandStartingHands" testInsertRandStartingHands, testCase "testInsertThreeCardHand" testInsertThreeCardHand, testCase "testGetNextHandId" testGetNextHandId]
