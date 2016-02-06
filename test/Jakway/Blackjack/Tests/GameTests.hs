@@ -26,6 +26,6 @@ tie_1v1 = do
         let (Match dealerHand _ playerHand res) = test_1v1_game
         let message = "Both players should have 3 cards"
         assertBool message (length dealerHand == 3)
-        assertBool message (length (playerHand !! 0) == 3)
+        assertBool message (length (head playerHand) == 3)
 
 tests = testGroup "GameTests" [testCase "sanityCheck" sanityCheck, testCase "tie_1v1" tie_1v1]

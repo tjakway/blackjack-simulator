@@ -112,7 +112,7 @@ insertHands insertStatement conn tableNames (whichPlayers, hands) = do
        -- multithreading we'd have to make nextHandId atomic anyways)
        let handIds = ([handId.. (handId + toInteger (length hands) - 1)]) :: [Integer]
        let values = map (\(thisPlayerId, thisHandId, thisHand) -> handToSqlValues thisPlayerId thisHandId thisHand) $ zip3 whichPlayers handIds hands
-       sequence_ $ map (executeMany insertStatement) values
+       mapM_ (executeMany insertStatement) values
        return handIds
 
 -- |like nextHandId but for whichGame
@@ -136,6 +136,6 @@ insertMatch insMatchStatement insHandStatement conn tableNames (Match dHand pIds
     dealersHandId <- insertHand insHandStatement conn tableNames 0 dHand
 
     insertedHandIds <- insertHands insHandStatement conn tableNames (pIds, pHands)
-    let values = map (\(hId, pId, pRes) -> map toSql $ [gameId, dealersHandId, hId, toInteger pId, toInteger . fromEnum $ pRes]) $ zip3 insertedHandIds pIds pResults
+    let values = map (\(hId, pId, pRes) -> map toSql [gameId, dealersHandId, hId, toInteger pId, toInteger . fromEnum $ pRes]) $ zip3 insertedHandIds pIds pResults
     executeMany insMatchStatement values
     return gameId

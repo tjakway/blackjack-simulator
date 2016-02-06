@@ -6,14 +6,13 @@ import Database.HDBC
 import Database.HDBC.Sqlite3
 import Database.HDBC.Session (withConnectionIO')
 import Test.HUnit
-import Control.Monad (liftM, unless)
+import Control.Monad (liftM, unless, when)
 -- |overlapping for convenience--change if necessary
 import qualified Jakway.Blackjack.IO.DatabaseWrites as DB
 import qualified Jakway.Blackjack.IO.DatabaseReads as DB
 import qualified Jakway.Blackjack.IO.DatabaseCommon as DB
 import Jakway.Blackjack.Cards
 import Jakway.Blackjack.CardOps
-import Control.Monad (when)
 import Data.Maybe (fromJust)
 import Jakway.Blackjack.Visibility
 import Data.List (sort, delete)
@@ -115,7 +114,7 @@ testInsertHands conn whichPlayer hands
 
                                 readStatement <- DB.readHandStatement conn basicTestTableNames
                                 commit conn
-                                res <- sequence $ map (DB.readHand readStatement) handIds
+                                res <- mapM (DB.readHand readStatement) handIds
                                 --make sure there weren't any problems
                                 when (res `elem` Nothing) $ assertFailure "failed to insert a hand!"
 

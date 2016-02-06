@@ -6,7 +6,7 @@ import Jakway.Blackjack.IO.DatabaseWrites
 import Jakway.Blackjack.IO.DatabaseReads
 import Jakway.Blackjack.Match
 import Jakway.Blackjack.Tests.DatabaseTests.Common
-import Data.Maybe (fromJust)
+import Data.Maybe (fromJust, isJust)
 import Test.HUnit
 import Test.Framework
 import Test.Framework.Providers.HUnit
@@ -32,8 +32,8 @@ testReadWrite1v1 = withSingleTableTestDatabase $ \conn -> do
         commit conn
         rMatch <- readMatch rMatchStatement rHandStatement gameID
         commit conn
-        assertBool "readMatch failed" (rMatch /= Nothing)
-        assertBool "Match database error" ((fromJust rMatch) == test_1v1_game)
+        assertBool "readMatch failed" (isJust rMatch)
+        assertBool "Match database error" (fromJust rMatch == test_1v1_game)
 
 
 tests = testGroup "IntegrationTests" [testCase "testReadWrite1v1" testReadWrite1v1]

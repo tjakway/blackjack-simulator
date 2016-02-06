@@ -15,7 +15,7 @@ numericTableNames = map DB.getTableNames ["123", "456", "298512003", "3", "10", 
 withMultiTableTestDatabase = withTempDatabase "multi_table_test.db"
 
 createMultiTableTests :: Assertion
-createMultiTableTests = withMultiTableTestDatabase $ \conn -> do
+createMultiTableTests = withMultiTableTestDatabase $ \conn -> 
        sequence_ . (map $ DB.createTables conn) $ basicTwoTableNames ++ alphabeticTableNames ++ numericTableNames
 
 
