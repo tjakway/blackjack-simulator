@@ -134,8 +134,11 @@ insertMatch insMatchStatement insHandStatement conn tableNames (Match dHand pIds
 
     --FIXME: dealer's ID is assumed to be 0!  Change if rewriting this
     dealersHandId <- insertHand insHandStatement conn tableNames 0 dHand
+    commit conn
 
     insertedHandIds <- insertHands insHandStatement conn tableNames (pIds, pHands)
+    commit conn
     let values = map (\(hId, pId, pRes) -> map toSql [gameId, dealersHandId, hId, toInteger pId, toInteger . fromEnum $ pRes]) $ zip3 insertedHandIds pIds pResults
     executeMany insMatchStatement values
+    commit conn
     return gameId
