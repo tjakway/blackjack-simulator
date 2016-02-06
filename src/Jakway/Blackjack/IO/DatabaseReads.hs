@@ -18,7 +18,7 @@ import Jakway.Blackjack.Result
 import Jakway.Blackjack.Util (innerMapTuple4)
 import Database.HDBC
 import qualified Data.Map.Strict as HashMap
-import Data.Maybe (fromJust)
+import Data.Maybe (fromJust, isNothing)
 import Control.Monad (join, liftM)
 
 readPlayers :: (IConnection a) => a -> TableNames -> IO ([Int])
@@ -98,8 +98,8 @@ extractMatchData rHandStatement rows = do
         let dHandId = fstIn4 . head $ checkedRows --we already checked that the array isn't empty, so it must have at least 1 array with 1 item
         dHand <- readHand rHandStatement dHandId
         --make sure the dealers hand exists
-        if dHand == Nothing then return Nothing else do
-            (pIds, pHands, pResults) <- (liftM unzip3) . sequence $ map (\(_, playerId, playersHandId, playersResult) -> readHand rHandStatement playersHandId >>= 
+        if isNothing dHand then return Nothing else do
+            (pIds, pHands, pResults) <- liftM unzip3 . sequence $ map (\(_, playerId, playersHandId, playersResult) -> readHand rHandStatement playersHandId >>= 
                                         (\playersReadHand -> return (playerId, playersReadHand, playersResult))) checkedRows
 
             -- **********************************

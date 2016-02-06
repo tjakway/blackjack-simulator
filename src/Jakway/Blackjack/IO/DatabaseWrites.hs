@@ -14,7 +14,7 @@ flipInner2 f x y z = f x z y
 
 createTables :: IConnection a => a -> TableNames -> IO ()
 createTables conn tableNames =
-            sequence_ $ map (flipInner2 run conn []) createTableStatements
+            mapM_ (flipInner2 run conn []) createTableStatements
         where createTableStatements = [ "CREATE TABLE IF NOT EXISTS cards (id INTEGER PRIMARY KEY AUTOINCREMENT, cardValue INTEGER NOT NULL, suit INTEGER NOT NULL, visible INTEGER NOT NULL)",
                                       -- ^ Sqlite doesn't have a boolean
                                       -- data type, see https://www.sqlite.org/datatype3.html and http://stackoverflow.com/questions/843780/store-boolean-value-in-sqlite
@@ -73,7 +73,7 @@ insertHandStatement conn tableNames = prepare conn ("INSERT INTO " ++ handTable 
 nextHandId :: (IConnection a) => a -> TableNames -> IO (Integer)
 nextHandId conn tableNames = do
                     resArray <- quickQuery' conn ("SELECT MAX(whichHand) FROM " ++ handTable) []
-                    let res = ((resArray !! 0) !! 0)
+                    let res = head . head $ resArray
                     if res == SqlNull then return 0
                                       else return . (+1) . fromSql $ res
                 where handTable = getHandTableName tableNames

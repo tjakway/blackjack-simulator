@@ -42,6 +42,6 @@ oppositeResult Lose = Win
 foldOverResults :: [ScoreRecord] -> [Result] -> [ScoreRecord]
 foldOverResults [] results = foldOverResults (flip replicate mempty . length $ results) results 
 foldOverResults startingRecords [] = startingRecords
-foldOverResults startingRecords results = map (\(thisRecord, thisScore) -> thisRecord `addResult` thisScore) zippedArgs
+foldOverResults startingRecords results = map (uncurry addResult) zippedArgs
                     where zippedArgs = zip startingRecords results
                           -- ^ TODO: come up with a better name...
