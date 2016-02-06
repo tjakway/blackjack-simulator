@@ -110,7 +110,7 @@ insertHands insertStatement conn tableNames (whichPlayers, hands) = do
        -- the downside to this approach is that we can never have multiple
        -- insertHands running simultaneously (though for real
        -- multithreading we'd have to make nextHandId atomic anyways)
-       let handIds = ([handId.. (handId + (toInteger $ (length hands) - 1))]) :: [Integer]
+       let handIds = ([handId.. (handId + toInteger (length hands) - 1)]) :: [Integer]
        let values = map (\(thisPlayerId, thisHandId, thisHand) -> handToSqlValues thisPlayerId thisHandId thisHand) $ zip3 whichPlayers handIds hands
        sequence_ $ map (executeMany insertStatement) values
        return handIds
