@@ -11,6 +11,8 @@ import Test.HUnit
 import Test.Framework
 import Test.Framework.Providers.HUnit
 import Database.HDBC
+import System.Random
+import Control.Monad (liftM)
 
 --run a very simple match, write it to the database, and read it back
 testReadWrite1v1 :: Assertion
@@ -35,5 +37,38 @@ testReadWrite1v1 = withSingleTableTestDatabase $ \conn -> do
         assertBool "readMatch failed" (isJust rMatch)
         assertBool "Match database error" (fromJust rMatch == test_1v1_game)
 
+testReadWriteRandomMatches :: Assertion
+testReadWriteRandomMatches = withSingleTableTestDatabase $ \conn -> do
+    randNums <- (liftM randoms $ getStdGen) :: IO [Integer]
+
+    --TODO: rewrite using state monad
+    --randomly select the number of players, # matches
+    let numPlayers = head randNums
+        numMatches = randNums !! 2
+
+    let deck = 
+
+
+-- |for simplicity this function creates all the needed statements from the
+-- passed connection
+testReadWriteMatch :: (IConnection a) => a -> TableNames -> Match -> Assertion
+testReadWriteMatch conn tableNames match = do
+        --create all the statements
+        insMatchStatement <- insertMatchStatement conn tableNames
+        insHandStatement <- insertHandStatement conn tableNames
+        rMatchStatement <- readMatchStatement conn tableNames
+        rHandStatement <- readHandStatement conn tableNames
+
+        --insert the match
+        gameID <- insertMatch insMatchStatement insHandStatement conn basicTestTableNames match
+        commit conn
+
+        --read it back
+        rMatch <- readMatch rMatchStatement rHandStatement gameID
+        commit conn
+
+        --check that it matches
+        assertBool "readMatch failed (return Nothing)" (isJust rMatch)
+        assertBool "Match database error" (fromJust rMatch == match)
 
 tests = testGroup "IntegrationTests" [testCase "testReadWrite1v1" testReadWrite1v1]
