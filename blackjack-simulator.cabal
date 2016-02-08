@@ -45,6 +45,9 @@ extra-source-files:  ChangeLog.md
 -- Constraint on the version of Cabal needed to build this package.
 cabal-version:       >=1.10
 
+Flag PostgreSQL
+  description: Build with PostgreSQL instead of SQLite
+  default: False
 
 executable blackjack-simulator
   -- .hs or .lhs file containing the Main module.
@@ -66,6 +69,9 @@ executable blackjack-simulator
   default-language:    Haskell2010
 
   ghc-options:         -Wall -fwarn-tabs -fwarn-incomplete-record-updates -fwarn-unused-do-bind -fwarn-incomplete-uni-patterns
+
+  if flag(postgresql)
+    GHC-Options: -DBUILD_POSTGRESQL
   
 Test-Suite test-blackjack-simulator
   type:
