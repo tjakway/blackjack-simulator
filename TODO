@@ -1,0 +1,3 @@
+TODO
+
+* PostgreSQL uses SERIAL instead of AUTOINCREMENT.  Create a version of createTables with #ifdef for each database.
