@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 module Jakway.Blackjack.Tests.DatabaseTests.Common where
 
 --see http://stackoverflow.com/questions/8502201/remove-file-if-it-exists
@@ -13,6 +14,12 @@ import qualified Jakway.Blackjack.IO.DatabaseWrites as DB
 import qualified Jakway.Blackjack.IO.DatabaseReads as DB
 import qualified Jakway.Blackjack.IO.DatabaseCommon as DB
 
+#ifdef BUILD_POSTGRESQL
+withDatabase name = withConnectionIO' 
+#else
+withDatabase name = withConnectionIO' (connectSqlite3 name) 
+#endif
+
 --see http://stackoverflow.com/questions/8502201/remove-file-if-it-exists
 removeIfExists :: FilePath -> IO ()
 removeIfExists fileName = removeFile fileName `catch` handleExists
@@ -20,7 +27,6 @@ removeIfExists fileName = removeFile fileName `catch` handleExists
           | isDoesNotExistError e = return ()
           | otherwise = throwIO e
 
-withDatabase name = withConnectionIO' (connectSqlite3 name) 
 
 -- |run a transaction on a database that will be deleted before and after running it
 withTempDatabase dbName transaction = removeIfExists dbName >> withDatabase dbName transaction >> removeIfExists dbName
