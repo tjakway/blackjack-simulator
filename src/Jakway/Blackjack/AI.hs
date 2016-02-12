@@ -6,6 +6,7 @@ import Jakway.Blackjack.Points
 import Control.Monad.State
 
 data AI = BasicDealer | BasicPlayer
+        deriving Show
 
 play :: AI -> Hand -> Deck -> (Hand, Deck)
 play BasicDealer myHand deck = flip runState deck $ do
