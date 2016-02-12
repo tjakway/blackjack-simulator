@@ -4,7 +4,9 @@ import Jakway.Blackjack.Tests.GameTests (test_1v1_game)
 import Jakway.Blackjack.IO.DatabaseCommon
 import Jakway.Blackjack.IO.DatabaseWrites
 import Jakway.Blackjack.IO.DatabaseReads
+import Jakway.Blackjack.CardOps
 import Jakway.Blackjack.Match
+import Jakway.Blackjack.Game
 import Jakway.Blackjack.Tests.DatabaseTests.Common
 import Data.Maybe (fromJust, isJust)
 import Test.HUnit hiding (State)
@@ -14,6 +16,7 @@ import Database.HDBC
 import System.Random
 import Control.Monad (liftM)
 import Control.Monad.State
+import Control.Monad.Random
 
 --run a very simple match, write it to the database, and read it back
 testReadWrite1v1 :: Assertion
@@ -41,18 +44,26 @@ testReadWrite1v1 = withSingleTableTestDatabase $ \conn -> do
 
 testReadWriteRandomMatches :: Assertion
 testReadWriteRandomMatches = withSingleTableTestDatabase $ \conn -> do
-    gen <- getStdGen
-    let (numPlayers, numMatches) = (evalState genRandVariables gen) :: (Integer, Integer)
+    (numPlayers, numMatches) <- (evalRandIO genRandVariables) :: IO (Integer, Integer)
+
+    
 
     assertBool "test" True
 
     where maxRandPlayers = 10 :: Integer
           minRandMatches = 10 :: Integer
           maxRandMatches = 100 :: Integer
-          genRandVariables = (do
-                np <- randomR (1, maxRandPlayers) --minimum 1 other player
-                nm <- randomR (minRandMatches, maxRandMatches)
-                return (np, nm)) :: State StdGen (Integer, Integer)
+          --use MonadRandom to generate parameters
+          --MonadRandom is basically the state monad specialized to StdGen
+          genRandVariables = do
+                np <- getRandomR (1, maxRandPlayers) --minimum 1 other player
+                nm <- getRandomR (minRandMatches, maxRandMatches)
+                return (np, nm)
+          genMatch matches dealerAI playerAIs  = do
+              deck <- liftM infiniteShuffledDeck $ newStdGen
+              --TODO: write a more complex version with parameterized AI types
+              let thisMatch = fromJust $ evalGame dealerAI playerAIs deck
+              genMatch (thisMatch : matches) dealerAI playerAIs
 
 
 -- |for simplicity this function creates all the needed statements from the
