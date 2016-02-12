@@ -60,7 +60,7 @@ executable blackjack-simulator
   -- other-extensions:    
   
   -- Other library packages from which modules are imported.
-  build-depends:       base >=4.8, random, mtl, random-shuffle, HDBC >= 2.0.0, HDBC-sqlite3, HDBC-session, containers, convertible, HDBC-postgresql
+  build-depends:       base >=4.8, random, mtl, random-shuffle, HDBC >= 2.0.0, HDBC-sqlite3, HDBC-session, containers, convertible
   
   -- Directories containing source files.
   hs-source-dirs:      src
@@ -72,6 +72,7 @@ executable blackjack-simulator
 
   if flag(postgresql)
     GHC-Options: -DBUILD_POSTGRESQL
+    build-depends: HDBC-postgresql
   
 Test-Suite test-blackjack-simulator
   type:
@@ -85,4 +86,8 @@ Test-Suite test-blackjack-simulator
 
   default-language:    Haskell2010
 
-  build-depends:       base >=4.8, random, mtl, random-shuffle, HDBC >= 2.0.0, HDBC-sqlite3, HUnit, directory, HDBC-session, test-framework, test-framework-hunit, containers, convertible, HDBC-postgresql
+  build-depends:       base >=4.8, random, mtl, random-shuffle, HDBC >= 2.0.0, HDBC-sqlite3, HUnit, directory, HDBC-session, test-framework, test-framework-hunit, containers, convertible
+
+  if flag(postgresql)
+    GHC-Options: -DBUILD_POSTGRESQL
+    build-depends: HDBC-postgresql
