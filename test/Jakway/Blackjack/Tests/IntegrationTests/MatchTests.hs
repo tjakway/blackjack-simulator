@@ -7,6 +7,7 @@ import Jakway.Blackjack.IO.DatabaseReads
 import Jakway.Blackjack.CardOps
 import Jakway.Blackjack.Match
 import Jakway.Blackjack.Game
+import Jakway.Blackjack.AI
 import Jakway.Blackjack.Tests.DatabaseTests.Common
 import Data.Maybe (fromJust, isJust)
 import Test.HUnit hiding (State)
@@ -46,9 +47,10 @@ testReadWriteRandomMatches :: Assertion
 testReadWriteRandomMatches = withSingleTableTestDatabase $ \conn -> do
     (numPlayers, numMatches) <- (evalRandIO genRandVariables) :: IO (Integer, Integer)
 
-    
+    infiniteMatches <- genInfiniteMatches numPlayers
+    let matchesToTest = take (fromInteger numMatches) infiniteMatches
 
-    assertBool "test" True
+    mapM_ (testReadWriteMatch conn basicTestTableNames) matchesToTest
 
     where maxRandPlayers = 10 :: Integer
           minRandMatches = 10 :: Integer
@@ -59,11 +61,16 @@ testReadWriteRandomMatches = withSingleTableTestDatabase $ \conn -> do
                 np <- getRandomR (1, maxRandPlayers) --minimum 1 other player
                 nm <- getRandomR (minRandMatches, maxRandMatches)
                 return (np, nm)
-          genMatch matches dealerAI playerAIs  = do
+          --TODO: write a more complex version with parameterized AI types
+          genInfiniteMatches numPlayers = genMatchTailRecursive [] BasicDealer (replicate (fromInteger numPlayers) BasicPlayer)
+          genMatchTailRecursive matches dealerAI playerAIs  = do
+              --parameterizing each game with a new deck is the best
+              --approach because otherwise partial decks might be reused
+              --(and there's no way to tell when a deck has been reused)
+              --would be a subtle source of bias
               deck <- liftM infiniteShuffledDeck $ newStdGen
-              --TODO: write a more complex version with parameterized AI types
               let thisMatch = fromJust $ evalGame dealerAI playerAIs deck
-              genMatch (thisMatch : matches) dealerAI playerAIs
+              genMatchTailRecursive (thisMatch : matches) dealerAI playerAIs
 
 
 -- |for simplicity this function creates all the needed statements from the
@@ -88,4 +95,4 @@ testReadWriteMatch conn tableNames match = do
         assertBool "readMatch failed (return Nothing)" (isJust rMatch)
         assertBool "Match database error" (fromJust rMatch == match)
 
-tests = testGroup "IntegrationTests" [testCase "testReadWrite1v1" testReadWrite1v1]
+tests = testGroup "IntegrationTests" [testCase "testReadWrite1v1" testReadWrite1v1, testCase "testReadWriteRandomMatches" testReadWriteRandomMatches]
