@@ -86,7 +86,7 @@ Test-Suite test-blackjack-simulator
 
   default-language:    Haskell2010
 
-  build-depends:       base >=4.8, random, mtl, random-shuffle, HDBC >= 2.0.0, HDBC-sqlite3, HUnit, directory, HDBC-session, test-framework, test-framework-hunit, containers, convertible
+  build-depends:       base >=4.8, random, mtl, random-shuffle, HDBC >= 2.0.0, HDBC-sqlite3, HUnit, directory, HDBC-session, test-framework, test-framework-hunit, containers, convertible, MonadRandom 
 
   if flag(postgresql)
     GHC-Options: -DBUILD_POSTGRESQL
