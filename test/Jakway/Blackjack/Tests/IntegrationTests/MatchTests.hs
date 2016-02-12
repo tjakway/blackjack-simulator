@@ -42,7 +42,7 @@ testReadWrite1v1 = withSingleTableTestDatabase $ \conn -> do
 testReadWriteRandomMatches :: Assertion
 testReadWriteRandomMatches = withSingleTableTestDatabase $ \conn -> do
     gen <- getStdGen
-    let (numPlayers, numMatches) = evalState genRandVariables gen
+    let (numPlayers, numMatches) = (evalState genRandVariables gen) :: (Integer, Integer)
 
     assertBool "test" True
 
