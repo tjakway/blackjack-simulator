@@ -7,12 +7,13 @@ import Jakway.Blackjack.IO.DatabaseReads
 import Jakway.Blackjack.Match
 import Jakway.Blackjack.Tests.DatabaseTests.Common
 import Data.Maybe (fromJust, isJust)
-import Test.HUnit
+import Test.HUnit hiding (State)
 import Test.Framework
 import Test.Framework.Providers.HUnit
 import Database.HDBC
 import System.Random
 import Control.Monad (liftM)
+import Control.Monad.State
 
 --run a very simple match, write it to the database, and read it back
 testReadWrite1v1 :: Assertion
@@ -37,16 +38,21 @@ testReadWrite1v1 = withSingleTableTestDatabase $ \conn -> do
         assertBool "readMatch failed" (isJust rMatch)
         assertBool "Match database error" (fromJust rMatch == test_1v1_game)
 
+
 testReadWriteRandomMatches :: Assertion
 testReadWriteRandomMatches = withSingleTableTestDatabase $ \conn -> do
-    randNums <- (liftM randoms $ getStdGen) :: IO [Integer]
+    gen <- getStdGen
+    let (numPlayers, numMatches) = evalState genRandVariables gen
 
-    --TODO: rewrite using state monad
-    --randomly select the number of players, # matches
-    let numPlayers = head randNums
-        numMatches = randNums !! 2
+    assertBool "test" True
 
-    let deck = 
+    where maxRandPlayers = 10 :: Integer
+          minRandMatches = 10 :: Integer
+          maxRandMatches = 100 :: Integer
+          genRandVariables = (do
+                np <- randomR (1, maxRandPlayers) --minimum 1 other player
+                nm <- randomR (minRandMatches, maxRandMatches)
+                return (np, nm)) :: State StdGen (Integer, Integer)
 
 
 -- |for simplicity this function creates all the needed statements from the
