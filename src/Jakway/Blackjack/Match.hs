@@ -9,4 +9,4 @@ data Match = Match
             , playersHands :: [Hand]
             , playerResults :: [Result]
             }
-            deriving Eq
+            deriving (Eq, Show)
