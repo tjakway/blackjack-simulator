@@ -71,7 +71,7 @@ executable blackjack-simulator
   ghc-options:         -Wall -fwarn-tabs -fwarn-incomplete-record-updates -fwarn-unused-do-bind -fwarn-incomplete-uni-patterns
 
   if flag(postgresql)
-    GHC-Options: -DBUILD_POSTGRESQL
+    CPP-Options: -DBUILD_POSTGRESQL
     build-depends: HDBC-postgresql
   
 Test-Suite test-blackjack-simulator
@@ -89,5 +89,5 @@ Test-Suite test-blackjack-simulator
   build-depends:       base >=4.8, random, mtl, random-shuffle, HDBC >= 2.0.0, HDBC-sqlite3, HUnit, directory, HDBC-session, test-framework, test-framework-hunit, containers, convertible, MonadRandom 
 
   if flag(postgresql)
-    GHC-Options: -DBUILD_POSTGRESQL
+    CPP-Options: -DBUILD_POSTGRESQL
     build-depends: HDBC-postgresql
