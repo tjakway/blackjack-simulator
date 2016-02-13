@@ -1,3 +1,6 @@
+--This module should only be accessed by Jakway.Blackjack.IO.DatabaseCommon
+--Jakway.Blackjack.IO.DatabaseCommon exports the correct createTables
+--function based on flags to `cabal configure`
 module Jakway.Blackjack.IO.RDBMS.SQLite where
 
 import Database.HDBC
