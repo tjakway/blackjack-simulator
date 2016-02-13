@@ -1,5 +1,20 @@
 {-# LANGUAGE DeriveDataTypeable #-}
-module Jakway.Blackjack.IO.DatabaseCommon where
+module Jakway.Blackjack.IO.DatabaseCommon
+(
+createTables,
+cardIdMap,
+cardPermutations,
+cardSqlArr,
+cardToForeignKeyId,
+getHandTableName,
+getMatchTableName,
+getPlayerTableName,
+getTableNames,
+idCardMap,
+singleCardToSqlValues,
+tableNamesToSql
+)
+where
 
 import Jakway.Blackjack.Visibility
 import Jakway.Blackjack.Cards
@@ -9,6 +24,14 @@ import qualified Data.Map.Strict as HashMap
 import Control.Exception
 import Data.Typeable
 import Jakway.Blackjack.Util
+import qualified Jakway.Blackjack.IO.RDBMS.Postgres as Postgres
+import qualified Jakway.Blackjack.IO.RDBMS.SQLite as SQLite
+
+#ifdef BUILD_POSTGRESQL
+createTables = Postgres.createTables
+#else
+createTables = SQLite.createTables
+#endif
 
 --only need 3 table names because the cards table is reused
 type TableNames = (String, String, String)
