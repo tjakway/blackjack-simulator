@@ -3,6 +3,7 @@ module Jakway.Blackjack.IO.DatabaseWrites where
 import Jakway.Blackjack.CardOps
 import Jakway.Blackjack.Match
 import Jakway.Blackjack.IO.DatabaseCommon
+import Jakway.Blackjack.IO.TableNames
 import Database.HDBC
 import Data.Maybe (fromJust)
 
