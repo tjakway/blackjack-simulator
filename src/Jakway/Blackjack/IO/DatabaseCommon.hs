@@ -21,6 +21,7 @@ import Control.Exception
 import Data.Typeable
 import Jakway.Blackjack.Util
 import Jakway.Blackjack.IO.TableNames
+import Jakway.Blackjack.IO.DatabaseConnection
 import qualified Jakway.Blackjack.IO.RDBMS.Postgres as Postgres
 import qualified Jakway.Blackjack.IO.RDBMS.SQLite as SQLite
 
