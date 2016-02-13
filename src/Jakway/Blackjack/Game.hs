@@ -123,16 +123,13 @@ whoWon' firstHand secondHand = ordToResult $ bust <> scores
     bust = comparing busted firstHand secondHand
     scores = comparing (handPoints . map unwrapVisibility) firstHand secondHand
 
---TODO: write a more complex version with parameterized AI types
-genInfiniteMatches numPlayers = genMatchTailRecursive [] BasicDealer (replicate (fromInteger numPlayers) BasicPlayer)
 --TODO: instead of making this tail recursive could just have it
 --return Match instead of [Match] then use something from
 --Data.List to repeat the function call and concat
-genMatchTailRecursive matches dealerAI playerAIs  = do
+genMatch dealerAI playerAIs  = do
     --parameterizing each game with a new deck is the best
     --approach because otherwise partial decks might be reused
     --(and there's no way to tell when a deck has been reused)
     --would be a subtle source of bias
     deck <- liftM infiniteShuffledDeck $ newStdGen
-    let thisMatch = fromJust $ evalGame dealerAI playerAIs deck
-    genMatchTailRecursive (thisMatch : matches) dealerAI playerAIs
+    return . fromJust $ evalGame dealerAI playerAIs deck
