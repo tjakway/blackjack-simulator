@@ -19,12 +19,15 @@ import qualified Data.Map.Strict as HashMap
 import Control.Exception
 import Data.Typeable
 import Jakway.Blackjack.Util
+import Jakway.Blackjack.IO.TableNames
 import qualified Jakway.Blackjack.IO.RDBMS.Postgres as Postgres
 import qualified Jakway.Blackjack.IO.RDBMS.SQLite as SQLite
 
 #ifdef BUILD_POSTGRESQL
+createTables :: IConnection a => a -> TableNames -> IO ()
 createTables = Postgres.createTables
 #else
+createTables :: IConnection a => a -> TableNames -> IO ()
 createTables = SQLite.createTables
 #endif
 
