@@ -138,7 +138,7 @@ insertMatch insMatchStatement insHandStatement conn tableNames (Match dHand pIds
 
     insertedHandIds <- insertHands insHandStatement conn tableNames (pIds, pHands)
     commit conn
-    let values = map (\(hId, pId, pRes) -> map toSql [gameId, dealersHandId, hId, toInteger pId, toInteger . fromEnum $ pRes]) $ zip3 insertedHandIds pIds pResults
+    let values = map (\(hId, pId, pRes) -> map toSql [gameId, dealersHandId, toInteger pId, hId, toInteger . fromEnum $ pRes]) $ zip3 insertedHandIds pIds pResults
     executeMany insMatchStatement values
     commit conn
     return gameId
