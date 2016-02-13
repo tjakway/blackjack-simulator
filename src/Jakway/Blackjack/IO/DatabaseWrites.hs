@@ -9,9 +9,6 @@ import Data.Maybe (fromJust)
 enableForeignKeys :: IConnection a => a -> IO Integer
 enableForeignKeys conn = run conn "PRAGMA foreign_keys = ON;" []
 
-flipInner2 :: (a -> b -> c -> d) -> a -> c -> b -> d
-flipInner2 f x y z = f x z y
-
 initializeDatabase :: (IConnection a) => a -> [TableNames]-> IO ()
 initializeDatabase conn allTableNames = enableForeignKeys conn >> mapM_ (createTables conn) allTableNames
 

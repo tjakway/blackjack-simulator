@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveDataTypeable, CPP #-}
 module Jakway.Blackjack.IO.DatabaseCommon
 (
 createTables,
@@ -6,13 +6,8 @@ cardIdMap,
 cardPermutations,
 cardSqlArr,
 cardToForeignKeyId,
-getHandTableName,
-getMatchTableName,
-getPlayerTableName,
-getTableNames,
 idCardMap,
 singleCardToSqlValues,
-tableNamesToSql
 )
 where
 
@@ -32,27 +27,6 @@ createTables = Postgres.createTables
 #else
 createTables = SQLite.createTables
 #endif
-
---only need 3 table names because the cards table is reused
-type TableNames = (String, String, String)
-
-baseTableNames :: TableNames
-baseTableNames = ("players_", "hands_", "matches_")
-
-getTableNames :: String -> TableNames
-getTableNames suffix = innerMapTuple3 (++ suffix) baseTableNames
-
-getPlayerTableName :: TableNames -> String
-getPlayerTableName (name,_,_) = name
-
-getHandTableName :: TableNames -> String
-getHandTableName (_,name,_) = name
-
-getMatchTableName :: TableNames -> String
-getMatchTableName (_,_,name) = name
-
-tableNamesToSql :: TableNames -> [SqlValue]
-tableNamesToSql (a,b,c) = map toSql [a,b,c]
 
 -- |reverse operation of cardToForeignId
 foreignKeyIdToCard :: Int -> Maybe (Visibility Card)

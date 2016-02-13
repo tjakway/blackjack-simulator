@@ -3,6 +3,8 @@
 --function based on flags to `cabal configure`
 module Jakway.Blackjack.IO.RDBMS.SQLite where
 
+import Jakway.Blackjack.Util
+import Jakway.Blackjack.IO.TableNames
 import Database.HDBC
 
 createTables :: IConnection a => a -> TableNames -> IO ()

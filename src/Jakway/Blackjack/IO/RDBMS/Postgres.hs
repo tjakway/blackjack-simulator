@@ -3,6 +3,8 @@
 --function based on flags to `cabal configure`
 module Jakway.Blackjack.IO.RDBMS.Postgres where
 
+import Jakway.Blackjack.Util
+import Jakway.Blackjack.IO.TableNames
 import Database.HDBC
 
 --Postgres uses SERIAL instead of SERIAL
