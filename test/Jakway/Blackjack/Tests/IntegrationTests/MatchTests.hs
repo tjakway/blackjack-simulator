@@ -47,8 +47,8 @@ testReadWriteRandomMatches :: Assertion
 testReadWriteRandomMatches = withSingleTableTestDatabase $ \conn -> do
     (numPlayers, numMatches) <- (evalRandIO genRandVariables) :: IO (Integer, Integer)
 
-    infiniteMatches <- genInfiniteMatches numPlayers
-    let matchesToTest = take (fromInteger numMatches) infiniteMatches
+    let playerAIs = replicate (fromInteger numPlayers) BasicPlayer
+    matchesToTest <- mapM (\_ -> genMatch BasicDealer playerAIs) [1..numMatches]
 
     mapM_ (testReadWriteMatch conn basicTestTableNames) matchesToTest
 
@@ -84,6 +84,9 @@ testReadWriteMatch conn tableNames match = do
 
         --check that it matches
         assertBool "readMatch failed (return Nothing)" (isJust rMatch)
-        assertBool "Match database error" (fromJust rMatch == match)
+        let testPassed = fromJust rMatch == match
+        when (testPassed == False) (putStrLn "Error in testReadWriteMatch." >> putStrLn ("READ MATCH: " ++ (show . fromJust $ rMatch)) >> putStrLn ("EXPECTED MATCH: " ++ (show match)))
+        let dbErrorMessage = "Match database error"
+        assertBool dbErrorMessage (fromJust rMatch == match)
 
 tests = testGroup "IntegrationTests" [testCase "testReadWrite1v1" testReadWrite1v1, testCase "testReadWriteRandomMatches" testReadWriteRandomMatches]
