@@ -14,6 +14,7 @@ import Prelude hiding (lookup)
 import Jakway.Blackjack.CardOps
 import Jakway.Blackjack.Match
 import Jakway.Blackjack.IO.DatabaseCommon
+import Jakway.Blackjack.IO.TableNames
 import Jakway.Blackjack.Result
 import Jakway.Blackjack.Util (innerMapTuple4)
 import Database.HDBC
