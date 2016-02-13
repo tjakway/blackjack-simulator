@@ -6,6 +6,7 @@ import Test.Framework.Providers.HUnit
 import qualified Jakway.Blackjack.IO.DatabaseCommon as DB
 import qualified Jakway.Blackjack.IO.DatabaseWrites as DB
 import qualified Jakway.Blackjack.IO.DatabaseReads as DB
+import qualified Jakway.Blackjack.IO.TableNames as DB
 import Jakway.Blackjack.Tests.DatabaseTests.Common
 
 basicTwoTableNames = map DB.getTableNames ["t1", "t2"]

@@ -4,6 +4,7 @@ import Jakway.Blackjack.Tests.GameTests (test_1v1_game)
 import Jakway.Blackjack.IO.DatabaseCommon
 import Jakway.Blackjack.IO.DatabaseWrites
 import Jakway.Blackjack.IO.DatabaseReads
+import Jakway.Blackjack.IO.TableNames
 import Jakway.Blackjack.CardOps
 import Jakway.Blackjack.Match
 import Jakway.Blackjack.Game

@@ -13,6 +13,7 @@ import Database.HDBC.Session (withConnectionIO')
 import qualified Jakway.Blackjack.IO.DatabaseWrites as DB
 import qualified Jakway.Blackjack.IO.DatabaseReads as DB
 import qualified Jakway.Blackjack.IO.DatabaseCommon as DB
+import qualified Jakway.Blackjack.IO.TableNames as DB
 
 #ifdef BUILD_POSTGRESQL
 withDatabase name = withConnectionIO' 

@@ -11,6 +11,7 @@ import Control.Monad (liftM, unless, when)
 import qualified Jakway.Blackjack.IO.DatabaseWrites as DB
 import qualified Jakway.Blackjack.IO.DatabaseReads as DB
 import qualified Jakway.Blackjack.IO.DatabaseCommon as DB
+import qualified Jakway.Blackjack.IO.TableNames as DB
 import Jakway.Blackjack.Cards
 import Jakway.Blackjack.CardOps
 import Data.Maybe (fromJust)
