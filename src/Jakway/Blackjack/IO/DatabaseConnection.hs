@@ -3,6 +3,7 @@ module Jakway.Blackjack.IO.DatabaseConnection where
 
 import Control.Exception
 
+#ifdef BUILD_POSTGRESQL
 postgres_conf_filename :: FilePath
 postgres_conf_filename = "psql_conn.conf"
 
@@ -24,3 +25,7 @@ readPostgresConnectionString = do
         case confFile of
             Nothing -> return ""
             Just contents -> return contents
+#else
+--SQLite
+
+#endif
