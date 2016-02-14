@@ -1,6 +1,12 @@
 {-# LANGUAGE CPP #-}
 module Jakway.Blackjack.IO.DatabaseConnection 
 (
+#ifdef BUILD_POSTGRESQL
+connectPostgresDB,
+connectPostgresDBReadString,
+#else
+connectSQLiteDB
+#endif
 )
 where
 
