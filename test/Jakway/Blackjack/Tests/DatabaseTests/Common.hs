@@ -13,12 +13,14 @@ import Database.HDBC.Session (withConnectionIO')
 import qualified Jakway.Blackjack.IO.DatabaseWrites as DB
 import qualified Jakway.Blackjack.IO.DatabaseReads as DB
 import qualified Jakway.Blackjack.IO.DatabaseCommon as DB
+import qualified Jakway.Blackjack.IO.DatabaseConnection as DBConn
 import qualified Jakway.Blackjack.IO.TableNames as DB
 
 #ifdef BUILD_POSTGRESQL
-withDatabase name = withConnectionIO' 
+withDatabase name = withConnectionIO' $ DBConn.connectPostgresDBReadString
 #else
-withDatabase name = withConnectionIO' (connectSqlite3 name) 
+test_db_name = "test_tmp.db"
+withDatabase name = withConnectionIO' $ DBConn.connectSQLiteDB test_db_name
 #endif
 
 --see http://stackoverflow.com/questions/8502201/remove-file-if-it-exists
@@ -31,8 +33,6 @@ removeIfExists fileName = removeFile fileName `catch` handleExists
 
 -- |run a transaction on a database that will be deleted before and after running it
 withTempDatabase dbName transaction = removeIfExists dbName >> withDatabase dbName transaction >> removeIfExists dbName
-
-test_db_name = "tmp_test.db"
 
 basicTestTableNames = DB.getTableNames "test1"
 
