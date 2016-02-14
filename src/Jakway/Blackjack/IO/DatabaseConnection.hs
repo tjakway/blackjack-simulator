@@ -40,6 +40,11 @@ connectPostgresDBReadString :: IO Connection
 connectPostgresDBReadString = readPostgresConnectionString >>= connectPostgresDB
 
 #else
+
+import Database.HDBC.Sqlite3
+
 --SQLite
+connectSQLiteDB :: FilePath -> IO Connection
+connectSQLiteDB = connectSqlite3
 
 #endif
