@@ -1,9 +1,15 @@
 {-# LANGUAGE CPP #-}
-module Jakway.Blackjack.IO.DatabaseConnection where
+module Jakway.Blackjack.IO.DatabaseConnection 
+(
+)
+where
 
+import Database.HDBC
 import Control.Exception
 
 #ifdef BUILD_POSTGRESQL
+import Database.HDBC.PostgreSQL
+
 postgres_conf_filename :: FilePath
 postgres_conf_filename = "psql_conn.conf"
 
@@ -25,6 +31,14 @@ readPostgresConnectionString = do
         case confFile of
             Nothing -> return ""
             Just contents -> return contents
+
+connectPostgresDB :: String -> IO Connection
+connectPostgresDB connStr = connectPostgreSQL' connStr
+
+--connect to the database using the options read from the file
+connectPostgresDBReadString :: IO Connection
+connectPostgresDBReadString = readPostgresConnectionString >>= connectPostgresDB
+
 #else
 --SQLite
 
