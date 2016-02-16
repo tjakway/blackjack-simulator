@@ -16,10 +16,10 @@ import qualified Jakway.Blackjack.IO.DatabaseCommon as DB
 import qualified Jakway.Blackjack.IO.DatabaseConnection as DBConn
 import qualified Jakway.Blackjack.IO.TableNames as DB
 
-#ifdef BUILD_POSTGRESQL
-withDatabase name = withConnectionIO' $ DBConn.connectPostgresDBReadString
-#else
 test_db_name = "test_tmp.db"
+#ifdef BUILD_POSTGRESQL
+withDatabase _ = withConnectionIO' $ DBConn.connectPostgresDBReadString
+#else
 withDatabase name = withConnectionIO' $ DBConn.connectSQLiteDB test_db_name
 #endif
 
@@ -31,11 +31,19 @@ removeIfExists fileName = removeFile fileName `catch` handleExists
           | otherwise = throwIO e
 
 
+#ifdef BUILD_POSTGRESQL
+--database name is irrelevent if we're using postgres
+--need the table names to wipe the postgres database
+withTempDatabase dbName transaction tableNames = withDatabase dbName trans_and_drop
+            where trans_and_drop = (\conn -> transaction >> DB.dropTables conn tableNames)
+#else
 -- |run a transaction on a database that will be deleted before and after running it
-withTempDatabase dbName transaction = removeIfExists dbName >> withDatabase dbName transaction >> removeIfExists dbName
+withTempDatabase dbName transaction tableNames = removeIfExists dbName >> withDatabase dbName transaction >> removeIfExists dbName
+#endif
 
 basicTestTableNames = DB.getTableNames "test1"
 
+
 -- |initialize the database then run the transaction
 -- don't forget to commit!
-withSingleTableTestDatabase transaction = withTempDatabase test_db_name (\conn -> DB.enableForeignKeys conn >> DB.initializeDatabase conn [basicTestTableNames] >> DB.insertAllCards conn >> commit conn >> (handleSqlError $ transaction conn))
+withSingleTableTestDatabase transaction = withTempDatabase test_db_name basicTestTableNames (\conn -> DB.enableForeignKeys conn >> DB.initializeDatabase conn [basicTestTableNames] >> DB.insertAllCards conn >> commit conn >> (handleSqlError $ transaction conn))
