@@ -34,11 +34,11 @@ removeIfExists fileName = removeFile fileName `catch` handleExists
 #ifdef BUILD_POSTGRESQL
 --database name is irrelevent if we're using postgres
 --need the table names to wipe the postgres database
-withTempDatabase dbName transaction tableNames = withDatabase dbName trans_and_drop
-            where trans_and_drop = (\conn -> transaction >> DB.dropTables conn tableNames)
+withTempDatabase dbName tableNames transaction = withDatabase dbName trans_and_drop
+            where trans_and_drop = (\conn -> transaction conn >> DB.dropTables conn tableNames)
 #else
 -- |run a transaction on a database that will be deleted before and after running it
-withTempDatabase dbName transaction tableNames = removeIfExists dbName >> withDatabase dbName transaction >> removeIfExists dbName
+withTempDatabase dbName tableNames transaction = removeIfExists dbName >> withDatabase dbName transaction >> removeIfExists dbName
 #endif
 
 basicTestTableNames = DB.getTableNames "test1"
