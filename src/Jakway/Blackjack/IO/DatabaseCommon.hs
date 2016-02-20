@@ -39,7 +39,8 @@ dropTables conn tableNames =
             mapM_ (flipInner2 run conn []) dropTableStatements
 --CASCADE is postgres-specific
 #ifdef BUILD_POSTGRESQL
-        where dropTableStatements = [ "DROP TABLE IF EXISTS cards CASCADE",
+        where dropTableStatements = [ "BEGIN TRANSACTION",
+                                    "DROP TABLE IF EXISTS cards CASCADE",
                                     "DROP TABLE IF EXISTS " ++ (getPlayerTableName tableNames) ++ " CASCADE",
                                     "DROP TABLE IF EXISTS " ++ (getHandTableName tableNames) ++ " CASCADE",
                                     "DROP TABLE IF EXISTS " ++ (getMatchTableName tableNames) ++ " CASCADE" ]
@@ -47,7 +48,8 @@ dropTables conn tableNames =
         where dropTableStatements = [ "DROP TABLE IF EXISTS cards",
                                     "DROP TABLE IF EXISTS " ++ (getPlayerTableName tableNames),
                                     "DROP TABLE IF EXISTS " ++ (getHandTableName tableNames),
-                                    "DROP TABLE IF EXISTS " ++ (getMatchTableName tableNames)]
+                                    "DROP TABLE IF EXISTS " ++ (getMatchTableName tableNames),
+                                    "COMMIT TRANSACTION"]
 #endif
 
 -- |reverse operation of cardToForeignId
