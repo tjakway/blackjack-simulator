@@ -2,7 +2,6 @@
 module Jakway.Blackjack.IO.DatabaseCommon
 (
 createTables,
-dropTables,
 cardIdMap,
 cardPermutations,
 cardSqlArr,
@@ -10,6 +9,7 @@ cardsSqlValues,
 cardToForeignKeyId,
 idCardMap,
 singleCardToSqlValues,
+dropTables,
 )
 where
 
@@ -34,16 +34,20 @@ createTables :: IConnection a => a -> TableNames -> IO ()
 createTables = SQLite.createTables
 #endif
 
---we don't need to drop tables if we aren't using postgres
---CASCADE is also postgres-specific
-#ifdef BUILD_POSTGRESQL
 dropTables :: IConnection a => a -> TableNames -> IO ()
 dropTables conn tableNames = 
             mapM_ (flipInner2 run conn []) dropTableStatements
+--CASCADE is postgres-specific
+#ifdef BUILD_POSTGRESQL
         where dropTableStatements = [ "DROP TABLE IF EXISTS cards CASCADE",
                                     "DROP TABLE IF EXISTS " ++ (getPlayerTableName tableNames) ++ " CASCADE",
                                     "DROP TABLE IF EXISTS " ++ (getHandTableName tableNames) ++ " CASCADE",
                                     "DROP TABLE IF EXISTS " ++ (getMatchTableName tableNames) ++ " CASCADE" ]
+#else
+        where dropTableStatements = [ "DROP TABLE IF EXISTS cards",
+                                    "DROP TABLE IF EXISTS " ++ (getPlayerTableName tableNames),
+                                    "DROP TABLE IF EXISTS " ++ (getHandTableName tableNames),
+                                    "DROP TABLE IF EXISTS " ++ (getMatchTableName tableNames)]
 #endif
 
 -- |reverse operation of cardToForeignId

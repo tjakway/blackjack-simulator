@@ -54,7 +54,7 @@ connectPostgresDBReadString = readPostgresConnectionString >>= connectPostgresDB
 import Database.HDBC.Sqlite3
 
 --SQLite
-connectSQLiteDB :: (IConncetion a) => FilePath -> IO a
+connectSQLiteDB :: FilePath -> IO Connection
 connectSQLiteDB = connectSqlite3
 
 #endif
