@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 module Jakway.Blackjack.IO.DatabaseWrites where
 
 import Jakway.Blackjack.CardOps
@@ -7,8 +8,14 @@ import Jakway.Blackjack.IO.TableNames
 import Database.HDBC
 import Data.Maybe (fromJust)
 
+--PostgreSQL doesn't support PRAGMA syntax and will throw an error
 enableForeignKeys :: IConnection a => a -> IO Integer
+#ifdef BUILD_POSTGRESQL
+--don't do anything, postgres enables foreign keys by default
+enableForeignKeys _ = return 0 
+#else
 enableForeignKeys conn = run conn "PRAGMA foreign_keys = ON;" []
+#endif
 
 initializeDatabase :: (IConnection a) => a -> [TableNames]-> IO ()
 initializeDatabase conn allTableNames = enableForeignKeys conn >> mapM_ (createTables conn) allTableNames
