@@ -72,7 +72,7 @@ executable blackjack-simulator
 
   if flag(postgresql)
     CPP-Options: -DBUILD_POSTGRESQL
-    build-depends: HDBC-postgresql
+    build-depends: HDBC-postgresql, directory
   
 Test-Suite test-blackjack-simulator
   type:
@@ -90,4 +90,4 @@ Test-Suite test-blackjack-simulator
 
   if flag(postgresql)
     CPP-Options: -DBUILD_POSTGRESQL
-    build-depends: HDBC-postgresql
+    build-depends: HDBC-postgresql, directory
