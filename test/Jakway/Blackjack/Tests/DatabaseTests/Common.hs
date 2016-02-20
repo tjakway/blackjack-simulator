@@ -8,17 +8,23 @@ import Control.Exception
 import System.IO.Error hiding (catch)
 import System.Directory
 import Database.HDBC
-import Database.HDBC.Sqlite3
 import Database.HDBC.Session (withConnectionIO')
 import qualified Jakway.Blackjack.IO.DatabaseWrites as DB
 import qualified Jakway.Blackjack.IO.DatabaseReads as DB
 import qualified Jakway.Blackjack.IO.DatabaseCommon as DB
 import qualified Jakway.Blackjack.IO.DatabaseConnection as DBConn
 import qualified Jakway.Blackjack.IO.TableNames as DB
+#ifdef BUILD_POSTGRESQL
+import Database.HDBC.PostgreSQL (Connection)
+#else
+import Database.HDBC.Sqlite3 (Connection)
+#endif
 
 test_db_name = "test_tmp.db"
+
+withDatabase :: FilePath -> (Connection -> IO b) -> IO b
 #ifdef BUILD_POSTGRESQL
-withDatabase _ = withConnectionIO' $ DBConn.connectPostgresDBReadString
+withDatabase _ = withConnectionIO' DBConn.connectPostgresDBReadString
 #else
 withDatabase name = withConnectionIO' $ DBConn.connectSQLiteDB test_db_name
 #endif
@@ -31,9 +37,11 @@ removeIfExists fileName = removeFile fileName `catch` handleExists
           | otherwise = throwIO e
 
 
+withTempDatabase :: FilePath -> DB.TableNames -> (Connection -> IO b) -> IO ()
 #ifdef BUILD_POSTGRESQL
 --database name is irrelevent if we're using postgres
 --need the table names to wipe the postgres database
+--withTempDatabase :: FilePath -> TableNames -> 
 withTempDatabase dbName tableNames transaction = withDatabase dbName trans_and_drop
             where trans_and_drop = (\conn -> transaction conn >> DB.dropTables conn tableNames)
 #else
