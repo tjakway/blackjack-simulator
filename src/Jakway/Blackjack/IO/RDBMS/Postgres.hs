@@ -11,7 +11,8 @@ import Database.HDBC
 createTables :: IConnection a => a -> TableNames -> IO ()
 createTables conn tableNames =
             mapM_ (flipInner2 run conn []) createTableStatements
-        where createTableStatements = [ "CREATE TABLE IF NOT EXISTS cards (id INTEGER PRIMARY KEY SERIAL, cardValue INTEGER NOT NULL, suit INTEGER NOT NULL, visible INTEGER NOT NULL)",
+        where createTableStatements = [ "BEGIN TRANSACTION",
+                                      "CREATE TABLE IF NOT EXISTS cards (id SERIAL PRIMARY KEY, cardValue INTEGER NOT NULL, suit INTEGER NOT NULL, visible INTEGER NOT NULL)",
                                       -- ^ Sqlite doesn't have a boolean
                                       -- data type, see https://www.sqlite.org/datatype3.html and http://stackoverflow.com/questions/843780/store-boolean-value-in-sqlite
                                       -- ****IMPORTANT****
@@ -22,12 +23,15 @@ createTables conn tableNames =
                                       -- injection vulnerability but it's
                                       -- not like we have any malicious
                                       -- users...
-                                        "CREATE TABLE "++ (getPlayerTableName tableNames) ++" (whichPlayer INTEGER PRIMARY KEY)",
+                                        "CREATE TABLE IF NOT EXISTS "++ (getPlayerTableName tableNames) ++" (whichPlayer INTEGER PRIMARY KEY)",
+                                        "COMMIT TRANSACTION",
+                                        "BEGIN TRANSACTION",
                                         -- | Note that SQLite doesn't allow
                                         -- any datatype other than INTEGER
                                         -- to be declared PRIMARY KEY
                                         -- SERIAL
-                                        "CREATE TABLE "++ (getHandTableName tableNames)  ++" (id INTEGER PRIMARY KEY SERIAL, whichPlayer INTEGER, whichHand BIGINT, thisCard INTEGER, "
+                                        "CREATE TABLE IF NOT EXISTS "++ (getHandTableName tableNames)  ++" (id SERIAL PRIMARY KEY, whichPlayer INTEGER, whichHand BIGINT, thisCard INTEGER, "
                                                             ++ "FOREIGN KEY(whichPlayer) REFERENCES players(whichPlayer), FOREIGN KEY(thisCard) REFERENCES cards(id) )",
-                                        "CREATE TABLE "++ (getMatchTableName tableNames) ++"(id INTEGER PRIMARY KEY SERIAL, whichGame INTEGER, dealersHand BIGINT, whichPlayer INTEGER, thisPlayersHand BIGINT, playerResult INTEGER, " ++
-                                                              "FOREIGN KEY(dealersHand) REFERENCES hands(whichHand), FOREIGN KEY(whichPlayer) REFERENCES players(whichPlayer), FOREIGN KEY(thisPlayersHand) REFERENCES hands(whichHand) ) " ]
+                                        "CREATE TABLE IF NOT EXISTS "++ (getMatchTableName tableNames) ++"(id SERIAL PRIMARY KEY, whichGame INTEGER, dealersHand BIGINT, whichPlayer INTEGER, thisPlayersHand BIGINT, playerResult INTEGER, " ++
+                                                              "FOREIGN KEY(dealersHand) REFERENCES hands(whichHand), FOREIGN KEY(whichPlayer) REFERENCES players(whichPlayer), FOREIGN KEY(thisPlayersHand) REFERENCES hands(whichHand) ) ",
+                                                             "COMMIT TRANSACTION" ]
