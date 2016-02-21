@@ -49,7 +49,7 @@ testReadWriteRandomMatches = withSingleTableTestDatabase $ \conn -> do
     (numPlayers, numMatches) <- (evalRandIO genRandVariables) :: IO (Integer, Integer)
     insertPlayers conn basicTestTableNames (fromInteger numPlayers)
 
-    let playerAIs = replicate (fromInteger numPlayers) BasicPlayer
+    let playerAIs = replicate (fromInteger (numPlayers - 1)) BasicPlayer
     matchesToTest <- mapM (\_ -> genMatch BasicDealer playerAIs) [1..numMatches]
 
     mapM_ (testReadWriteMatch conn basicTestTableNames) matchesToTest
@@ -60,7 +60,7 @@ testReadWriteRandomMatches = withSingleTableTestDatabase $ \conn -> do
           --use MonadRandom to generate parameters
           --MonadRandom is basically the state monad specialized to StdGen
           genRandVariables = do
-                np <- getRandomR (1, maxRandPlayers) --minimum 1 other player
+                np <- getRandomR (2, maxRandPlayers) --minimum 1 other player
                 nm <- getRandomR (minRandMatches, maxRandMatches)
                 return (np, nm)
                 
