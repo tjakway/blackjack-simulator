@@ -25,7 +25,7 @@ default_replacement_character = '?'
 -- it's an error to have `length orig` be less than the number of
 -- replacement strings
 ssub_wrep_char :: Char -> String -> [String] -> String
-ssub_wrep_char rep_char orig [] = if (rep_char `elem` orig) == False then orig else error "Not enough replacement strings"
+ssub_wrep_char rep_char orig [] = if (rep_char `elem` orig) == False then orig else error $ "Not enough replacement strings in string " ++ orig
 ssub_wrep_char rep_char orig (x:xs) = case xIndex of Nothing -> error "Could not find string to replace!"
                                                      Just pos -> ssub_wrep_char rep_char (replaceElem pos orig x) xs
                where xIndex = elemIndex rep_char orig
