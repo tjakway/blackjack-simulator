@@ -35,7 +35,8 @@ flagsToConfig flags
                 --No dealer!
                 | (whichDealer == Nothing) = Left "No dealer AI found, perhaps you passed a player AI by mistake?"
                 | (numPlayerAIs == 0) = Left "Must have >0 players!"
-                | otherwise = Right (hasVerbose, (fromJust whichDealer), playerAIs, numGames)
+                | numGames == Nothing = Left "Specify how many games to run."
+                | otherwise = Right (hasVerbose, (fromJust whichDealer), playerAIs, fromJust numGames)
             --Make sure a player AI hasn't been passed for a dealer AI
             -- TODO: rewrite using filter?
             where whichDealer = case (catMaybes $ map getWhichDealer flags) of [] -> Nothing
@@ -43,9 +44,12 @@ flagsToConfig flags
                   getNum f = length . catMaybes $ map f flags
                   --need at least 1 player besides the dealer
                   numBasicPlayerAIs = getNum getNumBasicPlayer
-                  numGames = getNum getNumGames
+                  numPlayerAIs = numBasicPlayerAIs -- TODO: modify as we add more AI types
+                  numGames = case catMaybes (map getNumGames flags) of [] -> Nothing
+                                                                       [x] -> Just x
                   hasVerbose = (map (== Verbose) flags) `elem` True
                   --build the list of player AIs from the passed flags
+                  -- TODO: concat other ais as we add more types
                   playerAIs = replicate numBasicPlayerAIs BasicPlayer
                   
 
@@ -53,7 +57,7 @@ flagsToConfig flags
 dealerOpt, ngOpt, nbpOpt :: String -> Flag
 dealerOpt = WhichDealer . read
 nbpOpt = NumBasicPlayer . read
-ngOpt = NumGames . read
+ngOpt = NumGames . (read :: String -> Integer)
 
 
 options :: [OptDescr Flag]
