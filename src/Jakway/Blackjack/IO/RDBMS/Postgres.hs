@@ -30,8 +30,10 @@ createTables conn tableNames =
                                         -- any datatype other than INTEGER
                                         -- to be declared PRIMARY KEY
                                         -- SERIAL
-                                        "CREATE TABLE IF NOT EXISTS "++ (getHandTableName tableNames)  ++" (id SERIAL PRIMARY KEY, whichPlayer INTEGER, whichHand BIGINT, thisCard INTEGER, "
-                                                            ++ "FOREIGN KEY(whichPlayer) REFERENCES players(whichPlayer), FOREIGN KEY(thisCard) REFERENCES cards(id) )",
-                                        "CREATE TABLE IF NOT EXISTS "++ (getMatchTableName tableNames) ++"(id SERIAL PRIMARY KEY, whichGame INTEGER, dealersHand BIGINT, whichPlayer INTEGER, thisPlayersHand BIGINT, playerResult INTEGER, " ++
-                                                              "FOREIGN KEY(dealersHand) REFERENCES hands(whichHand), FOREIGN KEY(whichPlayer) REFERENCES players(whichPlayer), FOREIGN KEY(thisPlayersHand) REFERENCES hands(whichHand) ) ",
+                                        "CREATE TABLE IF NOT EXISTS "++ (getHandTableName tableNames)  ++
+                                            "(id SERIAL PRIMARY KEY, whichPlayer INTEGER REFERENCES "++ (getPlayerTableName tableNames) ++ ", whichHand BIGINT REFERENCES "++ (getHandTableName tableNames)++", thisCard INTEGER REFERENCES cards, ",
+
+                                        "CREATE TABLE IF NOT EXISTS "++ (getMatchTableName tableNames) ++
+                                            "(id SERIAL PRIMARY KEY, whichGame INTEGER REFERENCES, dealersHand BIGINT REFERENCES "++ (getHandTableName tableNames) ++", whichPlayer INTEGER REFERENCES "++ (getPlayerTableName tableNames) ++ ", thisPlayersHand BIGINT REFERENCES " ++ (getHandTableName tableNames) ++ ", playerResult INTEGER, " ++
+                                                              "FOREIGN KEY(dealersHand) REFERENCES "++ (getHandTableName tableNames) ++"(whichHand), FOREIGN KEY(whichPlayer) REFERENCES "++ (getPlayerTableName tableNames) ++"(whichPlayer), FOREIGN KEY(thisPlayersHand) REFERENCES "++ (getHandTableName tableNames) ++"(whichHand) ) ",
                                                              "COMMIT TRANSACTION" ]

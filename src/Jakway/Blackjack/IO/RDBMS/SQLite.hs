@@ -30,3 +30,13 @@ createTables conn tableNames =
                                                             ++ "FOREIGN KEY(whichPlayer) REFERENCES players(whichPlayer), FOREIGN KEY(thisCard) REFERENCES cards(id) )",
                                         "CREATE TABLE "++ (getMatchTableName tableNames) ++"(id INTEGER PRIMARY KEY AUTOINCREMENT, whichGame INTEGER, dealersHand BIGINT, whichPlayer INTEGER, thisPlayersHand BIGINT, playerResult INTEGER, " ++
                                                               "FOREIGN KEY(dealersHand) REFERENCES hands(whichHand), FOREIGN KEY(whichPlayer) REFERENCES players(whichPlayer), FOREIGN KEY(thisPlayersHand) REFERENCES hands(whichHand) ) " ]
+
+
+
+
+
+!!!FROM POSTGRES:!!!
+                                        "CREATE TABLE IF NOT EXISTS "++ (getHandTableName tableNames)  ++" (id SERIAL PRIMARY KEY, whichPlayer INTEGER, whichHand BIGINT, thisCard INTEGER, "
+                                                            ++ "FOREIGN KEY(whichPlayer) REFERENCES "++ (getPlayerTableName tableNames) ++"(whichPlayer), FOREIGN KEY(thisCard) REFERENCES cards(id) )",
+                                        "CREATE TABLE IF NOT EXISTS "++ (getMatchTableName tableNames) ++"(id SERIAL PRIMARY KEY, whichGame INTEGER, dealersHand BIGINT, whichPlayer INTEGER, thisPlayersHand BIGINT, playerResult INTEGER, " ++
+                                                              "FOREIGN KEY(dealersHand) REFERENCES "++ (getHandTableName tableNames) ++"(whichHand), FOREIGN KEY(whichPlayer) REFERENCES "++ (getPlayerTableName tableNames) ++"(whichPlayer), FOREIGN KEY(thisPlayersHand) REFERENCES "++ (getHandTableName tableNames) ++"(whichHand) ) ",
