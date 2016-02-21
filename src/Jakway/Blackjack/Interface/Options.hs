@@ -1,12 +1,13 @@
 module Jakway.Blackjack.Interface.Options
 (
-Flag(..),
-processOptions
+Config,
+getConfig
 ) where
 
 import Jakway.Blackjack.AI
 import System.Console.GetOpt
 import Data.Maybe (fromJust, catMaybes)
+import System.Exit (die)
 
 data Flag = Verbose |
             WhichDealer AI |
@@ -69,9 +70,16 @@ options =
     ]
 
 
-processOptions :: [String] -> IO ([Flag], [String])
-processOptions argv = 
+parseOptions :: [String] -> IO ([Flag], [String])
+parseOptions argv = 
     case getOpt Permute options argv of
         (o,n,[]  ) -> return (o,n)
         (_,_,errs) -> ioError (userError (concat errs ++ usageInfo header options))
     where header = "Usage: blackjack-simulator [OPTION...]"
+
+
+--returns a valid configuration or prints an error and exits
+getConfig :: [String] -> IO Config
+getConfig argv = parseOptions argv >>= \(flags, _) -> return (flagsToConfig flags) >>=
+                                \res -> case res of (Left x) -> die $ "Error processing options: " ++ x
+                                                    (Right conf) -> return conf
