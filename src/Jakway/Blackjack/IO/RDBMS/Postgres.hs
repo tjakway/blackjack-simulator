@@ -29,7 +29,7 @@ createTables conn tableNames =
                 commitTransac = "COMMIT TRANSACTION"
                 createCardTable = "CREATE TABLE IF NOT EXISTS cards (id SERIAL PRIMARY KEY, cardValue INTEGER NOT NULL, suit INTEGER NOT NULL, visible INTEGER NOT NULL)"
                 createPlayersTable = ssub "CREATE TABLE IF NOT EXISTS ?(whichPlayer INTEGER PRIMARY KEY)" [ptn]
-                createHandsTable = ssub "CREATE TABLE IF NOT EXISTS ?(id SERIAL PRIMARY KEY, whichPlayer INTEGER REFERENCES ?, whichHand BIGINT, thisCard INTEGER REFERENCES cards)" [htn, ptn ++ "(whichPlayer)"]
+                createHandsTable = ssub "CREATE TABLE IF NOT EXISTS ?(id SERIAL PRIMARY KEY, whichPlayer INTEGER REFERENCES ?, whichHand BIGINT, thisCard INTEGER REFERENCES cards(id))" [htn, ptn ++ "(whichPlayer)"]
                 createMatchesTable = ssub "CREATE TABLE IF NOT EXISTS ?(id SERIAL PRIMARY KEY, whichGame INTEGER, dealersHand BIGINT REFERENCES ?, whichPlayer INTEGER REFERENCES ?, thisPlayersHand BIGINT REFERENCES ?, playerResult INTEGER)" [mtn, htn ++ "(whichHand)", ptn ++ "(whichPlayer)", htn ++ "(whichHand)"]
                 createTableStatements = [ beginTransac,
                                           createCardTable,
