@@ -15,7 +15,7 @@ createTables conn tableNames =
                 mtn = getMatchTableName tableNames
                 createCardTable = "CREATE TABLE IF NOT EXISTS cards (id INTEGER PRIMARY KEY AUTOINCREMENT, cardValue INTEGER NOT NULL, suit INTEGER NOT NULL, visible INTEGER NOT NULL)"
                 createPlayersTable = ssub "CREATE TABLE IF NOT EXISTS ?(whichPlayer INTEGER PRIMARY KEY AUTOINCREMENT)" [ptn]
-                createHandsTable = ssub "CREATE TABLE IF NOT EXISTS ?(id INTEGER PRIMARY KEY AUTOINCREMENT, whichPlayer INTEGER REFERENCES ?, whichHand BIGINT, thisCard INTEGER REFERENCES cards)" [htn, ptn ++ "(whichPlayer)"]
+                createHandsTable = ssub "CREATE TABLE IF NOT EXISTS ?(id INTEGER PRIMARY KEY AUTOINCREMENT, whichPlayer INTEGER REFERENCES ?, whichHand BIGINT, thisCard INTEGER REFERENCES cards(id))" [htn, ptn ++ "(whichPlayer)"]
                 createMatchesTable = ssub "CREATE TABLE IF NOT EXISTS ?(id INTEGER PRIMARY KEY AUTOINCREMENT, whichGame INTEGER, dealersHand BIGINT REFERENCES ?, whichPlayer INTEGER REFERENCES ?, thisPlayersHand BIGINT REFERENCES ?, playerResult INTEGER)" [mtn, htn ++ "(whichHand)", ptn ++ "(whichPlayer)", htn ++ "(whichHand)"]
                 createTableStatements = [ createCardTable,
                                           createPlayersTable,
