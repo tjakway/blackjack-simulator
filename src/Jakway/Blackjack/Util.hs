@@ -16,17 +16,20 @@ flipInner2 f x y z = f x z y
 --passed position
 replaceElem :: Int -> String -> String -> String
 replaceElem pos orig ins = let (front, back) = splitAt pos orig
-                               in front ++ ins ++ back
+                               in front ++ ins ++ (tail back)
 
 default_replacement_character :: Char
 default_replacement_character = '?'
 
 -- |"static substitution with replacement character"
+-- it's an error to have `length orig` be less than the number of
+-- replacement strings
 ssub_wrep_char :: Char -> String -> [String] -> String
-ssub_wrep_char _ orig [] = orig
+ssub_wrep_char rep_char orig [] = if (rep_char `elem` orig) == False then orig else error "Not enough replacement strings"
 ssub_wrep_char rep_char orig (x:xs) = case xIndex of Nothing -> error "Could not find string to replace!"
                                                      Just pos -> ssub_wrep_char rep_char (replaceElem pos orig x) xs
-    where xIndex = elemIndex rep_char orig
+               where xIndex = elemIndex rep_char orig
 
 --use the default replacement character, ?
+ssub :: String -> [String] -> String
 ssub = ssub_wrep_char default_replacement_character
