@@ -36,7 +36,7 @@ createTables = SQLite.createTables
 
 dropTables :: IConnection a => a -> TableNames -> IO ()
 dropTables conn tableNames = 
-            mapM_ (flipInner2 run conn []) dropTableStatements
+            mapM_ (flipInner2 run conn []) dropTableStatements >> commit conn
 --CASCADE is postgres-specific
 #ifdef BUILD_POSTGRESQL
         where dropTableStatements = [ "BEGIN TRANSACTION",
