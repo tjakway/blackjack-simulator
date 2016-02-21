@@ -43,7 +43,7 @@ withTempDatabase :: FilePath -> DB.TableNames -> (Connection -> IO b) -> IO ()
 --need the table names to wipe the postgres database
 --withTempDatabase :: FilePath -> TableNames -> 
 withTempDatabase dbName tableNames transaction = withDatabase dbName trans_and_drop
-            where trans_and_drop = (\conn -> transaction conn >> DB.dropTables conn tableNames)
+            where trans_and_drop = (\conn -> DB.dropTables conn >> commit conn >> transaction conn >> commit conn >> DB.dropTables conn tableNames >> commit conn)
 #else
 -- |run a transaction on a database that will be deleted before and after running it
 withTempDatabase dbName tableNames transaction = removeIfExists dbName >> withDatabase dbName transaction >> removeIfExists dbName

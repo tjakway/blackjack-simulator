@@ -18,7 +18,7 @@ enableForeignKeys conn = run conn "PRAGMA foreign_keys = ON;" []
 #endif
 
 initializeDatabase :: (IConnection a) => a -> [TableNames]-> IO ()
-initializeDatabase conn allTableNames = enableForeignKeys conn >> mapM_ (createTables conn) allTableNames
+initializeDatabase conn allTableNames = enableForeignKeys conn >> mapM_ (createTables conn) allTableNames >> commit conn
 
 --there's only one cards table
 insertCardStatement :: (IConnection a) => a -> IO (Statement)
@@ -31,6 +31,7 @@ insertAllCards conn = do
                          -- ^ newDeck is a (sorted) array of all possible card values
                          insertStatement <- insertCardStatement conn
                          executeMany insertStatement cardsSqlValues
+                         commit conn
 
 insertPlayerStatement :: (IConnection a) => a -> TableNames -> IO (Statement)
 insertPlayerStatement conn tableNames = prepare conn ("INSERT INTO " ++ playersTable ++ "(whichPlayer) VALUES(?)")
