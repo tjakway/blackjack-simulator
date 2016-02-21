@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 module Jakway.Blackjack.Tests.DatabaseTests.BasicTests (tests) where
 
 import Jakway.Blackjack.Tests.DatabaseTests.Common
@@ -25,12 +26,18 @@ import Jakway.Blackjack.Game
 import Data.Monoid (mempty)
 
 testOpenDatabase :: Assertion
+#ifdef BUILD_POSTGRESQL
+--can't check that a file with postgresql, so check that we can connect to
+--the database without problems
+testOpenDatabase = withSingleTableTestDatabase $ \_ -> return ()
+#else
 testOpenDatabase = withSingleTableTestDatabase $ (\_ -> do
                                 exists <- doesFileExist test_db_name
                                 if exists
                                     then return ()
                                     else assertFailure message)
                     where message = "Database "++test_db_name++" does not exist!"
+#endif
 
 testTableList :: Assertion
 testTableList =  withSingleTableTestDatabase $ \conn -> getTables conn >>= (\tables -> unless (tablesEqual tables) (assertFailure $ message tables))
