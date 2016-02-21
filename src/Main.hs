@@ -1,6 +1,7 @@
+{-# LANGUAGE ScopedTypeVariables, CPP #-}
 module Main where
 
-import Control.Monad (liftM, when)
+import Control.Monad (liftM, when, mapM_)
 import System.Environment (getArgs)
 import Jakway.Blackjack.AI
 import Jakway.Blackjack.Game
@@ -22,3 +23,17 @@ main = do
             putStrLn $ "Dealer AI:" ++ (show dealerAI)
             putStrLn $ "Player AIs: " ++ (show playerAIs)
             putStrLn $ "Number of games: " ++ (show numGames)
+        
+    where db_spec_main :: IO ()
+#ifdef BUILD_POSTGRESQL          
+          db_spec_main (beVerbose, dealerAI, playerAIs, numGames) = do
+              conn_string <- readPostgresConnectionString
+              when (beVerbose == True) $ putStrLn $ "Using Postgres connection string: " ++ conn_string
+              conn <- connectPostgresDB conn_string
+
+
+              mapM_ (\_ -> ) [0..numGames]
+#else
+
+#endif
+
