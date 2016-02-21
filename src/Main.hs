@@ -10,6 +10,7 @@ import Jakway.Blackjack.Result
 import Jakway.Blackjack.Visibility
 import Jakway.Blackjack.IO.DatabaseWrites
 import Jakway.Blackjack.IO.DatabaseReads
+import Jakway.Blackjack.Interface.Options
 
 main :: IO ()
 main = putStrLn "Hello, Haskell!"
