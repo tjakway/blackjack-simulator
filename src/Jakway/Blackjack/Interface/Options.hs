@@ -12,7 +12,7 @@ data Flag = Verbose |
             WhichDealer AI |
             NumBasicPlayer Int |
             NumGames Integer
-            deriving Show
+            deriving (Show, Eq)
 
 type Config = (Bool, AI, [AI], Integer)
 
@@ -47,7 +47,7 @@ flagsToConfig flags
                   numPlayerAIs = numBasicPlayerAIs -- TODO: modify as we add more AI types
                   numGames = case catMaybes (map getNumGames flags) of [] -> Nothing
                                                                        [x] -> Just x
-                  hasVerbose = (map (== Verbose) flags) `elem` True
+                  hasVerbose = True `elem` (map (== Verbose) flags)
                   --build the list of player AIs from the passed flags
                   -- TODO: concat other ais as we add more types
                   playerAIs = replicate numBasicPlayerAIs BasicPlayer
