@@ -40,4 +40,3 @@ createTables conn tableNames =
                                           createHandsTable,
                                           createMatchesTable,
                                           commitTransac ]
-
