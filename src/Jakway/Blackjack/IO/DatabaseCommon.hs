@@ -43,13 +43,13 @@ dropTables conn tableNames =
                                     "DROP TABLE IF EXISTS cards CASCADE",
                                     "DROP TABLE IF EXISTS " ++ (getPlayerTableName tableNames) ++ " CASCADE",
                                     "DROP TABLE IF EXISTS " ++ (getHandTableName tableNames) ++ " CASCADE",
-                                    "DROP TABLE IF EXISTS " ++ (getMatchTableName tableNames) ++ " CASCADE" ]
+                                    "DROP TABLE IF EXISTS " ++ (getMatchTableName tableNames) ++ " CASCADE",
+                                   "COMMIT TRANSACTION" ]
 #else
         where dropTableStatements = [ "DROP TABLE IF EXISTS cards",
                                     "DROP TABLE IF EXISTS " ++ (getPlayerTableName tableNames),
                                     "DROP TABLE IF EXISTS " ++ (getHandTableName tableNames),
-                                    "DROP TABLE IF EXISTS " ++ (getMatchTableName tableNames),
-                                    "COMMIT TRANSACTION"]
+                                    "DROP TABLE IF EXISTS " ++ (getMatchTableName tableNames) ]
 #endif
 
 -- |reverse operation of cardToForeignId
