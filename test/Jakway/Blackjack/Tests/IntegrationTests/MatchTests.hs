@@ -29,7 +29,7 @@ testReadWrite1v1 = withSingleTableTestDatabase $ \conn -> do
             playerID = playerIds test_1v1_game
         --there's only one player and player 0 is the dealer
 
-        insertPlayers conn basicTestTableNames 2
+        insertPlayers conn basicTestTableNames BasicDealer (replicate 2 BasicPlayer)
         insMatchStatement <- insertMatchStatement conn basicTestTableNames
         insHandStatement <- insertHandStatement conn basicTestTableNames
         gameID <- insertMatch insMatchStatement insHandStatement conn basicTestTableNames (Match origDealersHand playerID origPlayersHand origRes)
@@ -47,7 +47,7 @@ testReadWrite1v1 = withSingleTableTestDatabase $ \conn -> do
 testReadWriteRandomMatches :: Assertion
 testReadWriteRandomMatches = withSingleTableTestDatabase $ \conn -> do
     (numPlayers, numMatches) <- (evalRandIO genRandVariables) :: IO (Integer, Integer)
-    insertPlayers conn basicTestTableNames (fromInteger numPlayers)
+    insertPlayers conn basicTestTableNames BasicDealer (replicate (fromInteger numPlayers) BasicPlayer)
 
     let playerAIs = replicate (fromInteger (numPlayers - 1)) BasicPlayer
     matchesToTest <- mapM (\_ -> genMatch BasicDealer playerAIs) [1..numMatches]

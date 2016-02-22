@@ -2,6 +2,7 @@
 module Jakway.Blackjack.Tests.DatabaseTests.BasicTests (tests) where
 
 import Jakway.Blackjack.Tests.DatabaseTests.Common
+import Jakway.Blackjack.AI
 import System.Directory
 import Database.HDBC
 import Database.HDBC.Sqlite3
@@ -51,7 +52,7 @@ testTableList =  withSingleTableTestDatabase $ \conn -> getTables conn >>= (\tab
 testInsertPlayers :: Assertion
 testInsertPlayers = withSingleTableTestDatabase $ \conn -> do
                         let numPlayers = 10
-                        DB.insertPlayers conn basicTestTableNames numPlayers
+                        DB.insertPlayers conn basicTestTableNames BasicDealer (replicate numPlayers BasicPlayer)
                         commit conn
                         numPlayerRows <- DB.getNumPlayers conn basicTestTableNames
                         let message = "numPlayerRows is "++(show numPlayerRows)++" (should be"++(show numPlayers)++")"
@@ -60,7 +61,7 @@ testInsertPlayers = withSingleTableTestDatabase $ \conn -> do
 testInsertOneHand :: Assertion
 testInsertOneHand = withSingleTableTestDatabase $ \conn -> do
        let whichPlayer = 1
-       DB.insertPlayers conn basicTestTableNames 2
+       DB.insertPlayers conn basicTestTableNames BasicDealer (replicate 2 BasicPlayer)
        let hand = [Hidden (Card Spade Ace), Shown (Card Diamond King)] 
        insertStatement <- DB.insertHandStatement conn basicTestTableNames
        whichHand <- DB.insertHand insertStatement conn basicTestTableNames whichPlayer hand
@@ -74,7 +75,7 @@ testInsertOneHand = withSingleTableTestDatabase $ \conn -> do
 testInsertRandStartingHands :: Assertion
 testInsertRandStartingHands = withSingleTableTestDatabase $ \conn -> do
        let whichPlayer = 0
-       DB.insertPlayers conn basicTestTableNames 2
+       DB.insertPlayers conn basicTestTableNames BasicDealer (replicate 2 BasicPlayer)
        commit conn
 
        --insert between 10 and 100 hands
@@ -93,7 +94,7 @@ testInsertRandStartingHands = withSingleTableTestDatabase $ \conn -> do
 testInsertThreeCardHand :: Assertion
 testInsertThreeCardHand = withSingleTableTestDatabase $ \conn -> do
        let whichPlayer = 0
-       DB.insertPlayers conn basicTestTableNames 2
+       DB.insertPlayers conn basicTestTableNames BasicDealer (replicate 2 BasicPlayer)
        commit conn
 
        gen <- getStdGen
@@ -109,7 +110,7 @@ testInsertThreeCardHand = withSingleTableTestDatabase $ \conn -> do
 testGetNextHandId :: Assertion
 testGetNextHandId = withSingleTableTestDatabase $ \conn -> do
        let whichPlayer = 1
-       DB.insertPlayers conn basicTestTableNames 2
+       DB.insertPlayers conn basicTestTableNames BasicDealer (replicate 2 BasicPlayer)
        commit conn
 
        firstHand <- newHand (infiniteShuffledDeck $ mkStdGen 23)
