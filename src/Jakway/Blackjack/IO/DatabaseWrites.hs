@@ -3,6 +3,7 @@ module Jakway.Blackjack.IO.DatabaseWrites where
 
 import Jakway.Blackjack.CardOps
 import Jakway.Blackjack.Match
+import Jakway.Blackjack.AI
 import Jakway.Blackjack.IO.DatabaseCommon
 import Jakway.Blackjack.IO.TableNames
 import Database.HDBC
@@ -40,10 +41,11 @@ insertPlayerStatement conn tableNames = prepare conn ("INSERT INTO " ++ playersT
 -- |note: include the dealer in the number of players you're inserting
 -- if you pass 1 you won't have anyone to play against
 insertPlayers :: (IConnection a) => a -> TableNames -> AI -> [AI] -> IO ()
-insertPlayers conn tableNames numPlayers dealerAI playerAIs = insertPlayerStatement conn tableNames >>= (\insertStatement -> executeMany insertStatement insValues)
-                        where dealerAIStr = show dealerAI
-                              playerAIStrs = map show playerAIs
-                              insValues = [0, dealerAI] : [[1..(numPlayers-1)], playerAIStrs]
+insertPlayers conn tableNames dealerAI playerAIs = insertPlayerStatement conn tableNames >>= (\insertStatement -> executeMany insertStatement insValues)
+                        where dealerAIVal = toSql . show $ dealerAI
+                              playerAIVals = map (toSql . show) playerAIs
+                              numPlayers = length playerAIVals
+                              insValues = [nToSql 0, dealerAIVal] : [map toSql [1..(numPlayers-1)], playerAIVals]
                               -- ^ player number 0 is the dealer!
 
 insertHandStatement :: (IConnection a) => a -> TableNames -> IO (Statement)
