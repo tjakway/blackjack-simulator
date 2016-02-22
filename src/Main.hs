@@ -16,7 +16,7 @@ import Jakway.Blackjack.Interface.Options
 main :: IO ()
 main = do
         args <- getArgs
-        (beVerbose, dealerAI, playerAIs, numGames) <- getConfig args
+        (beVerbose, dealerAI, playerAIs, numGames, suffix) <- getConfig args
         when (beVerbose == True) $ do
             putStrLn "Using options: "
             putStrLn $ "verbose: " ++ (show beVerbose)
@@ -34,6 +34,6 @@ main = do
 
               mapM_ (\_ -> ) [0..numGames]
 #else
-
+          db_spec_main = undefined
 #endif
 

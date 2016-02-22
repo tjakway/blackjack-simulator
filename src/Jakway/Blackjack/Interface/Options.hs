@@ -11,10 +11,11 @@ import System.Exit (die)
 data Flag = Verbose |
             WhichDealer AI |
             NumBasicPlayer Int |
-            NumGames Integer
+            NumGames Integer |
+            TableNameSuffix String
             deriving (Show, Eq)
 
-type Config = (Bool, AI, [AI], Integer)
+type Config = (Bool, AI, [AI], Integer, String)
 
 --extract the number of BasicPlayer or return Nothing
 getNumBasicPlayer :: Flag -> Maybe Int
@@ -36,7 +37,7 @@ flagsToConfig flags
                 | (whichDealer == Nothing) = Left "No dealer AI found, perhaps you passed a player AI by mistake?"
                 | (numPlayerAIs == 0) = Left "Must have >0 players!"
                 | numGames == Nothing = Left "Specify how many games to run."
-                | otherwise = Right (hasVerbose, (fromJust whichDealer), playerAIs, fromJust numGames)
+                | otherwise = Right (hasVerbose, (fromJust whichDealer), playerAIs, fromJust numGames, tableNameSuffix)
             --Make sure a player AI hasn't been passed for a dealer AI
             -- TODO: rewrite using filter?
             where whichDealer = case (catMaybes $ map getWhichDealer flags) of [] -> Nothing
@@ -51,6 +52,8 @@ flagsToConfig flags
                   --build the list of player AIs from the passed flags
                   -- TODO: concat other ais as we add more types
                   playerAIs = replicate numBasicPlayerAIs BasicPlayer
+                  tableNameSuffix = head . catMaybes $ map (\a -> case a of (TableNameSuffix suff) -> Just suff
+                                                                            _ -> Nothing) flags
                   
 
 --flag converters
