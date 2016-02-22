@@ -34,15 +34,17 @@ insertAllCards conn = do
                          commit conn
 
 insertPlayerStatement :: (IConnection a) => a -> TableNames -> IO (Statement)
-insertPlayerStatement conn tableNames = prepare conn ("INSERT INTO " ++ playersTable ++ "(whichPlayer) VALUES(?)")
+insertPlayerStatement conn tableNames = prepare conn ("INSERT INTO " ++ playersTable ++ "(whichPlayer, aiType) VALUES(?, ?)")
                         where playersTable = getPlayerTableName tableNames
 
 -- |note: include the dealer in the number of players you're inserting
 -- if you pass 1 you won't have anyone to play against
-insertPlayers :: (IConnection a) => a -> TableNames -> Int -> IO ()
-insertPlayers conn tableNames numPlayers = insertPlayerStatement conn tableNames >>= (\insertStatement -> executeMany insertStatement insValues)
-                        where insValues = map ((: []) . toSql) [0..(numPlayers-1)]
-                            -- ^ player number 0 is the dealer!
+insertPlayers :: (IConnection a) => a -> TableNames -> AI -> [AI] -> IO ()
+insertPlayers conn tableNames numPlayers dealerAI playerAIs = insertPlayerStatement conn tableNames >>= (\insertStatement -> executeMany insertStatement insValues)
+                        where dealerAIStr = show dealerAI
+                              playerAIStrs = map show playerAIs
+                              insValues = [0, dealerAI] : [[1..(numPlayers-1)], playerAIStrs]
+                              -- ^ player number 0 is the dealer!
 
 insertHandStatement :: (IConnection a) => a -> TableNames -> IO (Statement)
 insertHandStatement conn tableNames = prepare conn ("INSERT INTO " ++ handTable ++ "(whichPlayer, whichHand, thisCard) VALUES(?, ?, ?)")
