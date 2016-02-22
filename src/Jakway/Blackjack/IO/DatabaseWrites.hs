@@ -47,7 +47,7 @@ insertPlayers conn tableNames dealerAI playerAIs = insertPlayerStatement conn ta
                               playerIdVals = map toSql [1..(numPlayers)]
                               playerVals = map (\(a, b) -> [a, b]) $ zip playerIdVals playerStrVals
                               numPlayers = length playerVals
-                              insValues = [nToSql 0, dealerAIVal] :  playerVals
+                              insValues = ([iToSql 0, dealerAIVal] :  playerVals) :: [[SqlValue]]
                               -- ^ player number 0 is the dealer!
 
 insertHandStatement :: (IConnection a) => a -> TableNames -> IO (Statement)
