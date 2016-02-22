@@ -43,9 +43,11 @@ insertPlayerStatement conn tableNames = prepare conn ("INSERT INTO " ++ playersT
 insertPlayers :: (IConnection a) => a -> TableNames -> AI -> [AI] -> IO ()
 insertPlayers conn tableNames dealerAI playerAIs = insertPlayerStatement conn tableNames >>= (\insertStatement -> executeMany insertStatement insValues)
                         where dealerAIVal = toSql . show $ dealerAI
-                              playerAIVals = map (toSql . show) playerAIs
-                              numPlayers = length playerAIVals
-                              insValues = [nToSql 0, dealerAIVal] : [map toSql [1..(numPlayers-1)], playerAIVals]
+                              playerStrVals = map (toSql . show) playerAIs
+                              playerIdVals = map toSql [1..(numPlayers)]
+                              playerVals = map (\(a, b) -> [a, b]) $ zip playerIdVals playerStrVals
+                              numPlayers = length playerVals
+                              insValues = [nToSql 0, dealerAIVal] :  playerVals
                               -- ^ player number 0 is the dealer!
 
 insertHandStatement :: (IConnection a) => a -> TableNames -> IO (Statement)
