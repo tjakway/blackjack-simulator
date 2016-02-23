@@ -24,16 +24,23 @@ main = do
             putStrLn $ "Player AIs: " ++ (show playerAIs)
             putStrLn $ "Number of games: " ++ (show numGames)
         
-    where db_spec_main :: IO ()
+          --get the hand and match insert statements
+    where getStatements :: (IConnection a) => a -> TableNames -> IO (Statement, Statement)
+          getStatements conn names = insertHandStatement conn names >>= 
+                                        (\ihs -> insertMatchStatement conn names >>= 
+                                            (\ims -> return (ihs, ims)))
+          singleMatchAction :: Statement -> Statement -> 
+          db_spec_main :: Config -> IO ()
 #ifdef BUILD_POSTGRESQL          
-          db_spec_main (beVerbose, dealerAI, playerAIs, numGames) = do
+          db_spec_main config (beVerbose, dealerAI, playerAIs, numGames) = do
+              --TODO: extract table names from config
               conn_string <- readPostgresConnectionString
               when (beVerbose == True) $ putStrLn $ "Using Postgres connection string: " ++ conn_string
               conn <- connectPostgresDB conn_string
 
+              (insHandStatement, insMatchStatement) <- getStatements conn tableNames
 
-              mapM_ (\_ -> ) [0..numGames]
+              foldr (\_ -> ) [0..numGames]
 #else
           db_spec_main = undefined
 #endif
-
