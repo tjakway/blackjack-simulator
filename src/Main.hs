@@ -13,6 +13,7 @@ import Jakway.Blackjack.IO.DatabaseWrites
 import Jakway.Blackjack.IO.DatabaseReads
 import Jakway.Blackjack.Interface.Options
 
+
 main :: IO ()
 main = do
         args <- getArgs
@@ -29,7 +30,6 @@ main = do
           getStatements conn names = insertHandStatement conn names >>= 
                                         (\ihs -> insertMatchStatement conn names >>= 
                                             (\ims -> return (ihs, ims)))
-          singleMatchAction :: Statement -> Statement -> 
           db_spec_main :: Config -> IO ()
 #ifdef BUILD_POSTGRESQL          
           db_spec_main config (beVerbose, dealerAI, playerAIs, numGames) = do
