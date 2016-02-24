@@ -20,7 +20,7 @@ performMatchIO :: (IConnection a, RandomGen g) =>
             Statement ->
             Statement -> 
             a ->
-            IO (Either String Integer)
+            IO (g, Either String Integer)
 performMatchIO = recursivePerformMatch 0
 
 
@@ -33,13 +33,13 @@ recursivePerformMatch :: (IConnection a, RandomGen g) =>
             Statement ->
             Statement -> 
             a ->
-            IO (Either String Integer)
+            IO (g, Either String Integer)
 recursivePerformMatch numGames conf gen insHandStatement insMatchStatement conn = 
         let (_, _, _, maxGames, _) = conf
+            nextRNG = snd . split $ gen
          in performMatch numGames conf gen insHandStatement insMatchStatement conn >>= (\res ->
-            case res of (Right newNumGames) -> if (newNumGames < maxGames) then recursivePerformMatch (newNumGames) conf nextRNG insHandStatement insMatchStatement conn else return (Right newNumGames)
-                        Left _ -> return res)
-        where nextRNG = snd . split $ gen
+            case res of (Right newNumGames) -> if (newNumGames < maxGames) then recursivePerformMatch (newNumGames) conf nextRNG insHandStatement insMatchStatement conn else return (nextRNG, Right newNumGames)
+                        Left _ -> return (nextRNG, res))
 
 -- |Returns an IO action that yields either a string describing an error or
 -- the number of games written
