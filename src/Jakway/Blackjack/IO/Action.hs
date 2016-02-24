@@ -50,6 +50,7 @@ recursivePerformMatch :: (IConnection a, RandomGen g) =>
 recursivePerformMatch e conf numGames gen insHandStatement insMatchStatement conn =
         let (beVerbose, dealerAI, playerAIs, maxGames, suffix) = conf
             tableNames = getTableNames suffix
+            nextRND = snd . split $ gen
         --break condition
         --numGames is the number of games we've done so far
         --if it's greater than or equal to maxGames, we're done
@@ -66,11 +67,10 @@ recursivePerformMatch e conf numGames gen insHandStatement insMatchStatement con
                                             --circuit
                                             let failedRecurse = recursivePerformMatch (Left (insertFailedMessage insRes)) conf numGames gen insHandStatement insMatchStatement conn
                                                 successRecurse = recursivePerformMatch (Right (numGames + 1)) conf (numGames + 1) insHandStatement insMatchStatement conn
-                                            if (insRes < 1) then failedRecurse
-                                                            else successRecurse
+                                            if (insRes < 1) then return failedRecurse
+                                                            else return successRecurse
 
               )
     where matchFailedMessage num = "Match number " ++ (show num) ++ "failed!"          
           insertFailedMessage res = "Error inserting match, database returned: " ++ (show res)
-          nextRNG = snd . split
           
