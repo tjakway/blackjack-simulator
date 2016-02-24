@@ -1,4 +1,6 @@
-module Jakway.Blackjack.IO.Action where
+module Jakway.Blackjack.IO.Action
+(performMatchIO)
+where
 
 import Jakway.Blackjack.Match
 import Data.Either
@@ -24,6 +26,18 @@ import System.Random
 --1. calling it
 --2. catching any exceptions
 --3. writing the exception message to Left String
+
+
+performMatchIO :: (IConnection a, RandomGen g) =>
+            --state parameters
+            Config ->
+            g ->
+            --IO parameters
+            Statement ->
+            Statement -> 
+            a ->
+            IO (Either String Integer)
+performMatchIO = recursivePerformMatch 0
 
 
 recursivePerformMatch :: (IConnection a, RandomGen g) =>
@@ -65,13 +79,13 @@ performMatch numGames conf gen insHandStatement insMatchStatement conn =
         --if e == Left it short circuits and we stop updating the total
         --number of games
             deck = infiniteShuffledDeck gen
-            maybeMatch = evalGame 
+            maybeMatch = evalGame dealerAI playerAIs deck
         in case maybeMatch of Nothing -> return $ Left (matchFailedMessage numGames)
                               Just (justMatch) -> do
                                 insRes <- insertMatch insHandStatement insMatchStatement conn tableNames justMatch
                                 --recurse with left to short
                                 --circuit
-                                if (insRes < 1) then return (Left insertFailedMessage)
+                                if (insRes < 1) then return (Left $ insertFailedMessage numGames)
                                                 else return (Right $ numGames + 1)
                                                             
     where matchFailedMessage num = "Match number " ++ (show num) ++ "failed!"          
