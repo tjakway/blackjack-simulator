@@ -13,21 +13,7 @@ import Jakway.Blackjack.Game
 import System.Random
 
 
-
--- ****************************************
--- if recursivePerformMatch doesn't work well as is,
--- instead of having it be recursive just have it try to perform ONE match
--- insert (returning IO (Either String Integer) but NOT taking a (Either String Integer) parameter)
--- write a helper function to call recursivePerformMatch repeatedly based
--- on whether or not it returns Left or Right
--- ****************************************
-
---TODO: write a function that wraps recursivePerformMatch by:
---1. calling it
---2. catching any exceptions
---3. writing the exception message to Left String
-
-
+-- |The public interface to recursivePerformMatch
 performMatchIO :: (IConnection a, RandomGen g) =>
             --state parameters
             Config ->
