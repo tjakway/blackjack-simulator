@@ -2,8 +2,6 @@ module Jakway.Blackjack.IO.Action
 (performMatchIO)
 where
 
-import Jakway.Blackjack.Match
-import Data.Either
 import Database.HDBC
 import Jakway.Blackjack.Interface.Options
 import Jakway.Blackjack.IO.TableNames
@@ -37,7 +35,7 @@ recursivePerformMatch :: (IConnection a, RandomGen g) =>
             a ->
             IO (Either String Integer)
 recursivePerformMatch numGames conf gen insHandStatement insMatchStatement conn = 
-        let (beVerbose, dealerAI, playerAIs, maxGames, suffix) = conf
+        let (_, _, _, maxGames, _) = conf
          in performMatch numGames conf gen insHandStatement insMatchStatement conn >>= (\res ->
             case res of (Right newNumGames) -> if (newNumGames < maxGames) then recursivePerformMatch (newNumGames) conf nextRNG insHandStatement insMatchStatement conn else return (Right newNumGames)
                         Left _ -> return res)
@@ -60,7 +58,7 @@ performMatch :: (IConnection a, RandomGen g) =>
             a ->
             IO (Either String Integer)
 performMatch numGames conf gen insHandStatement insMatchStatement conn =
-        let (beVerbose, dealerAI, playerAIs, maxGames, suffix) = conf
+        let (_, dealerAI, playerAIs, _, suffix) = conf
             tableNames = getTableNames suffix
         --if e == Left it short circuits and we stop updating the total
         --number of games
