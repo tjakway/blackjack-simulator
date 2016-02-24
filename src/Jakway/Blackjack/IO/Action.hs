@@ -25,9 +25,23 @@ import System.Random
 --2. catching any exceptions
 --3. writing the exception message to Left String
 
---TODO: maybe replace numGames with passing "Right numGames" instead?
---Right now we're passing duplicate parameters, probably wouldn't even
---require any work to fix
+
+recursivePerformMatch :: (IConnection a, RandomGen g) =>
+            --state parameters
+            Integer -> 
+            Config ->
+            g ->
+            --IO parameters
+            Statement ->
+            Statement -> 
+            a ->
+            IO (Either String Integer)
+recursivePerformMatch numGames conf gen insHandStatement insMatchStatement conn = 
+        let (beVerbose, dealerAI, playerAIs, maxGames, suffix) = conf
+         in performMatch numGames conf gen insHandStatement insMatchStatement conn >>= (\res ->
+            case res of (Right newNumGames) -> if (newNumGames < maxGames) then recursivePerformMatch (newNumGames) conf nextRNG insHandStatement insMatchStatement conn else return (Right newNumGames)
+                        Left _ -> return res)
+        where nextRNG = snd . split $ gen
 
 -- |Returns an IO action that yields either a string describing an error or
 -- the number of games written
@@ -35,45 +49,31 @@ import System.Random
 -- to be deterministic (i.e. it does not get a new generator from IO)
 --
 --  + pass 0 for numGames when calling this function externally
--- ************************************************************************
--- TODO: any way to split this function up so we can be certain (from the
--- type signature) it doesn't get a new random generator but still have it
--- return an IO type?
-recursivePerformMatch :: (IConnection a, RandomGen g) =>
+performMatch :: (IConnection a, RandomGen g) =>
             --state parameters
-            Either String Integer -> 
+            Integer -> 
             Config ->
-            Integer ->
             g ->
             --IO parameters
             Statement ->
             Statement -> 
             a ->
             IO (Either String Integer)
-recursivePerformMatch e conf numGames gen insHandStatement insMatchStatement conn =
+performMatch numGames conf gen insHandStatement insMatchStatement conn =
         let (beVerbose, dealerAI, playerAIs, maxGames, suffix) = conf
             tableNames = getTableNames suffix
-            nextRND = snd . split $ gen
-        --break condition
-        --numGames is the number of games we've done so far
-        --if it's greater than or equal to maxGames, we're done
-        in if (numGames >= maxGames) then return e else
         --if e == Left it short circuits and we stop updating the total
         --number of games
-        e >>= (\totalGames ->
-              let deck = infiniteShuffledDeck gen
-                  maybeMatch = evalGame
-                  in case maybeMatch of Nothing -> return $ Left (matchFailedMessage totalGames)
-                                        Just (justMatch) -> do
-                                            insRes <- insertMatch insHandStatement insMatchStatement conn tableNames justMatch
-                                            --recurse with left to short
-                                            --circuit
-                                            let failedRecurse = recursivePerformMatch (Left (insertFailedMessage insRes)) conf numGames gen insHandStatement insMatchStatement conn
-                                                successRecurse = recursivePerformMatch (Right (numGames + 1)) conf (numGames + 1) insHandStatement insMatchStatement conn
-                                            if (insRes < 1) then return failedRecurse
-                                                            else return successRecurse
-
-              )
+            deck = infiniteShuffledDeck gen
+            maybeMatch = evalGame 
+        in case maybeMatch of Nothing -> return $ Left (matchFailedMessage numGames)
+                              Just (justMatch) -> do
+                                insRes <- insertMatch insHandStatement insMatchStatement conn tableNames justMatch
+                                --recurse with left to short
+                                --circuit
+                                if (insRes < 1) then return (Left insertFailedMessage)
+                                                else return (Right $ numGames + 1)
+                                                            
     where matchFailedMessage num = "Match number " ++ (show num) ++ "failed!"          
           insertFailedMessage res = "Error inserting match, database returned: " ++ (show res)
           
