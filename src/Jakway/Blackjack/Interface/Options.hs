@@ -1,5 +1,6 @@
 module Jakway.Blackjack.Interface.Options
 (
+Config,
 getConfig
 ) where
 
