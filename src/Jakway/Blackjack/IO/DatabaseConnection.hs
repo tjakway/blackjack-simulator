@@ -4,6 +4,8 @@ module Jakway.Blackjack.IO.DatabaseConnection
 #ifdef BUILD_POSTGRESQL
 connectPostgresDB,
 connectPostgresDBReadString,
+--export this so we can print it if passed --verbose
+readPostgresConnectionString,
 #else
 connectSQLiteDB
 #endif
