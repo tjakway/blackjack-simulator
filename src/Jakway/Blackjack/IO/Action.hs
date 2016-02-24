@@ -25,6 +25,9 @@ import System.Random
 --2. catching any exceptions
 --3. writing the exception message to Left String
 
+--TODO: maybe replace numGames with passing "Right numGames" instead?
+--Right now we're passing duplicate parameters, probably wouldn't even
+--require any work to fix
 
 -- |Returns an IO action that yields either a string describing an error or
 -- the number of games written
