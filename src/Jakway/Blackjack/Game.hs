@@ -33,19 +33,6 @@ startingHand = do
 
 foldFnSt ai = startingHand >>= play' ai
 
-playGame :: AI -> [AI] -> Deck -> Maybe (ScoreRecord, [Result])
--- |Can't play a game without any players
-playGame dealerAI [] deck = Nothing
-playGame dealerAI allPlayers deck = flip evalState deck $ do
-  dealersStartingHand <- startingHand
-  playerHands <- reverse <$> mapM foldFnSt allPlayers
-  dealerHand <- play' dealerAI dealersStartingHand
-  let results = reverse . map (whoWon' dealerHand)
-  return . Just . first dealerScore . join (,) . results $ playerHands
-  where
-    dealerScore = foldr (flip addResult . oppositeResult) mempty
-    
-
 -- |Plays a game and returns the relevant state
 -- |returns a tuple of (dealersHand, playerHands, playerResults)
 -- |dealer score record is redundant and not returned (just the opposite of
@@ -58,7 +45,6 @@ evalGame dealerAI allPlayers deck = flip evalState deck $ do
   dealerHand <- play' dealerAI dealersStartingHand
   let results = reverse . map (whoWon' dealerHand)
   return . Just $ Match dealerHand playerIDs playerHands (results playerHands)
-  -- ^ TODO: REFACTOR TO ELIMINATE DUPLICATE CODE WITH playGame
   where playerIDs = [1.. (length allPlayers)]
 
 infixl 8 &&&
