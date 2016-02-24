@@ -1,8 +1,15 @@
 module Jakway.Blackjack.IO.Action where
 
 import Jakway.Blackjack.Match
-import Control.Either
-import Database.HDBC (Statement)
+import Data.Either
+import Database.HDBC
+import Jakway.Blackjack.Interface.Options
+import Jakway.Blackjack.IO.TableNames
+import Jakway.Blackjack.IO.DatabaseWrites
+import Jakway.Blackjack.CardOps
+import Jakway.Blackjack.Game
+import System.Random
+
 
 
 -- ****************************************
@@ -38,31 +45,32 @@ recursivePerformMatch :: (IConnection a, RandomGen g) =>
             --IO parameters
             Statement ->
             Statement -> 
-            a
+            a ->
             IO (Either String Integer)
 recursivePerformMatch e conf numGames gen insHandStatement insMatchStatement conn =
+        let (beVerbose, dealerAI, playerAIs, maxGames, suffix) = conf
+            tableNames = getTableNames suffix
+        --break condition
         --numGames is the number of games we've done so far
         --if it's greater than or equal to maxGames, we're done
-        case numGames of (>= maxGames) -> return e
-                         _ -> 
+        in if (numGames >= maxGames) then return e else
         --if e == Left it short circuits and we stop updating the total
         --number of games
         e >>= (\totalGames ->
               let deck = infiniteShuffledDeck gen
                   maybeMatch = evalGame
-                  in case maybeMatch of Nothing -> return $ Left (errorMessage thisMatch totalGames)
+                  in case maybeMatch of Nothing -> return $ Left (matchFailedMessage totalGames)
                                         Just (justMatch) -> do
                                             insRes <- insertMatch insHandStatement insMatchStatement conn tableNames justMatch
                                             --recurse with left to short
                                             --circuit
-                                            let failedRecurse = recursivePerformMatch (Left (insertFailedMessage insRes)) (beVerbose, dealerAI, playerAIs, maxGames, suffix) numGames gen insHandStatement insMatchStatement conn
-                                                successRecurse = recursivePerformMatch (Right (numGames + 1)) 
+                                            let failedRecurse = recursivePerformMatch (Left (insertFailedMessage insRes)) conf numGames gen insHandStatement insMatchStatement conn
+                                                successRecurse = recursivePerformMatch (Right (numGames + 1)) conf (numGames + 1) insHandStatement insMatchStatement conn
                                             if (insRes < 1) then failedRecurse
                                                             else successRecurse
 
               )
-    where matchFailedMessage match num = "Match number " ++ (show num) ++ "failed!" ++ "\nMatch is:\n" ++ (show match)
+    where matchFailedMessage num = "Match number " ++ (show num) ++ "failed!"          
           insertFailedMessage res = "Error inserting match, database returned: " ++ (show res)
-          tableNames = getTableNames suffix
           nextRNG = snd . split
-          (beVerbose, dealerAI, playerAIs, maxGames, suffix) = conf
+          
