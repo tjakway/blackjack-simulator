@@ -12,6 +12,9 @@ import Jakway.Blackjack.Visibility
 import Jakway.Blackjack.IO.DatabaseWrites
 import Jakway.Blackjack.IO.DatabaseReads
 import Jakway.Blackjack.Interface.Options
+import Jakway.Blackjack.IO.Action
+import Jakway.Blackjack.IO.TableNames
+import Database.HDBC
 
 
 main :: IO ()
@@ -32,7 +35,8 @@ main = do
                                             (\ims -> return (ihs, ims)))
           db_spec_main :: Config -> IO ()
 #ifdef BUILD_POSTGRESQL          
-          db_spec_main config (beVerbose, dealerAI, playerAIs, numGames) = do
+          db_spec_main = undefined
+{-          db_spec_main config (beVerbose, dealerAI, playerAIs, numGames) = do
               --TODO: extract table names from config
               conn_string <- readPostgresConnectionString
               when (beVerbose == True) $ putStrLn $ "Using Postgres connection string: " ++ conn_string
@@ -40,7 +44,7 @@ main = do
 
               (insHandStatement, insMatchStatement) <- getStatements conn tableNames
 
-              foldr (\_ -> ) [0..numGames]
+              foldr (\_ -> ) [0..numGames] -}
 #else
           db_spec_main = undefined
 #endif
