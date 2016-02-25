@@ -1,5 +1,8 @@
 module Jakway.Blackjack.IO.Action
-(performMatchIO)
+(
+transacPerformMatchIO,
+performMatchIO
+)
 where
 
 import Database.HDBC
@@ -9,7 +12,8 @@ import Jakway.Blackjack.IO.DatabaseWrites
 import Jakway.Blackjack.CardOps
 import Jakway.Blackjack.Game
 import System.Random
-
+--commit before starting the transaction so we don't rollback
+        --farther than we wanted
 transacPerformMatchIO :: (IConnection a, RandomGen g) =>
             --state parameters
             Config ->
@@ -19,10 +23,8 @@ transacPerformMatchIO :: (IConnection a, RandomGen g) =>
             Statement -> 
             a ->
             IO (g, Either String Integer)
-transacPerformMatchIO numGames conf gen insHandStatement insMatchStatement conn = 
-        --commit before starting the transaction so we don't rollback
-        --farther than we wanted
-        commit conn >> withTransaction conn $ \transacConn -> performMatchIO numGames conf gen insHandStatement insMatchStatement transacConn
+transacPerformMatchIO conf gen insHandStatement insMatchStatement conn = commit conn >> trans
+                where trans =  withTransaction conn (\transacConn -> performMatchIO conf gen insHandStatement insMatchStatement transacConn)
 
 -- |The public interface to recursivePerformMatch
 performMatchIO :: (IConnection a, RandomGen g) =>
