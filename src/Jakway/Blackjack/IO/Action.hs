@@ -1,8 +1,7 @@
-{-# LANGUAGE ScopedTypeVariables #-}
 module Jakway.Blackjack.IO.Action
 (
-transacPerformMatchIO,
-performMatchIO
+collapseMatches,
+transacPerformMatchIO
 )
 where
 
@@ -15,19 +14,15 @@ import Jakway.Blackjack.Game
 import System.Random
 
 --collapse all of the individual transacPerformMatchIO calls into one huge IO (Either String Integer)
-collapseMatches :: 
+collapseMatches :: (IConnection a) =>
             Integer ->
             --state parameters
             Config ->
-            --IO parameters
-            Statement ->
-            Statement -> 
             a ->
             IO (Either String Integer)
-collapseMatches matches_per_transaction conf gen insHandStatement insMatchStatement conn = do
-              let matchesPerTransaction = (numGames `div` matches_per_transaction) + (ceiling $ (numGames `mod` matches_per_transaction) `div` numGames)
-                  (beVerbose, dealerAI, playerAIs, numGames, suffix) = conf
-                  perTransactionConf = (beVerbose, dealerAI, playerAIs, matchesPerTransaction, suffix)
+collapseMatches matches_per_transaction conf conn = do
+              let (beVerbose, dealerAI, playerAIs, numGames, suffix) = conf
+                  perTransactionConf = (beVerbose, dealerAI, playerAIs, matches_per_transaction, suffix)
                   tableNames = getTableNames suffix
 
               --get the statements and the RNG
@@ -36,14 +31,15 @@ collapseMatches matches_per_transaction conf gen insHandStatement insMatchStatem
 
               --discard the RNG
               (_, matchesRes) <- foldr (\_ ioRes -> ioRes >>= (\(mutatedGen, res) -> 
-                                case res of (Left _) -> (mutatedGen, res)
-                                            (Right ngames) -> transacPerformMatchIO perTransactionConf initialGen insHandStatement insMatchStatement conn)) (initialGen, Right 0) [1..(numGames `div` matches_per_transaction)]
+                                case res of (Left _) -> return (mutatedGen, res)
+                                            (Right ngames) -> transacPerformMatchIO perTransactionConf initialGen insHandStatement insMatchStatement conn)) (return (initialGen, Right 0)) [1..(numGames `div` matches_per_transaction)]
+                --TODO:  run a transaction of size numGames `mod`
+                --matches_per_transaction
              
               return matchesRes
         --get the hand and match insert statements
-    where getStatements :: (IConnection a) => a -> TableNames -> IO (Statement, Statement)
-          getStatements conn names = insertHandStatement conn names >>= 
-                                        (\ihs -> insertMatchStatement conn names >>= 
+    where getStatements c names = insertHandStatement c names >>= 
+                                        (\ihs -> insertMatchStatement c names >>= 
                                             (\ims -> return (ihs, ims)))
 
 transacPerformMatchIO :: (IConnection a, RandomGen g) =>
