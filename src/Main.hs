@@ -26,30 +26,37 @@ main = do
         args <- getArgs
         conf <- getConfig args
         let (beVerbose, dealerAI, playerAIs, numGames, suffix) = conf
-        when (beVerbose == True) $ print_verbose conf
+        when (beVerbose == True) $ printOptions conf
 
         where db_spec_main :: Config -> IO ()
 #ifdef BUILD_POSTGRESQL          
-          db_spec_main conf = do
-              let (beVerbose, dealerAI, playerAIs, numGames, suffix) = conf
-              let tableNames = getTableNames suffix
+              db_spec_main conf = do
+                let (beVerbose, dealerAI, playerAIs, numGames, suffix) = conf
+                let tableNames = getTableNames suffix
 
-              --connect to the database
-              conn_string <- readPostgresConnectionString
-              when (beVerbose == True) $ putStrLn $ "Using Postgres connection string: " ++ conn_string
-              conn <- connectPostgresDB conn_string
+                --connect to the database
+                conn_string <- readPostgresConnectionString
+                when (beVerbose == True) $ putStrLn $ "Using Postgres connection string: " ++ conn_string
+                conn <- connectPostgresDB conn_string
 
 
-              --prepare the database
-              insertPlayers conn tableNames dealerAI playerAIs
+                --prepare the database
+                insertPlayers conn tableNames dealerAI playerAIs
+                commit conn
+
+                res <- collapseMatches matches_per_transaction conf conn 
+                printResults res
 
 #else
           db_spec_main = undefined
 #endif
 
+printResults :: Either String Integer -> IO ()
+printResults (Left message) = putStrLn $ "ERROR.  message: " ++ message
+printResults (Right _) = putStrLn "Operations successful."
 
-print_verbose :: Config -> IO ()
-print_verbose conf = do
+printOptions :: Config -> IO ()
+printOptions conf = do
         let (beVerbose, dealerAI, playerAIs, numGames, suffix) = conf
         putStrLn "Using options: "
         putStrLn $ "verbose: " ++ (show beVerbose)
