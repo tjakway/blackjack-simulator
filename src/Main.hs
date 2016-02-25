@@ -28,6 +28,8 @@ main = do
         let (beVerbose, dealerAI, playerAIs, numGames, suffix) = conf
         when (beVerbose == True) $ printOptions conf
 
+        db_spec_main conf
+
         where db_spec_main :: Config -> IO ()
 #ifdef BUILD_POSTGRESQL          
               db_spec_main conf = do
