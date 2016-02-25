@@ -12,8 +12,32 @@ import Jakway.Blackjack.IO.DatabaseWrites
 import Jakway.Blackjack.CardOps
 import Jakway.Blackjack.Game
 import System.Random
---commit before starting the transaction so we don't rollback
-        --farther than we wanted
+
+--collapse all of the individual transacPerformMatchIO calls into one huge IO (Either String Integer)
+collapseMatches :: 
+            Integer ->
+            --state parameters
+            Config ->
+            --IO parameters
+            Statement ->
+            Statement -> 
+            a ->
+            IO (Either String Integer)
+collapseMatches matches_per_transaction conf gen insHandStatement insMatchStatement conn = do
+              let matchesPerTransaction = (numGames `div` matches_per_transaction) + (ceiling $ (numGames `mod` matches_per_transaction) `div` numGames)
+                  perTransactionConf = (beVerbose, dealerAI, playerAIs, matchesPerTransaction, suffix)
+
+              --get the statements and the RNG
+              (insHandStatement, insMatchStatement) <- getStatements conn tableNames
+              initialGen <- getStdGen
+
+              --discard the RNG
+              (_, matchesRes) <- foldr (\_ ioRes -> ioRes >>= (\(mutatedGen, res) -> 
+                                case res of (Left _) -> (mutatedGen, res)
+                                            (Right ngames) -> transacPerformMatchIO perTransactionConf initialGen insHandStatement insMatchStatement conn)) (initialGen, Right 0) [1..(numGames `div` matches_per_transaction)]
+             
+              return matchesRes
+
 transacPerformMatchIO :: (IConnection a, RandomGen g) =>
             --state parameters
             Config ->
@@ -23,6 +47,8 @@ transacPerformMatchIO :: (IConnection a, RandomGen g) =>
             Statement -> 
             a ->
             IO (g, Either String Integer)
+--commit before starting the transaction so we don't rollback
+--farther than we wanted
 transacPerformMatchIO conf gen insHandStatement insMatchStatement conn = commit conn >> trans
                 where trans =  withTransaction conn (\transacConn -> performMatchIO conf gen insHandStatement insMatchStatement transacConn)
 

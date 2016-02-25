@@ -25,7 +25,7 @@ main :: IO ()
 main = do
         args <- getArgs
         conf <- getConfig args
-        let (beVerbose, dealerAI playerAIs, numGames, suffix) = conf
+        let (beVerbose, dealerAI, playerAIs, numGames, suffix) = conf
         when (beVerbose == True) $ print_verbose conf
         
           --get the hand and match insert statements
@@ -44,20 +44,10 @@ main = do
               when (beVerbose == True) $ putStrLn $ "Using Postgres connection string: " ++ conn_string
               conn <- connectPostgresDB conn_string
 
-              --get the statements and the RNG
-              (insHandStatement, insMatchStatement) <- getStatements conn tableNames
-              initialGen <- getStdGen
 
               --prepare the database
               insertPlayers conn tableNames dealerAI playerAIs
 
-              let matchesPerTransaction = (numGames `div` matches_per_transaction) + (ceiling $ (numGames `mod` matches_per_transaction) `div` numGames)
-                  perTransactionConf = (beVerbose, dealerAI, playerAIs, matchesPerTransaction, suffix)
-
-              foldr (\_ ioRes -> ioRes >>= (\(mutatedGen, res) -> 
-                        case res of (Left _) -> (mutatedGen, res)
-                                    (Right ngames) -> withTransaction conn $ \transacConn -> do
-                                        {-join??? $-} performMatchIO perTransactionConf initialGen insHandStatement insMatchStatement transacConn)) [1..()]
 #else
           db_spec_main = undefined
 #endif
