@@ -117,7 +117,7 @@ insertMatchStatement conn tableNames = prepare conn ("INSERT INTO " ++ matchesTa
                 where matchesTable = getMatchTableName tableNames
 
 insertMatch :: (IConnection a) => Statement -> Statement -> a -> TableNames -> Match -> IO (Integer)
-insertMatch insMatchStatement insHandStatement conn tableNames (Match dHand pIds pHands pResults) = do
+insertMatch insHandStatement insMatchStatement conn tableNames (Match dHand pIds pHands pResults) = do
     gameId <- nextGameId conn tableNames
 
     --FIXME: dealer's ID is assumed to be 0!  Change if rewriting this

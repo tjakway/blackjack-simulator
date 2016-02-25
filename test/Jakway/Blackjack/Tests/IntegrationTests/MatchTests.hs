@@ -32,7 +32,7 @@ testReadWrite1v1 = withSingleTableTestDatabase $ \conn -> do
         insertPlayers conn basicTestTableNames BasicDealer (replicate 2 BasicPlayer)
         insMatchStatement <- insertMatchStatement conn basicTestTableNames
         insHandStatement <- insertHandStatement conn basicTestTableNames
-        gameID <- insertMatch insMatchStatement insHandStatement conn basicTestTableNames (Match origDealersHand playerID origPlayersHand origRes)
+        gameID <- insertMatch insHandStatement insMatchStatement conn basicTestTableNames (Match origDealersHand playerID origPlayersHand origRes)
         commit conn
 
         rMatchStatement <- readMatchStatement conn basicTestTableNames
@@ -77,7 +77,7 @@ testReadWriteMatch conn tableNames match = do
         rHandStatement <- readHandStatement conn tableNames
 
         --insert the match
-        gameID <- insertMatch insMatchStatement insHandStatement conn basicTestTableNames match
+        gameID <- insertMatch insHandStatement insMatchStatement conn basicTestTableNames match
         commit conn
 
         --read it back
