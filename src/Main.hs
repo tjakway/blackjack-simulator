@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables, CPP #-}
+{-# LANGUAGE CPP #-}
 module Main where
 
 import Control.Monad (liftM, when, mapM_)
@@ -27,13 +27,8 @@ main = do
         conf <- getConfig args
         let (beVerbose, dealerAI, playerAIs, numGames, suffix) = conf
         when (beVerbose == True) $ print_verbose conf
-        
-          --get the hand and match insert statements
-    where getStatements :: (IConnection a) => a -> TableNames -> IO (Statement, Statement)
-          getStatements conn names = insertHandStatement conn names >>= 
-                                        (\ihs -> insertMatchStatement conn names >>= 
-                                            (\ims -> return (ihs, ims)))
-          db_spec_main :: Config -> IO ()
+
+        where db_spec_main :: Config -> IO ()
 #ifdef BUILD_POSTGRESQL          
           db_spec_main conf = do
               let (beVerbose, dealerAI, playerAIs, numGames, suffix) = conf

@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 module Jakway.Blackjack.IO.Action
 (
 transacPerformMatchIO,
@@ -25,7 +26,9 @@ collapseMatches ::
             IO (Either String Integer)
 collapseMatches matches_per_transaction conf gen insHandStatement insMatchStatement conn = do
               let matchesPerTransaction = (numGames `div` matches_per_transaction) + (ceiling $ (numGames `mod` matches_per_transaction) `div` numGames)
+                  (beVerbose, dealerAI, playerAIs, numGames, suffix) = conf
                   perTransactionConf = (beVerbose, dealerAI, playerAIs, matchesPerTransaction, suffix)
+                  tableNames = getTableNames suffix
 
               --get the statements and the RNG
               (insHandStatement, insMatchStatement) <- getStatements conn tableNames
@@ -37,6 +40,11 @@ collapseMatches matches_per_transaction conf gen insHandStatement insMatchStatem
                                             (Right ngames) -> transacPerformMatchIO perTransactionConf initialGen insHandStatement insMatchStatement conn)) (initialGen, Right 0) [1..(numGames `div` matches_per_transaction)]
              
               return matchesRes
+        --get the hand and match insert statements
+    where getStatements :: (IConnection a) => a -> TableNames -> IO (Statement, Statement)
+          getStatements conn names = insertHandStatement conn names >>= 
+                                        (\ihs -> insertMatchStatement conn names >>= 
+                                            (\ims -> return (ihs, ims)))
 
 transacPerformMatchIO :: (IConnection a, RandomGen g) =>
             --state parameters
