@@ -38,6 +38,7 @@ flagsToConfig flags
                 | (whichDealer == Nothing) = Left "No dealer AI found, perhaps you passed a player AI by mistake?"
                 | (numPlayerAIs == 0) = Left "Must have >0 players!"
                 | numGames == Nothing = Left "Specify how many games to run."
+                | suffixes == [] = Left "You must specify a table name suffix."
                 | otherwise = Right (hasVerbose, (fromJust whichDealer), playerAIs, fromJust numGames, tableNameSuffix)
             --Make sure a player AI hasn't been passed for a dealer AI
             -- TODO: rewrite using filter?
@@ -47,21 +48,22 @@ flagsToConfig flags
                   --need at least 1 player besides the dealer
                   numBasicPlayerAIs = getNum getNumBasicPlayer
                   numPlayerAIs = numBasicPlayerAIs -- TODO: modify as we add more AI types
+                  suffixes = catMaybes $ map (\a -> case a of (TableNameSuffix suff) -> Just suff
+                                                              _ -> Nothing) flags
                   numGames = case catMaybes (map getNumGames flags) of [] -> Nothing
                                                                        [x] -> Just x
                   hasVerbose = True `elem` (map (== Verbose) flags)
                   --build the list of player AIs from the passed flags
                   -- TODO: concat other ais as we add more types
                   playerAIs = replicate numBasicPlayerAIs BasicPlayer
-                  tableNameSuffix = head . catMaybes $ map (\a -> case a of (TableNameSuffix suff) -> Just suff
-                                                                            _ -> Nothing) flags
-                  
+                  tableNameSuffix = head suffixes
 
 --flag converters
-dealerOpt, ngOpt, nbpOpt :: String -> Flag
+dealerOpt, ngOpt, nbpOpt, sfOpt :: String -> Flag
 dealerOpt = WhichDealer . read
 nbpOpt = NumBasicPlayer . read
 ngOpt = NumGames . (read :: String -> Integer)
+sfOpt = TableNameSuffix
 
 
 options :: [OptDescr Flag]
@@ -70,6 +72,7 @@ options =
     , Option []        ["with-dealer"]  (ReqArg dealerOpt "DealerAI")  "Which dealer AI to use."
     , Option []        ["num-BasicPlayer"]  (ReqArg nbpOpt  "NUM")  "Number of BasicPlayer AI's."
     , Option ['g']     ["num-games"]  (ReqArg ngOpt "NUM") "Number of games to run."
+    , Option ['s']     ["tablename-suffix"] (ReqArg sfOpt "SUFFIX") "Table name suffix."
     ]
 
 
