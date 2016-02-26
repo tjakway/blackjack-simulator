@@ -41,12 +41,12 @@ insertPlayerStatement conn tableNames = prepare conn ("INSERT INTO " ++ playersT
 -- |note: include the dealer in the number of players you're inserting
 -- if you pass 1 you won't have anyone to play against
 insertPlayers :: (IConnection a) => a -> TableNames -> AI -> [AI] -> IO ()
-insertPlayers conn tableNames dealerAI playerAIs = insertPlayerStatement conn tableNames >>= (\insertStatement -> executeMany insertStatement insValues >> commit conn)
-                        where dealerAIVal = toSql . show $ dealerAI
+insertPlayers conn tableNames dealerAI playerAIs = insertPlayerStatement conn tableNames >>= (\insertStatement -> executeMany insertStatement insValues)
+                        where numPlayers = length playerAIs
+                              dealerAIVal = toSql . show $ dealerAI
                               playerStrVals = map (toSql . show) playerAIs
-                              playerIdVals = map toSql [1..(numPlayers)]
+                              playerIdVals = map iToSql [1..(numPlayers)]
                               playerVals = map (\(a, b) -> [a, b]) $ zip playerIdVals playerStrVals
-                              numPlayers = length playerVals
                               insValues = ([iToSql 0, dealerAIVal] :  playerVals) :: [[SqlValue]]
                               -- ^ player number 0 is the dealer!
 
