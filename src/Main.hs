@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
 module Main where
 
-import Control.Monad (liftM, when, mapM_)
+import Control.Monad (liftM, when, mapM_, unless)
 import System.Environment (getArgs)
 import Jakway.Blackjack.AI
 import Jakway.Blackjack.Game
@@ -10,6 +10,7 @@ import Jakway.Blackjack.CardOps
 import Jakway.Blackjack.Result
 import Jakway.Blackjack.Visibility
 import Jakway.Blackjack.IO.DatabaseWrites
+import Jakway.Blackjack.IO.DatabaseCommon
 import Jakway.Blackjack.IO.DatabaseReads
 import Jakway.Blackjack.IO.Action
 import Jakway.Blackjack.IO.DatabaseConnection
@@ -18,7 +19,7 @@ import Jakway.Blackjack.Interface.Options
 import Database.HDBC
 import System.Random
 
-matches_per_transaction = 1000
+matches_per_transaction = 10
 
 
 main :: IO ()
@@ -32,7 +33,7 @@ main = do
 
         where db_spec_main :: Config -> IO ()
 #ifdef BUILD_POSTGRESQL          
-              db_spec_main conf = do
+              db_spec_main conf = handleSqlError $ do
                 let (beVerbose, dealerAI, playerAIs, numGames, suffix) = conf
                 let tableNames = getTableNames suffix
 
@@ -41,7 +42,17 @@ main = do
                 when (beVerbose == True) $ putStrLn $ "Using Postgres connection string: " ++ conn_string
                 conn <- connectPostgresDB conn_string
 
+                initializeDatabase conn [tableNames]
+                createTables conn tableNames
+                commit conn
+                db_tables <- getTables conn
+                commit conn
+                
+                --only insert cards if the table is empty
+                read_cards <- quickQuery' conn "SELECT * FROM cards" []
+                when (read_cards == []) (withTransaction conn insertAllCards)
 
+                commit conn
                 --prepare the database
                 insertPlayers conn tableNames dealerAI playerAIs
                 commit conn
