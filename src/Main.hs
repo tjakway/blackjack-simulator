@@ -61,7 +61,7 @@ main = do
                 printResults res
 
 #else
-          db_spec_main = undefined
+              db_spec_main = undefined
 #endif
 
 printResults :: Either String Integer -> IO ()
