@@ -56,7 +56,8 @@ testInsertPlayers = withSingleTableTestDatabase $ \conn -> do
                         commit conn
                         numPlayerRows <- DB.getNumPlayers conn basicTestTableNames
                         let message = "numPlayerRows is "++(show numPlayerRows)++" (should be"++(show numPlayers)++")"
-                        assertBool message (numPlayers == numPlayerRows) 
+                        --numPlayers doesn't include the dealer
+                        assertBool message ((numPlayers+1) == numPlayerRows) 
 
 testInsertOneHand :: Assertion
 testInsertOneHand = withSingleTableTestDatabase $ \conn -> do
