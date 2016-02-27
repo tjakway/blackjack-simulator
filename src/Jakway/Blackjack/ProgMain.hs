@@ -1,6 +1,10 @@
 {-# LANGUAGE CPP #-}
 
-module Jakway.Blackjack.ProgMain where
+module Jakway.Blackjack.ProgMain 
+(
+progMain
+)
+where
 
 import Control.Monad (liftM, when, mapM_, unless)
 import System.Environment (getArgs)
