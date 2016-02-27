@@ -26,6 +26,7 @@ import Jakway.Blackjack.IO.TableNames
 import Jakway.Blackjack.IO.DatabaseConnection
 import qualified Jakway.Blackjack.IO.RDBMS.Postgres as Postgres
 import qualified Jakway.Blackjack.IO.RDBMS.SQLite as SQLite
+import Control.Monad (join)
 
 #ifdef BUILD_POSTGRESQL
 createTables :: IConnection a => a -> TableNames -> IO ()
@@ -39,10 +40,16 @@ dropAllTables :: IConnection a => a -> IO()
 dropAllTables conn = withTransaction conn $ \t_conn -> getDropStatement t_conn >>= (\dropStatement -> 
                         getTableSQLValues t_conn >>= executeMany dropStatement )
         where getTableSQLValues p_conn = getTables p_conn >>= (\t -> return $ map (\x -> [toSql x]) t)
-              getDropStatement p_conn = prepare p_conn $ "DROP TABLE ? "
+              --remove newlines
+              getDropStatement p_conn = prepare p_conn dropStr
+              --see http://stackoverflow.com/questions/10050988/haskell-removes-all-occurrences-of-a-given-value-from-within-a-list-of-lists 
+              dropStr = filter (== '\n') $ "DROP TABLE IF EXISTS ? " ++ cascadeStr 
+              cascadeStr = 
               --cascade so we don't cause errors with foreign keys
 #ifdef BUILD_POSTGRESQL
-                                                        ++ "CASCADE"
+                            "CASCADE"
+#else
+                            ""
 #endif
 
 dropTables :: IConnection a => a -> TableNames -> IO ()
