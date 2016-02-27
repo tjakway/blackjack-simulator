@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
-module Main where
+
+module Jakway.Blackjack.ProgMain where
 
 import Control.Monad (liftM, when, mapM_, unless)
 import System.Environment (getArgs)
@@ -22,8 +23,8 @@ import System.Random
 matches_per_transaction = 10
 
 
-main :: IO ()
-main = do
+progMain :: IO ()
+progMain = do
         args <- getArgs
         conf <- getConfig args
         let (beVerbose, dealerAI, playerAIs, numGames, suffix) = conf

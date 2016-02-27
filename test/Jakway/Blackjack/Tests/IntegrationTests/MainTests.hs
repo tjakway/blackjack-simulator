@@ -1,16 +1,29 @@
+{-# LANGUAGE CPP #-}
 module Jakway.Blackjack.Tests.IntegrationTests.MainTests (testCases) where
 
+import qualified ProgMain
 import Test.HUnit hiding (State)
 import Test.Framework
 import Test.Framework.Providers.HUnit
-import System.Environment (withArgs)
+import qualified System.Environment as Env
 import Jakway.Blackjack.IO.TableNames
 import Database.HDBC
 
+-- TODO: implement for SQLite
+#ifdef BUILD_POSTGRESQL
+connectDB = connectPostgresDBReadString
+#else
+
+#endif
 
 testInsertOneMatch :: Assertion
-testInsertOneMatch = undefined
---        withArgs []
+testInsertOneMatch = do
+        let suffix = "test_ins_one_match_suff"
+        Env.withArgs ["-v", "--with-dealer=BasicDealer", "--num-BasicPlayer=1", "--num-games=10", "--tablename-suffix=" ++ suffix] ProgMain.main
+
+        conn <- connectDB
+        assertTablesExist conn (getTableNames suffix)
+
 
 
 assertTablesExist :: (IConnection a) => a -> TableNames -> Assertion

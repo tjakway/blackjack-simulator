@@ -49,7 +49,27 @@ Flag PostgreSQL
   description: Build with PostgreSQL instead of SQLite
   default: False
 
-executable blackjack-simulator
+Flag Test
+  description: Whether testing is enabled.
+  default: True
+
+Library 
+
+  hs-source-dirs:      src
+  default-language:    Haskell2010
+  ghc-options:         -Wall -fwarn-tabs -fwarn-incomplete-record-updates -fwarn-unused-do-bind -fwarn-incomplete-uni-patterns
+  build-depends:       base >=4.8, random, mtl, random-shuffle, HDBC >= 2.0.0, HDBC-sqlite3, HDBC-session, containers, convertible
+  
+  exposed-modules: Jakway.Blackjack.Match, Jakway.Blackjack.Util, Jakway.Blackjack.Interface.Options, Jakway.Blackjack.ProgMain, Jakway.Blackjack.Game, Jakway.Blackjack.Visibility, Jakway.Blackjack.AI, Jakway.Blackjack.CardOps, Jakway.Blackjack.IO.DatabaseCommon, Jakway.Blackjack.IO.TableNames, Jakway.Blackjack.IO.Action, Jakway.Blackjack.IO.DatabaseReads, Jakway.Blackjack.IO.RDBMS.SQLite, Jakway.Blackjack.IO.RDBMS.Postgres, Jakway.Blackjack.IO.DatabaseWrites, Jakway.Blackjack.IO.DatabaseConnection, Jakway.Blackjack.Cards, Jakway.Blackjack.Result, Jakway.Blackjack.Points
+
+  if flag(test)
+    CPP-Options: -DTESTING
+
+  if flag(postgresql)
+    CPP-Options: -DBUILD_POSTGRESQL
+    build-depends: HDBC-postgresql, directory
+
+Executable blackjack-simulator
   -- .hs or .lhs file containing the Main module.
   main-is:             Main.hs
   
@@ -60,15 +80,19 @@ executable blackjack-simulator
   -- other-extensions:    
   
   -- Other library packages from which modules are imported.
-  build-depends:       base >=4.8, random, mtl, random-shuffle, HDBC >= 2.0.0, HDBC-sqlite3, HDBC-session, containers, convertible
   
   -- Directories containing source files.
-  hs-source-dirs:      src
+  hs-source-dirs:      main
   
   -- Base language which the package is written in.
   default-language:    Haskell2010
 
   ghc-options:         -Wall -fwarn-tabs -fwarn-incomplete-record-updates -fwarn-unused-do-bind -fwarn-incomplete-uni-patterns
+
+  build-depends: blackjack-simulator
+
+  if flag(test)
+    CPP-Options: -DTESTING
 
   if flag(postgresql)
     CPP-Options: -DBUILD_POSTGRESQL
