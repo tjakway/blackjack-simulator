@@ -10,6 +10,7 @@ cardToForeignKeyId,
 idCardMap,
 singleCardToSqlValues,
 dropTables,
+dropAllTables
 )
 where
 
@@ -35,10 +36,10 @@ createTables = SQLite.createTables
 #endif
 
 dropAllTables :: IConnection a => a -> IO()
-dropAllTables conn = getDropStatement conn >>= (\dropStatement -> 
-                        getTableSQLValues conn >>= executeMany dropStatement)
-        where getTableSQLValues conn = getTables conn >>= (\t -> return $ map (\x -> [toSql x]) t)
-              getDropStatement conn = prepare conn $ "DROP TABLE ? "
+dropAllTables conn = withTransaction conn $ \t_conn -> getDropStatement t_conn >>= (\dropStatement -> 
+                        getTableSQLValues t_conn >>= executeMany dropStatement )
+        where getTableSQLValues p_conn = getTables p_conn >>= (\t -> return $ map (\x -> [toSql x]) t)
+              getDropStatement p_conn = prepare p_conn $ "DROP TABLE ? "
               --cascade so we don't cause errors with foreign keys
 #ifdef BUILD_POSTGRESQL
                                                         ++ "CASCADE"
