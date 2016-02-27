@@ -1,4 +1,4 @@
-module Jakway.Blackjack.Tests.IntegrationTests.MatchTests (tests) where
+module Jakway.Blackjack.Tests.IntegrationTests.MatchTests (testCases) where
 
 import Jakway.Blackjack.Tests.GameTests (test_1v1_game)
 import Jakway.Blackjack.IO.DatabaseCommon
@@ -91,4 +91,4 @@ testReadWriteMatch conn tableNames match = do
         let dbErrorMessage = "Match database error"
         assertBool dbErrorMessage (fromJust rMatch == match)
 
-tests = testGroup "IntegrationTests" [testCase "testReadWrite1v1" testReadWrite1v1, testCase "testReadWriteRandomMatches" testReadWriteRandomMatches]
+testCases = [testCase "testReadWrite1v1" testReadWrite1v1, testCase "testReadWriteRandomMatches" testReadWriteRandomMatches]
