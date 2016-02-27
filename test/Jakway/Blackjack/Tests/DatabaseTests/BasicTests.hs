@@ -46,7 +46,7 @@ testTableList =  drop >> (withSingleTableTestDatabase $ \conn -> getTables conn 
                       -- | in case sqlite adds an extra schema table
                       tablesEqual readTables = (sort tables) == (sort . (delete "sqlite_sequence") $ readTables)
                       message readTables = "Database tables don't match!  Read tables: " ++ (show readTables)
-                      drop = withSingleTableTestDatabase $ \dbc -> DB.dropAllTables dbc >> disconnect dbc
+                      drop = withSingleTableTestDatabase $ \dbc -> DB.dropAllTables dbc 
 
 
 
