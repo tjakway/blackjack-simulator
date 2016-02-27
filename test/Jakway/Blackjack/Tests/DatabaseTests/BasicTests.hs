@@ -41,11 +41,12 @@ testOpenDatabase = withSingleTableTestDatabase $ (\_ -> do
 #endif
 
 testTableList :: Assertion
-testTableList =  withSingleTableTestDatabase $ \conn -> getTables conn >>= (\tables -> unless (tablesEqual tables) (assertFailure $ message tables))
+testTableList =  drop >> (withSingleTableTestDatabase $ \conn -> getTables conn >>= (\tables -> unless (tablesEqual tables) (assertFailure $ message tables)))
                 where tables = ["cards", DB.getPlayerTableName basicTestTableNames, DB.getHandTableName basicTestTableNames, DB.getMatchTableName basicTestTableNames]
                       -- | in case sqlite adds an extra schema table
                       tablesEqual readTables = (sort tables) == (sort . (delete "sqlite_sequence") $ readTables)
                       message readTables = "Database tables don't match!  Read tables: " ++ (show readTables)
+                      drop = withSingleTableTestDatabase $ \dbc -> DB.dropAllTables dbc >> disconnect dbc
 
 
 
