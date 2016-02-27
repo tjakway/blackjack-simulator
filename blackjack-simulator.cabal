@@ -89,7 +89,7 @@ Executable blackjack-simulator
 
   ghc-options:         -Wall -fwarn-tabs -fwarn-incomplete-record-updates -fwarn-unused-do-bind -fwarn-incomplete-uni-patterns
 
-  build-depends: blackjack-simulator
+  build-depends:       base >=4.8, blackjack-simulator
 
   if flag(test)
     CPP-Options: -DTESTING
