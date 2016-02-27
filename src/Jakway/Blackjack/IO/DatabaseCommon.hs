@@ -43,7 +43,7 @@ dropAllTables conn = withTransaction conn $ \t_conn -> getDropStatement t_conn >
               --remove newlines
               getDropStatement p_conn = prepare p_conn dropStr
               --see http://stackoverflow.com/questions/10050988/haskell-removes-all-occurrences-of-a-given-value-from-within-a-list-of-lists 
-              dropStr = filter (== '\n') $ "DROP TABLE IF EXISTS ? " ++ cascadeStr 
+              dropStr = filter (/= '\n') $ "DROP TABLE IF EXISTS ? " ++ cascadeStr 
               cascadeStr = 
               --cascade so we don't cause errors with foreign keys
 #ifdef BUILD_POSTGRESQL
