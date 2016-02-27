@@ -34,6 +34,16 @@ createTables :: IConnection a => a -> TableNames -> IO ()
 createTables = SQLite.createTables
 #endif
 
+dropAllTables :: IConnection a => a -> IO()
+dropAllTables conn = getDropStatement conn >>= (\dropStatement -> 
+                        getTableSQLValues conn >>= executeMany dropStatement)
+        where getTableSQLValues conn = getTables conn >>= (\t -> return $ map (\x -> [toSql x]) t)
+              getDropStatement conn = prepare conn $ "DROP TABLE ? "
+              --cascade so we don't cause errors with foreign keys
+#ifdef BUILD_POSTGRESQL
+                                                        ++ "CASCADE"
+#endif
+
 dropTables :: IConnection a => a -> TableNames -> IO ()
 dropTables conn tableNames = 
             mapM_ (flipInner2 run conn []) dropTableStatements >> commit conn
