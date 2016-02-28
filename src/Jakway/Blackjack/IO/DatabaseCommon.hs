@@ -37,14 +37,13 @@ createTables = SQLite.createTables
 #endif
 
 dropAllTables :: IConnection a => a -> IO()
-dropAllTables conn = withTransaction conn $ \t_conn -> getDropStrings t_conn >>= getDropStatements t_conn >>= mapM_ (\s -> execute s [])
+dropAllTables conn = withTransaction conn $ \t_conn -> getDropStatement t_conn >>= (\dropStatement -> execute dropStatement []) >> return ()
         --PostgreSQL never allows parameterized substitution for table
         --names so we have to do it manually with Jakway.Blackjack.Util.ssub
         where 
-              getDropStrings :: (IConnection a) => a -> IO [String]
-              getDropStrings p_conn = getTables p_conn >>= (return . mapM (\x -> ssub ("DROP TABLE IF EXISTS ? " ++ cascadeStr) [x]))
-              getDropStatements :: (IConnection a) => a -> [String] -> IO [Statement]
-              getDropStatements p_conn strings = mapM (prepare p_conn) strings
+              getDropStatement :: (IConnection a) => a -> IO Statement
+              getDropStatement p_conn = let tablesList strings = init $ map (++ ",") strings
+                                                    in getTables p_conn >>= (\strs -> prepare conn $ "DROP TABLE IF EXISTS " ++ (join . tablesList $ strs) ++ " " ++ cascadeStr)
               --see http://stackoverflow.com/questions/10050988/haskell-removes-all-occurrences-of-a-given-value-from-within-a-list-of-lists 
               cascadeStr = 
               --cascade so we don't cause errors with foreign keys
