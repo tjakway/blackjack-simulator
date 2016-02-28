@@ -47,7 +47,7 @@ cabal-version:       >=1.10
 
 Flag PostgreSQL
   description: Build with PostgreSQL instead of SQLite
-  default: False
+  default: True
 
 Flag Test
   description: Whether testing is enabled.
