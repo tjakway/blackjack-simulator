@@ -26,7 +26,7 @@ import Jakway.Blackjack.IO.TableNames
 import Jakway.Blackjack.IO.DatabaseConnection
 import qualified Jakway.Blackjack.IO.RDBMS.Postgres as Postgres
 import qualified Jakway.Blackjack.IO.RDBMS.SQLite as SQLite
-import Control.Monad (join, mapM)
+import Control.Monad (join, liftM)
 
 #ifdef BUILD_POSTGRESQL
 createTables :: IConnection a => a -> TableNames -> IO ()
@@ -37,18 +37,19 @@ createTables = SQLite.createTables
 #endif
 
 dropAllTables :: IConnection a => a -> IO()
-dropAllTables conn = withTransaction conn $ \t_conn -> getDropStatement t_conn >>= (\dropStatement -> execute dropStatement []) >> return ()
+dropAllTables conn = withTransaction conn $ \t_conn -> getDropStatement t_conn >>= (\dropStatement -> case dropStatement of (Just ds) -> execute ds []                  
+                                                                                                                            Nothing -> return 0) >> return ()
         --PostgreSQL never allows parameterized substitution for table
         --names so we have to do it manually with Jakway.Blackjack.Util.ssub
         where 
-              getDropStatement :: (IConnection a) => a -> IO Statement
-              getDropStatement p_conn = let tablesList strings = init $ map (++ ",") strings
-                                                    in getTables p_conn >>= (\strs -> prepare conn $ "DROP TABLE IF EXISTS " ++ (join . tablesList $ strs) ++ " " ++ cascadeStr)
+              getDropStatement :: (IConnection a) => a -> IO (Maybe Statement)
+              getDropStatement p_conn = let tablesList strings = init $ map (\s -> s ++ ",") strings
+                                                    in getTables p_conn >>= (\strs -> if (strs == []) then return Nothing else liftM Just $ prepare conn $ "DROP TABLE " ++ (join $ tablesList strs) ++ " " ++ cascadeStr)
               --see http://stackoverflow.com/questions/10050988/haskell-removes-all-occurrences-of-a-given-value-from-within-a-list-of-lists 
               cascadeStr = 
               --cascade so we don't cause errors with foreign keys
 #ifdef BUILD_POSTGRESQL
-                            "CASCADE"
+                            " CASCADE;"
 #else
                             ""
 #endif
