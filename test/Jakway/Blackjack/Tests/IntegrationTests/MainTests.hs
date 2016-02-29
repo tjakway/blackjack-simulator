@@ -19,15 +19,22 @@ connectDB = connectPostgresDBReadString
 
 #endif
 
-testInsertOneMatch :: Assertion
-testInsertOneMatch = do
+sandboxTables :: IO () -> IO ()
+sandboxTables action = connectDB >>= ((flip withTransaction) $ \f_conn -> dropAllTables f_conn >> commit f_conn >> disconnect f_conn >> action) >> connectDB >>= (dropAllTables >> commit)
+
+basicArgs :: String -> [String]
+basicArgs suffix = ["-v", "--with-dealer=BasicDealer", "--num-BasicPlayer=1", "--num-games=10", "--tablename-suffix=" ++ suffix]
+
+-- |Make sure that the program correctly sets up tables"
+testRunTables :: Assertion
+testRunTables = do
         pre_run_conn <- connectDB
         dropAllTables pre_run_conn
         commit pre_run_conn
         disconnect pre_run_conn
 
         let suffix = "test_ins_one_match_suff"
-        Env.withArgs ["-v", "--with-dealer=BasicDealer", "--num-BasicPlayer=1", "--num-games=10", "--tablename-suffix=" ++ suffix] ProgMain.progMain
+        Env.withArgs (basicArgs suffix) ProgMain.progMain
 
         conn <- connectDB
         assertTablesExist conn (getTableNames suffix)
@@ -36,6 +43,9 @@ testInsertOneMatch = do
 
         tables <- getTables conn
         assertEqual "dropAllTables failed!" tables []
+
+testInsertTenMatches :: Assertion
+testInsertTenMatches = undefined
 
 
 assertTablesExist :: (IConnection a) => a -> TableNames -> Assertion
@@ -49,4 +59,4 @@ assertTablesExist conn n = getTables conn >>= containsNames
                             in assertBool message (ctn `elem` tables && ptn `elem` tables && htn `elem` tables && mtn `elem` tables)
 
 
-testCases = [testCase "testInsertOneMatch" testInsertOneMatch]
+testCases = [testCase "testRunTables" testRunTables]
