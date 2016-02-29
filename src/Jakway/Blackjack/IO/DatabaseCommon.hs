@@ -27,6 +27,7 @@ import Jakway.Blackjack.IO.DatabaseConnection
 import qualified Jakway.Blackjack.IO.RDBMS.Postgres as Postgres
 import qualified Jakway.Blackjack.IO.RDBMS.SQLite as SQLite
 import Control.Monad (join, liftM)
+import Data.List (delete)
 
 #ifdef BUILD_POSTGRESQL
 createTables :: IConnection a => a -> TableNames -> IO ()
@@ -43,8 +44,10 @@ dropAllTables conn = withTransaction conn $ \t_conn -> getDropStatement t_conn >
         --names so we have to do it manually with Jakway.Blackjack.Util.ssub
         where 
               getDropStatement :: (IConnection a) => a -> IO (Maybe Statement)
-              getDropStatement p_conn = let tablesList strings = init $ map (\s -> s ++ ",") strings
-                                                    in getTables p_conn >>= (\strs -> if (strs == []) then return Nothing else liftM Just $ prepare conn $ "DROP TABLE " ++ (join $ tablesList strs) ++ " " ++ cascadeStr)
+              getDropStatement p_conn = getTables p_conn >>= (\strs -> if ((strs == []) || (not $ "cards" `elem` strs)) then return Nothing else liftM Just $ prepare conn (dropString strs))
+                                                                                                                        --remove the last comma
+              tablesList strings = reverse . (delete ',') . reverse . join . (map (\s -> s ++ ",")) $ strings
+              dropString strs = "DROP TABLE IF EXISTS " ++ (tablesList strs) ++ " " ++ cascadeStr
               --see http://stackoverflow.com/questions/10050988/haskell-removes-all-occurrences-of-a-given-value-from-within-a-list-of-lists 
               cascadeStr = 
               --cascade so we don't cause errors with foreign keys
