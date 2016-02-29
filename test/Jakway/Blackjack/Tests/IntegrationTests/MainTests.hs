@@ -64,4 +64,4 @@ assertTablesExist conn n = getTables conn >>= containsNames
                             in assertBool message (ctn `elem` tables && ptn `elem` tables && htn `elem` tables && mtn `elem` tables)
 
 
-testCases = [testCase "testRunTables" testRunTables]
+testCases = [testCase "testRunTables" testRunTables, testCase "testInsertTenMatches" testInsertTenMatches]
