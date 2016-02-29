@@ -22,6 +22,16 @@ import qualified Data.Map.Strict as HashMap
 import Data.Maybe (fromJust, isNothing)
 import Control.Monad (join, liftM)
 
+-- |returns the number of matches from the database
+-- it's an error to call getNumMatches on a table that hasn't been created yet
+getNumMatches :: (IConnection a) => a -> TableNames -> IO (Integer)
+getNumMatches conn tableNames = quickQuery' conn queryStr [] >>= (return . join) >>= 
+        --if there aren't any rows then the number of matches is 0
+        (\res -> case res of [] -> return 0
+                             [x] -> return . fromSql $ x
+                             _ -> error $ "Error in getNumMatches: unrecognized value returned from database for query " ++ queryStr)
+                    where queryStr = "SELECT COUNT(*) FROM " ++ (getMatchTableName tableNames)
+
 readPlayers :: (IConnection a) => a -> TableNames -> IO ([Int])
 readPlayers conn tableNames = do
         values <- quickQuery' conn ("SELECT whichPlayer FROM " ++ playerTable) []
