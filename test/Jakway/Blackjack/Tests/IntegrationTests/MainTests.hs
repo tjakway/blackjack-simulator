@@ -19,30 +19,18 @@ connectDB = connectPostgresDBReadString
 
 #endif
 
+-- |delete all deletes, run action, then delete all tables again
 sandboxTables :: IO () -> IO ()
-sandboxTables action = connectDB >>= ((flip withTransaction) $ \f_conn -> dropAllTables f_conn >> commit f_conn >> disconnect f_conn >> action) >> connectDB >>= (dropAllTables >> commit)
+sandboxTables action = connectDB >>= ((flip withTransaction) $ \f_conn -> dropAllTables f_conn >> commit f_conn >> disconnect f_conn) >> action >> connectDB >>= (dropAllTables >> commit >> disconnect)
 
 basicArgs :: String -> [String]
 basicArgs suffix = ["-v", "--with-dealer=BasicDealer", "--num-BasicPlayer=1", "--num-games=10", "--tablename-suffix=" ++ suffix]
 
 -- |Make sure that the program correctly sets up tables"
 testRunTables :: Assertion
-testRunTables = do
-        pre_run_conn <- connectDB
-        dropAllTables pre_run_conn
-        commit pre_run_conn
-        disconnect pre_run_conn
-
-        let suffix = "test_ins_one_match_suff"
-        Env.withArgs (basicArgs suffix) ProgMain.progMain
-
-        conn <- connectDB
-        assertTablesExist conn (getTableNames suffix)
-        dropAllTables conn
-        commit conn
-
-        tables <- getTables conn
-        assertEqual "dropAllTables failed!" tables []
+testRunTables =  (sandboxTables $ Env.withArgs (basicArgs suffix) ProgMain.progMain) >> connectDB >>= getTables >>= (\readTables -> assertEqual "dropAllTables failed!" readTables [])
+            where suffix = "test_ins_one_match_suff"
+        
 
 testInsertTenMatches :: Assertion
 testInsertTenMatches = undefined
