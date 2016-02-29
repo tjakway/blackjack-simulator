@@ -10,6 +10,7 @@ import Jakway.Blackjack.IO.TableNames
 import Jakway.Blackjack.IO.DatabaseConnection
 import Jakway.Blackjack.IO.DatabaseCommon
 import Jakway.Blackjack.IO.DatabaseWrites
+import Jakway.Blackjack.IO.DatabaseReads
 import Database.HDBC
 
 -- TODO: implement for SQLite
@@ -19,21 +20,37 @@ connectDB = connectPostgresDBReadString
 
 #endif
 
+--Test utilities:
+-- ********************************************************
+
 -- |delete all deletes, run action, then delete all tables again
 sandboxTables :: IO () -> IO ()
 sandboxTables action = connectDB >>= (\f_conn -> dropAllTables f_conn >> commit f_conn >> action >> dropAllTables f_conn >> commit f_conn)
 
+mainTestsSuffix = "msuff"
+mainTestsTableNames = getTableNames mainTestsSuffix
+
 basicArgs :: String -> [String]
 basicArgs suffix = ["-v", "--with-dealer=BasicDealer", "--num-BasicPlayer=1", "--num-games=10", "--tablename-suffix=" ++ suffix]
 
+-- |parameter: TableName suffix
+mainWithBasicArgs :: IO ()
+mainWithBasicArgs = Env.withArgs (basicArgs mainTestsSuffix) ProgMain.progMain
+-- ********************************************************
+
 -- |Make sure that the program correctly sets up tables"
 testRunTables :: Assertion
-testRunTables =  (sandboxTables $ Env.withArgs (basicArgs suffix) ProgMain.progMain) >> connectDB >>= getTables >>= (assertEqual "dropAllTables failed!" [])
+testRunTables =  (sandboxTables $ mainWithBasicArgs) >> connectDB >>= getTables >>= (assertEqual "dropAllTables failed!" [])
             where suffix = "test_ins_one_match_suff"
         
 
 testInsertTenMatches :: Assertion
-testInsertTenMatches = undefined
+testInsertTenMatches = sandboxTables $ do
+            mainWithBasicArgs
+            conn <- connectDB
+            numPlayers <- getNumPlayers conn mainTestsTableNames
+            let expectedNumPlayers = 2
+            assertEqual ("Incorrect number of players!  Expected: " ++ (show expectedNumPlayers)) expectedNumPlayers numPlayers
 
 
 assertTablesExist :: (IConnection a) => a -> TableNames -> Assertion
