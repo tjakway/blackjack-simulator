@@ -23,7 +23,8 @@ connectDB = connectPostgresDBReadString
 --Test utilities:
 -- ********************************************************
 
--- |delete all deletes, run action, then delete all tables again
+-- |delete all tables, run action, then delete all tables again
+-- lets you run tests with a clean slate
 sandboxTables :: IO () -> IO ()
 sandboxTables action = connectDB >>= (\f_conn -> dropAllTables f_conn >> commit f_conn >> action >> dropAllTables f_conn >> commit f_conn)
 
