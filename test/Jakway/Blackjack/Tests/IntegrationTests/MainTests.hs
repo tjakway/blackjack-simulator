@@ -21,14 +21,14 @@ connectDB = connectPostgresDBReadString
 
 -- |delete all deletes, run action, then delete all tables again
 sandboxTables :: IO () -> IO ()
-sandboxTables action = connectDB >>= ((flip withTransaction) $ \f_conn -> dropAllTables f_conn >> commit f_conn >> disconnect f_conn) >> action >> connectDB >>= (dropAllTables >> commit >> disconnect)
+sandboxTables action = connectDB >>= (\f_conn -> dropAllTables f_conn >> commit f_conn >> action >> dropAllTables f_conn >> commit f_conn)
 
 basicArgs :: String -> [String]
 basicArgs suffix = ["-v", "--with-dealer=BasicDealer", "--num-BasicPlayer=1", "--num-games=10", "--tablename-suffix=" ++ suffix]
 
 -- |Make sure that the program correctly sets up tables"
 testRunTables :: Assertion
-testRunTables =  (sandboxTables $ Env.withArgs (basicArgs suffix) ProgMain.progMain) >> connectDB >>= getTables >>= (\readTables -> assertEqual "dropAllTables failed!" readTables [])
+testRunTables =  (sandboxTables $ Env.withArgs (basicArgs suffix) ProgMain.progMain) >> connectDB >>= getTables >>= (assertEqual "dropAllTables failed!" [])
             where suffix = "test_ins_one_match_suff"
         
 
