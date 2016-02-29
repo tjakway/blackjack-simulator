@@ -114,7 +114,7 @@ performMatch numGames conf gen insHandStatement insMatchStatement conn =
                                 insRes <- insertMatch insHandStatement insMatchStatement conn tableNames justMatch
                                 --recurse with left to short
                                 --circuit
-                                if (insRes < 1) then return (Left $ insertFailedMessage numGames)
+                                if (insRes < 0) then return (Left $ insertFailedMessage numGames)
                                                 else return (Right $ numGames + 1)
                                                             
     where matchFailedMessage num = "Match number " ++ (show num) ++ "failed!"          
