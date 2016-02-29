@@ -51,6 +51,9 @@ testInsertTenMatches = sandboxTables $ do
             numPlayers <- getNumPlayers conn mainTestsTableNames
             let expectedNumPlayers = 2
             assertEqual ("Incorrect number of players!  Expected: " ++ (show expectedNumPlayers)) expectedNumPlayers numPlayers
+            numMatches <- getNumMatches conn mainTestsTableNames 
+            let expectedNumMatches = 10
+            assertEqual ("Incorrect number of matcheS!  Expected: " ++ (show expectedNumMatches)) expectedNumMatches numMatches
 
 
 assertTablesExist :: (IConnection a) => a -> TableNames -> Assertion
