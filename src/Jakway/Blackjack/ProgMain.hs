@@ -65,6 +65,7 @@ progMain = do
                 res <- collapseMatches matches_per_transaction conf conn 
                 printResults res
 
+                disconnect conn
 #else
               db_spec_main = undefined
 #endif
