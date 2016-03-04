@@ -12,6 +12,8 @@ import Jakway.Blackjack.IO.DatabaseCommon
 import Jakway.Blackjack.IO.DatabaseWrites
 import Jakway.Blackjack.IO.DatabaseReads
 import Database.HDBC
+import System.Random
+import Control.Monad
 
 -- TODO: implement for SQLite
 #ifdef BUILD_POSTGRESQL
@@ -54,8 +56,31 @@ testInsertTenMatches = sandboxTables $ do
             assertEqual ("Incorrect number of players!  Expected: " ++ (show expectedNumPlayers)) expectedNumPlayers numPlayers
             numMatches <- getNumMatches conn mainTestsTableNames 
             let expectedNumMatches = 10
-            assertEqual ("Incorrect number of matcheS!  Expected: " ++ (show expectedNumMatches)) expectedNumMatches numMatches
+            assertEqual ("Incorrect number of matches!  Expected: " ++ (show expectedNumMatches)) expectedNumMatches numMatches
 
+testReadWriteXMatches :: Int -> Integer -> Assertion
+testReadWriteXMatches expectedNumPlayers expectedMatches = sandboxTables $ do
+            Env.withArgs args ProgMain.progMain
+            conn <- connectDB
+            numPlayers <- getNumPlayers conn mainTestsTableNames
+            assertEqual ("Incorrect number of players!  Expected: " ++ (show expectedNumPlayers)) expectedNumPlayers numPlayers
+            numMatches <- getNumMatches conn mainTestsTableNames 
+            assertEqual ("Incorrect number of matches!  Expected: " ++ (show expectedMatches)) expectedMatches numMatches
+    where numExpectedPlayers = 2
+          args = ["-v", "--with-dealer=BasicDealer", "--num-BasicPlayer=" ++ (show expectedNumPlayers), "--num-games=" ++ (show expectedMatches), "--tablename-suffix=" ++ mainTestsSuffix]
+
+testReadWriteRandomMatches :: Assertion
+testReadWriteRandomMatches = getStdGen >>= (\gen -> (gen,randMatches gen) >>= 
+       ( \(prev_gen, rM) -> (rM, randPlayers . split $ gen) >>= uncurry testReadWriteXMatches))
+        where randInRange min max gen = tuplify2 . (take 2) . (liftM $ randomRs (minMatches, maxMatches)) $ gen
+              randMatches = randInRange minMatches maxMatches
+              randPlayers = randInRange minPlayers maxPlayers
+              minMatches = 2
+              maxMatches = 100
+              minPlayers = 2
+              maxPlayers = 5
+              --see http://stackoverflow.com/questions/2921345/how-do-i-convert-a-list-to-a-tuple-in-haskell
+              tuplify2 [x,y] = (x,y)
 
 assertTablesExist :: (IConnection a) => a -> TableNames -> Assertion
 assertTablesExist conn n = getTables conn >>= containsNames
