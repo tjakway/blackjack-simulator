@@ -31,7 +31,11 @@ getNumMatches conn tableNames = quickQuery' conn queryStr [] >>= (return . join)
         (\res -> case res of [] -> return 0
                              [x] -> return . fromSql $ x
                              _ -> error $ "Error in getNumMatches: unrecognized value returned from database for query " ++ queryStr)
-                    where queryStr = "SELECT COUNT(*) FROM " ++ (getMatchTableName tableNames)
+                    --select only unique rows because the actual number of
+                    --matches is the whichGame column
+                    --any match with more than 2 players will take up more
+                    --than 1 row in the matches table
+                    where queryStr = "SELECT DISTINCT COUNT(*) FROM " ++ (getMatchTableName tableNames)
 
 readPlayers :: (IConnection a) => a -> TableNames -> IO ([Int])
 readPlayers conn tableNames = do
