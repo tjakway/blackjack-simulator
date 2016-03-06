@@ -17,7 +17,7 @@ import Jakway.Blackjack.Match
 import Jakway.Blackjack.IO.DatabaseCommon
 import Jakway.Blackjack.IO.TableNames
 import Jakway.Blackjack.Result
-import Jakway.Blackjack.Util (innerMapTuple4)
+import Jakway.Blackjack.Util (innerMapTuple4, ssub)
 import Database.HDBC
 import qualified Data.Map.Strict as HashMap
 import Data.Maybe (fromJust, isNothing)
@@ -35,7 +35,8 @@ getNumMatches conn tableNames = quickQuery' conn queryStr [] >>= (return . join)
                     --matches is the whichGame column
                     --any match with more than 2 players will take up more
                     --than 1 row in the matches table
-                    where queryStr = "SELECT DISTINCT COUNT(*) FROM " ++ (getMatchTableName tableNames)
+                    --see http://stackoverflow.com/questions/11250253/postgresql-countdistinct-very-slow
+                    where queryStr = ssub "SELECT COUNT(*) FROM (SELECT DISTINCT whichGame FROM ?) AS temp" [(getMatchTableName tableNames)]
 
 readPlayers :: (IConnection a) => a -> TableNames -> IO ([Int])
 readPlayers conn tableNames = do
