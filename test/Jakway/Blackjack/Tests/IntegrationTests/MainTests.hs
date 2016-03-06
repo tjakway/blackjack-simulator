@@ -58,22 +58,21 @@ testInsertTenMatches = sandboxTables $ do
             let expectedNumMatches = 10
             assertEqual ("Incorrect number of matches!  Expected: " ++ (show expectedNumMatches)) expectedNumMatches numMatches
 
-testReadWriteXMatches :: Int -> Integer -> Assertion
+testReadWriteXMatches :: Integer -> Integer -> Assertion
 testReadWriteXMatches expectedNumPlayers expectedMatches = sandboxTables $ do
             Env.withArgs args ProgMain.progMain
             conn <- connectDB
             numPlayers <- getNumPlayers conn mainTestsTableNames
-            assertEqual ("Incorrect number of players!  Expected: " ++ (show expectedNumPlayers)) expectedNumPlayers numPlayers
+            assertEqual ("Incorrect number of players!  Expected: " ++ (show expectedNumPlayers)) expectedNumPlayers (toInteger numPlayers)
             numMatches <- getNumMatches conn mainTestsTableNames 
             assertEqual ("Incorrect number of matches!  Expected: " ++ (show expectedMatches)) expectedMatches numMatches
     where numExpectedPlayers = 2
           args = ["-v", "--with-dealer=BasicDealer", "--num-BasicPlayer=" ++ (show expectedNumPlayers), "--num-games=" ++ (show expectedMatches), "--tablename-suffix=" ++ mainTestsSuffix]
 
 testReadWriteRandomMatches :: Assertion
-k
 testReadWriteRandomMatches = getStdGen >>= (\gen -> return (gen,randMatches gen) >>= 
        ( \(prev_gen, rM) -> return (rM, randPlayers . snd . split $ gen) >>= uncurry testReadWriteXMatches))
-        where randInRange min max gen = tuplify2 . (take 2) . (randomRs (minMatches, maxMatches)) $ gen
+        where randInRange min max gen = head . (take 1) . (randomRs (minMatches, maxMatches)) $ gen
               randMatches = randInRange minMatches maxMatches
               randPlayers = randInRange minPlayers maxPlayers
               minMatches = 2
