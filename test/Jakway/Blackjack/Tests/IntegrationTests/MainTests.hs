@@ -15,7 +15,6 @@ import Database.HDBC
 import System.Random
 import Control.Monad
 
-connectDB :: IConnection a => IO a
 -- TODO: implement for SQLite
 #ifdef BUILD_POSTGRESQL
 connectDB = connectPostgresDBReadString
@@ -71,9 +70,10 @@ testReadWriteXMatches expectedNumPlayers expectedMatches = sandboxTables $ do
           args = ["-v", "--with-dealer=BasicDealer", "--num-BasicPlayer=" ++ (show expectedNumPlayers), "--num-games=" ++ (show expectedMatches), "--tablename-suffix=" ++ mainTestsSuffix]
 
 testReadWriteRandomMatches :: Assertion
-testReadWriteRandomMatches = getStdGen >>= (\gen -> (gen,randMatches gen) >>= 
-       ( \(prev_gen, rM) -> (rM, randPlayers . split $ gen) >>= uncurry testReadWriteXMatches))
-        where randInRange min max gen = tuplify2 . (take 2) . (liftM $ randomRs (minMatches, maxMatches)) $ gen
+k
+testReadWriteRandomMatches = getStdGen >>= (\gen -> return (gen,randMatches gen) >>= 
+       ( \(prev_gen, rM) -> return (rM, randPlayers . snd . split $ gen) >>= uncurry testReadWriteXMatches))
+        where randInRange min max gen = tuplify2 . (take 2) . (randomRs (minMatches, maxMatches)) $ gen
               randMatches = randInRange minMatches maxMatches
               randPlayers = randInRange minPlayers maxPlayers
               minMatches = 2
