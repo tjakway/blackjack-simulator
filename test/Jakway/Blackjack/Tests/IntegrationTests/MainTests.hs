@@ -78,8 +78,6 @@ testReadWriteRandomMatches = getStdGen >>= (\gen -> return (snd . split $ gen,ra
               maxMatches = 100
               minPlayers = 2
               maxPlayers = 5
-              --see http://stackoverflow.com/questions/2921345/how-do-i-convert-a-list-to-a-tuple-in-haskell
-              tuplify2 [x,y] = (x,y)
 
 assertTablesExist :: (IConnection a) => a -> TableNames -> Assertion
 assertTablesExist conn n = getTables conn >>= containsNames
