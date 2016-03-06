@@ -70,9 +70,9 @@ testReadWriteXMatches expectedNumPlayers expectedMatches = sandboxTables $ do
           args = ["-v", "--with-dealer=BasicDealer", "--num-BasicPlayer=" ++ (show expectedNumPlayers), "--num-games=" ++ (show expectedMatches), "--tablename-suffix=" ++ mainTestsSuffix]
 
 testReadWriteRandomMatches :: Assertion
-testReadWriteRandomMatches = getStdGen >>= (\gen -> return (gen,randMatches gen) >>= 
-       ( \(prev_gen, rM) -> return (rM, randPlayers . snd . split $ gen) >>= uncurry testReadWriteXMatches))
-        where randInRange min max gen = head . (randomRs (minMatches, maxMatches)) $ gen
+testReadWriteRandomMatches = getStdGen >>= (\gen -> return (snd . split $ gen,randMatches gen) >>= 
+       ( \(n_gen, rM) -> return (randPlayers n_gen, rM) >>= uncurry testReadWriteXMatches))
+        where randInRange min max gen = head . (randomRs (min, max)) $ gen
               randMatches = randInRange minMatches maxMatches
               randPlayers = randInRange minPlayers maxPlayers
               minMatches = 2
@@ -93,4 +93,4 @@ assertTablesExist conn n = getTables conn >>= containsNames
                             in assertBool message (ctn `elem` tables && ptn `elem` tables && htn `elem` tables && mtn `elem` tables)
 
 
-testCases = [testCase "testRunTables" testRunTables, testCase "testInsertTenMatches" testInsertTenMatches]
+testCases = [testCase "testRunTables" testRunTables, testCase "testInsertTenMatches" testInsertTenMatches, testCase "testReadWriteRandomMatches" testReadWriteRandomMatches]
