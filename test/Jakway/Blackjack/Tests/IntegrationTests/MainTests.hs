@@ -63,7 +63,7 @@ testReadWriteXMatches expectedNumPlayers expectedMatches = sandboxTables $ do
             Env.withArgs args ProgMain.progMain
             conn <- connectDB
             numPlayers <- getNumPlayers conn mainTestsTableNames
-            assertEqual ("Incorrect number of players!  Expected: " ++ (show expectedNumPlayers)) expectedNumPlayers (toInteger numPlayers)
+            assertEqual ("Incorrect number of players!  Expected: " ++ (show (expectedNumPlayers + 1))) (expectedNumPlayers + 1) (toInteger numPlayers)
             numMatches <- getNumMatches conn mainTestsTableNames 
             assertEqual ("Incorrect number of matches!  Expected: " ++ (show expectedMatches)) expectedMatches numMatches
     where args = ["-v", "--with-dealer=BasicDealer", "--num-BasicPlayer=" ++ (show expectedNumPlayers), "--num-games=" ++ (show expectedMatches), "--tablename-suffix=" ++ mainTestsSuffix]

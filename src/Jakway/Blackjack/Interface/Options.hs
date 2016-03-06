@@ -49,7 +49,7 @@ flagsToConfig flags
                   --need at least 1 player besides the dealer
                   numBasicPlayerAIs = let n = catMaybes $ map getNumBasicPlayer flags
                                           in case n of [] -> 0
-                                                       _ -> length n
+                                                       _ -> head n
                   numPlayerAIs = numBasicPlayerAIs -- TODO: modify as we add more AI types
                   suffixes = catMaybes $ map (\a -> case a of (TableNameSuffix suff) -> Just suff
                                                               _ -> Nothing) flags
