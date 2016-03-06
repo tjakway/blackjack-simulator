@@ -30,13 +30,17 @@ collapseMatches matches_per_transaction conf conn = do
               initialGen <- getStdGen
 
               --discard the RNG
-              (_, matchesRes) <- foldr (\_ ioRes -> ioRes >>= (\(mutatedGen, res) -> 
+              (resGen, matchesRes) <- foldr (\_ ioRes -> ioRes >>= (\(mutatedGen, res) -> 
                                 case res of (Left _) -> return (mutatedGen, res)
                                             (Right ngames) -> transacPerformMatchIO perTransactionConf initialGen insHandStatement insMatchStatement conn)) (return (initialGen, Right 0)) [1..(numGames `div` matches_per_transaction)]
                 --TODO:  run a transaction of size numGames `mod`
                 --matches_per_transaction
-             
-              return matchesRes
+              
+              let numRemainderGames = numGames `mod` matches_per_transaction
+                  remainderConf = (beVerbose, dealerAI, playerAIs, numRemainderGames, suffix)
+              if numRemainderGames > 0 then case matchesRes of (Left s) -> return . Left $ s
+                                                               (Right ng) -> transacPerformMatchIO remainderConf resGen insHandStatement insMatchStatement conn >>= (\(_, eitherTransacRes) -> eitherTransacRes >>= (\remainderNumGames -> return . Right $ ng + remainderNumGames))
+                                       else return matchesRes
         --get the hand and match insert statements
     where getStatements c names = insertHandStatement c names >>= 
                                         (\ihs -> insertMatchStatement c names >>= 
