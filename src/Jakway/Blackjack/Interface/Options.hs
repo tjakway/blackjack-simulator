@@ -5,6 +5,7 @@ getConfig
 ) where
 
 import Jakway.Blackjack.AI
+import Jakway.Blackjack.Util
 import System.Console.GetOpt
 import Data.Maybe (fromJust, catMaybes)
 import System.Exit (die)
@@ -46,7 +47,9 @@ flagsToConfig flags
                                                                                [x] -> Just x
                   getNum f = length . catMaybes $ map f flags
                   --need at least 1 player besides the dealer
-                  numBasicPlayerAIs = getNum getNumBasicPlayer
+                  numBasicPlayerAIs = let n = catMaybes $ map getNumBasicPlayer flags
+                                          in case n of [] -> 0
+                                                       _ -> length n
                   numPlayerAIs = numBasicPlayerAIs -- TODO: modify as we add more AI types
                   suffixes = catMaybes $ map (\a -> case a of (TableNameSuffix suff) -> Just suff
                                                               _ -> Nothing) flags
