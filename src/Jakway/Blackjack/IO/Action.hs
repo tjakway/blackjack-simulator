@@ -39,7 +39,7 @@ collapseMatches matches_per_transaction conf conn = do
               let numRemainderGames = numGames `mod` matches_per_transaction
                   remainderConf = (beVerbose, dealerAI, playerAIs, numRemainderGames, suffix)
               if numRemainderGames > 0 then case matchesRes of (Left s) -> return . Left $ s
-                                                               (Right ng) -> transacPerformMatchIO remainderConf resGen insHandStatement insMatchStatement conn >>= (\(_, eitherTransacRes) -> eitherTransacRes >>= (\remainderNumGames -> return . Right $ ng + remainderNumGames))
+                                                               (Right ng) -> transacPerformMatchIO remainderConf resGen insHandStatement insMatchStatement conn >>= (\(_, eitherTransacRes) -> return $ eitherTransacRes >>= (\remainderNumGames -> Right $ ng + remainderNumGames))
                                        else return matchesRes
         --get the hand and match insert statements
     where getStatements c names = insertHandStatement c names >>= 
