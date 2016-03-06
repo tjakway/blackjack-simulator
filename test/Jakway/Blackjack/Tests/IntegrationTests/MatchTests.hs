@@ -1,6 +1,6 @@
 module Jakway.Blackjack.Tests.IntegrationTests.MatchTests (testCases) where
 
-import Jakway.Blackjack.Tests.GameTests (test_1v1_game)
+import Jakway.Blackjack.Tests.Constants
 import Jakway.Blackjack.IO.DatabaseCommon
 import Jakway.Blackjack.IO.DatabaseWrites
 import Jakway.Blackjack.IO.DatabaseReads

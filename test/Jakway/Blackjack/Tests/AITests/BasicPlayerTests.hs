@@ -1,4 +1,4 @@
-module Jakway.Blackjack.Tests.GameTests (tests, test_1v1_game) where
+module Jakway.Blackjack.Tests.AITests.BasicPlayerTests (testCases) where
 
 import Jakway.Blackjack.Tests.Constants
 import Jakway.Blackjack.CardOps
@@ -19,8 +19,6 @@ sanityCheck = let resCards = (flip evalState) testDeck $ do
                   message = "Should have drawn 2 cards."
                   in assertBool message (length resCards == 2)
 
-test_1v1_game = fromJust $ evalGame BasicDealer [BasicPlayer] testDeck
-
 tie_1v1 :: Assertion
 tie_1v1 = do
         let (Match dealerHand _ playerHand res) = test_1v1_game
@@ -28,4 +26,4 @@ tie_1v1 = do
         assertBool message (length dealerHand == 3)
         assertBool message (length (head playerHand) == 3)
 
-tests = testGroup "GameTests" [testCase "sanityCheck" sanityCheck, testCase "tie_1v1" tie_1v1]
+testCases = [testCase "sanityCheck" sanityCheck, testCase "tie_1v1" tie_1v1]
