@@ -15,6 +15,7 @@ import Database.HDBC
 import System.Random
 import Control.Monad
 
+connectDB :: IConnection a => IO a
 -- TODO: implement for SQLite
 #ifdef BUILD_POSTGRESQL
 connectDB = connectPostgresDBReadString
