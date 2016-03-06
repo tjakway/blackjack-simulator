@@ -66,8 +66,7 @@ testReadWriteXMatches expectedNumPlayers expectedMatches = sandboxTables $ do
             assertEqual ("Incorrect number of players!  Expected: " ++ (show expectedNumPlayers)) expectedNumPlayers (toInteger numPlayers)
             numMatches <- getNumMatches conn mainTestsTableNames 
             assertEqual ("Incorrect number of matches!  Expected: " ++ (show expectedMatches)) expectedMatches numMatches
-    where numExpectedPlayers = 2
-          args = ["-v", "--with-dealer=BasicDealer", "--num-BasicPlayer=" ++ (show expectedNumPlayers), "--num-games=" ++ (show expectedMatches), "--tablename-suffix=" ++ mainTestsSuffix]
+    where args = ["-v", "--with-dealer=BasicDealer", "--num-BasicPlayer=" ++ (show expectedNumPlayers), "--num-games=" ++ (show expectedMatches), "--tablename-suffix=" ++ mainTestsSuffix]
 
 testReadWriteRandomMatches :: Assertion
 testReadWriteRandomMatches = getStdGen >>= (\gen -> return (snd . split $ gen,randMatches gen) >>= 
