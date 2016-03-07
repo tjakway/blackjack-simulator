@@ -21,3 +21,6 @@ handPoints hand
                 | otherwise = total
             where hasAce = hasCard hand Ace
                   total = getSum $ foldMap (Sum . cardPoints . cardValue) hand 
+
+isBust :: [Card] -> Bool
+isBust hand = 21 < handPoints hand

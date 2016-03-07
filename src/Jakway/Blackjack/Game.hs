@@ -22,9 +22,6 @@ blackjack hand = 2 == length hand && hasAce && hasFaceCard
     faceCards = Card <$> allSuits <*> [Jack, Queen, King]
     hasFaceCard = any (handHas . cardValue) faceCards
     
-isBust :: [Card] -> Bool
-isBust hand = 21 < handPoints hand
-
 startingHand :: Blackjack Hand
 startingHand = do
   firstCard <- Hidden <$> drawCard
