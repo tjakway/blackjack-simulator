@@ -33,7 +33,6 @@ play FiftyFiftyPlayer myHand deck = if isBust $ map unwrapVisibility myHand
                                             in if randFlag == True then f
                                                                    else g
 
-
 hit :: AI -> Hand -> Deck -> (Hand, Deck)
 hit ai hand deck = flip runState deck $ do
     drawnCard <- drawCard
