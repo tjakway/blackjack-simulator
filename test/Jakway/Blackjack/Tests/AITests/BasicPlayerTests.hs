@@ -13,6 +13,7 @@ import Test.HUnit
 import Test.Framework
 import Test.Framework.Providers.HUnit
 import Jakway.Blackjack.Result
+import Data.List (sort)
 
 sanityCheck :: Assertion
 sanityCheck = let resCards = (flip evalState) testDeck $ do
@@ -38,13 +39,13 @@ testPlayerBust = let maybeMatch = evalGame BasicDealer [BasicPlayer] deck
                      expectedPlayerHand = [Hidden $ Card Heart Six, Shown $ Card Diamond Seven, Shown $ Card Spade Nine]
                      expectedResult = Lose
                     in case maybeMatch of Nothing -> assertFailure "Failed to run match"
-                                          Just (Match dHand pIds pHands pRes) -> assertEqual "Dealer's hand didn't match" expectedDealerHand dHand >> 
-                                                                assertEqual "Player's hand didn't match" expectedPlayerHand (head pHands) >> assertEqual "Incorrect result" expectedResult (head pRes)
+                                          Just (Match dHand pIds pHands pRes) -> assertEqual "Dealer's hand didn't match" (sort expectedDealerHand) (sort dHand) >> 
+                                                                assertEqual "Player's hand didn't match" (sort expectedPlayerHand) (sort . head $ pHands) >> assertEqual "Incorrect result" expectedResult (head pRes)
         where deck = [Card {cardSuit = Club, cardValue = Four},Card {cardSuit = Heart, cardValue = Three},Card {cardSuit = Heart, cardValue = Six},Card {cardSuit = Diamond, cardValue = Seven},Card {cardSuit = Spade, cardValue = Nine},Card {cardSuit = Heart, cardValue = Eight},Card {cardSuit = Club, cardValue = Six},Card {cardSuit = Spade, cardValue = Ace},Card {cardSuit = Heart, cardValue = Ten},Card {cardSuit = Club, cardValue = Ace}]
 
 testBlackjackTie :: Assertion
 testBlackjackTie =  case maybeMatch of Nothing -> assertFailure "Match failed"
-                                       Just (Match dHand pIds [pHand] [pRes]) -> assertEqual "Dealers hand didn't match" expectedDealerHand dHand >> assertEqual "Player's hand didn't match" expectedPlayerHand pHand >> assertEqual "Outcome didn't match" Tie pRes
+                                       Just (Match dHand pIds [pHand] [pRes]) -> assertEqual "Dealers hand didn't match" (sort expectedDealerHand) (sort dHand) >> assertEqual "Player's hand didn't match" (sort expectedPlayerHand) (sort pHand) >> assertEqual "Outcome didn't match" Tie pRes
     where expectedDealerHand = [Hidden $ Card Spade Ace, Shown $ Card Spade King]
           expectedPlayerHand = [Hidden $ Card Club King, Shown $ Card Heart Ace]
           deck = map unwrapVisibility $ expectedDealerHand ++ expectedPlayerHand
