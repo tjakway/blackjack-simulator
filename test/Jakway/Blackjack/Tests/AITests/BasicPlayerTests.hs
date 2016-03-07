@@ -32,7 +32,9 @@ tie_1v1 = do
 
 testPlayerBust :: Assertion
 testPlayerBust = let maybeMatch = evalGame BasicDealer [BasicPlayer] deck
+                     --dealer has 21
                      expectedDealerHand = [Hidden $ Card Club Four, Shown $ Card Heart Three, Shown $ Card Heart Eight, Shown $ Card Club Six]
+                     --player busts
                      expectedPlayerHand = [Hidden $ Card Heart Six, Shown $ Card Diamond Seven, Shown $ Card Spade Nine]
                      expectedResult = Lose
                     in case maybeMatch of Nothing -> assertFailure "Failed to run match"
