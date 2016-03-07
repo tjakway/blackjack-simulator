@@ -9,3 +9,6 @@ checkHand hand = numHiddenCheck >>= (\b -> Right True)
                                 of (Hidden _) -> hiddenSum + 1
                                    (Shown _) -> hiddenSum) 0 hand
               numHiddenCheck = if numHidden /= 1 then Left "Should only have 1 face down card" else Right True
+
+--invariants to implement:
+--  * only one hidden card per hand
