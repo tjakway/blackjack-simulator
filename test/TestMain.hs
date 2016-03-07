@@ -11,7 +11,7 @@ import Test.Framework.Providers.HUnit
 
 main :: IO ()
 main = defaultMainWithOpts 
-            [BasicTests.tests, MultiTableTests.tests, integrationTests]
+            [BasicTests.tests, MultiTableTests.tests, integrationTests, aiTests]
             mempty
         where integrationTests = testGroup "Integration Tests" (MatchTests.testCases ++ MainTests.testCases)
               aiTests = testGroup "AI Tests" BasicPlayerTests.testCases
