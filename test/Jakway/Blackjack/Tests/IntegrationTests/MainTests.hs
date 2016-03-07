@@ -14,12 +14,13 @@ import Jakway.Blackjack.IO.DatabaseReads
 import Database.HDBC
 import System.Random
 import Control.Monad
+import Jakway.Blackjack.Tests.Constants (test_db_name)
 
 -- TODO: implement for SQLite
 #ifdef BUILD_POSTGRESQL
 connectDB = connectPostgresDBReadString
 #else
-
+connectDB = connectSQLiteDB test_db_name
 #endif
 
 --Test utilities:

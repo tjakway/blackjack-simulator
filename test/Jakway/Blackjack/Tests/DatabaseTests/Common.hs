@@ -14,13 +14,12 @@ import qualified Jakway.Blackjack.IO.DatabaseReads as DB
 import qualified Jakway.Blackjack.IO.DatabaseCommon as DB
 import qualified Jakway.Blackjack.IO.DatabaseConnection as DBConn
 import qualified Jakway.Blackjack.IO.TableNames as DB
+import Jakway.Blackjack.Tests.Constants (test_db_name)
 #ifdef BUILD_POSTGRESQL
 import Database.HDBC.PostgreSQL (Connection)
 #else
 import Database.HDBC.Sqlite3 (Connection)
 #endif
-
-test_db_name = "test_tmp.db"
 
 withDatabase :: FilePath -> (Connection -> IO b) -> IO b
 #ifdef BUILD_POSTGRESQL

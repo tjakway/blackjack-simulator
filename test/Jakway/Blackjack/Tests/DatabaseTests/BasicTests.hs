@@ -25,6 +25,7 @@ import System.Random
 import Control.Monad.State
 import Jakway.Blackjack.Game
 import Data.Monoid (mempty)
+import Jakway.Blackjack.Tests.Constants (test_db_name)
 
 testOpenDatabase :: Assertion
 #ifdef BUILD_POSTGRESQL
