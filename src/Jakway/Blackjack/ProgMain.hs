@@ -24,7 +24,7 @@ import Jakway.Blackjack.Interface.Options
 import Database.HDBC
 import System.Random
 
-matches_per_transaction = 10
+matches_per_transaction = 1000
 
 
 progMain :: IO ()
