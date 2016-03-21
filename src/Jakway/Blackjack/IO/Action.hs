@@ -21,7 +21,7 @@ collapseMatches :: (IConnection a) =>
             a ->
             IO (Either String Integer)
 collapseMatches matches_per_transaction conf conn = do
-              let (beVerbose, dealerAI, playerAIs, numGames, suffix) = conf
+              let (beVerbose, dealerAI, playerAIs, numGames, suffix, _) = conf
                   perTransactionConf = (beVerbose, dealerAI, playerAIs, matches_per_transaction, suffix)
                   tableNames = getTableNames suffix
 
