@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 module Jakway.Blackjack.Interface.Options
 (
 Config,
@@ -14,10 +15,11 @@ data Flag = Verbose |
             WhichDealer AI |
             NumBasicPlayer Int |
             NumGames Integer |
-            TableNameSuffix String
+            TableNameSuffix String |
+            PostgresqlConnectString String
             deriving (Show, Eq)
 
-type Config = (Bool, AI, [AI], Integer, String)
+type Config = (Bool, AI, [AI], Integer, String, Maybe String)
 
 --extract the number of BasicPlayer or return Nothing
 getNumBasicPlayer :: Flag -> Maybe Int
@@ -32,6 +34,11 @@ getNumGames :: Flag -> Maybe Integer
 getNumGames (NumGames num) = Just num
 getNumGames _ = Nothing
 
+getPostgresqlConnectString :: Flag -> Maybe String
+getPostgresqlConnectString (PostgresqlConnectString str) = Just str
+getPostgresqlConnectString _ = Nothing
+
+
 flagsToConfig :: [Flag] -> Either String Config
 flagsToConfig [] = Left "No flags passed."
 flagsToConfig flags
@@ -40,7 +47,7 @@ flagsToConfig flags
                 | (numPlayerAIs == 0) = Left "Must have >0 players!"
                 | numGames == Nothing = Left "Specify how many games to run."
                 | suffixes == [] = Left "You must specify a table name suffix."
-                | otherwise = Right (hasVerbose, (fromJust whichDealer), playerAIs, fromJust numGames, tableNameSuffix)
+                | otherwise = Right (hasVerbose, (fromJust whichDealer), playerAIs, fromJust numGames, tableNameSuffix, pConnStr)
             --Make sure a player AI hasn't been passed for a dealer AI
             -- TODO: rewrite using filter?
             where whichDealer = case (catMaybes $ map getWhichDealer flags) of [] -> Nothing
@@ -61,13 +68,20 @@ flagsToConfig flags
                   playerAIs = replicate numBasicPlayerAIs BasicPlayer
                   tableNameSuffix = head suffixes
 
+                  pConnStr :: Maybe String
+                  pConnStr = extractFlags (getPostgresqlConnectString) flags
+
+
+extractFlags :: (Flag -> Maybe b) -> [Flag] -> Maybe b
+extractFlags f flags = case (catMaybes $ map f flags) of [] -> Nothing
+                                                         [x] -> Just x
+
+
 --flag converters
-dealerOpt, ngOpt, nbpOpt, sfOpt :: String -> Flag
+dealerOpt, ngOpt, nbpOpt :: String -> Flag
 dealerOpt = WhichDealer . read
 nbpOpt = NumBasicPlayer . read
 ngOpt = NumGames . (read :: String -> Integer)
-sfOpt = TableNameSuffix
-
 
 options :: [OptDescr Flag]
 options =
@@ -75,7 +89,8 @@ options =
     , Option []        ["with-dealer"]  (ReqArg dealerOpt "DealerAI")  "Which dealer AI to use."
     , Option []        ["num-BasicPlayer"]  (ReqArg nbpOpt  "NUM")  "Number of BasicPlayer AI's."
     , Option ['g']     ["num-games"]  (ReqArg ngOpt "NUM") "Number of games to run."
-    , Option ['s']     ["tablename-suffix"] (ReqArg sfOpt "SUFFIX") "Table name suffix."
+    , Option ['s']     ["tablename-suffix"] (ReqArg TableNameSuffix "SUFFIX") "Table name suffix."
+    , Option []        ["postgres-string"] (ReqArg PostgresqlConnectString "CONNSTR")  "Postgresql connection string (used instead of config file if both are present)"
     ]
 
 
