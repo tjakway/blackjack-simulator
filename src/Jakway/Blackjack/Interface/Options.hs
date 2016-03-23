@@ -1,7 +1,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module Jakway.Blackjack.Interface.Options
 (
-Config,
 getConfig
 ) where
 
@@ -48,7 +47,7 @@ flagsToConfig flags
                 | (numPlayerAIs == 0) = Left "Must have >0 players!"
                 | numGames == Nothing = Left "Specify how many games to run."
                 | suffixes == [] = Left "You must specify a table name suffix."
-                | otherwise = Right $ Conf.Config hasVerbose (fromJust whichDealer) playerAIs fromJust numGames (getTableNames tableNameSuffix) pConnStr
+                | otherwise = Right $ Conf.Config hasVerbose (fromJust whichDealer) playerAIs (fromJust numGames) (getTableNames tableNameSuffix) pConnStr
             --Make sure a player AI hasn't been passed for a dealer AI
             -- TODO: rewrite using filter?
             where whichDealer = case (catMaybes $ map getWhichDealer flags) of [] -> Nothing
