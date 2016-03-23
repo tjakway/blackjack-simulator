@@ -82,7 +82,7 @@ recursivePerformMatch :: (IConnection a, RandomGen g) =>
             a ->
             IO (g, Either String Integer)
 recursivePerformMatch numGames conf gen insHandStatement insMatchStatement conn = 
-        let (_, _, _, maxGames, _) = conf
+        let maxGames = Conf.numGames conf
             nextRNG = snd . split $ gen
          in performMatch numGames conf gen insHandStatement insMatchStatement conn >>= (\res ->
             case res of (Right newNumGames) -> if (newNumGames < maxGames) then recursivePerformMatch (newNumGames) conf nextRNG insHandStatement insMatchStatement conn else return (nextRNG, Right newNumGames)
@@ -105,8 +105,9 @@ performMatch :: (IConnection a, RandomGen g) =>
             a ->
             IO (Either String Integer)
 performMatch numGames conf gen insHandStatement insMatchStatement conn =
-        let (_, dealerAI, playerAIs, _, suffix) = conf
-            tableNames = getTableNames suffix
+        let dealerAI = Conf.whichDealer conf
+            playerAIs = Conf.playerAIs conf
+            tableNames = Conf.tableNames conf
         --if e == Left it short circuits and we stop updating the total
         --number of games
             deck = infiniteShuffledDeck gen
