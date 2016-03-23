@@ -21,6 +21,7 @@ import Jakway.Blackjack.IO.Action
 import Jakway.Blackjack.IO.DatabaseConnection
 import Jakway.Blackjack.IO.TableNames
 import Jakway.Blackjack.Interface.Options
+import qualified Jakway.Blackjack.Interface.Config as Conf
 import Database.HDBC
 import System.Random
 
@@ -31,16 +32,15 @@ progMain :: IO ()
 progMain = do
         args <- getArgs
         conf <- getConfig args
-        let (beVerbose, dealerAI, playerAIs, numGames, suffix) = conf
+        let (Conf.Config beVerbose dealerAI playerAIs numGames tableNames conn_str) = conf
         when (beVerbose == True) $ printOptions conf
 
         db_spec_main conf
 
-        where db_spec_main :: Config -> IO ()
+        where db_spec_main :: Conf.Config -> IO ()
 #ifdef BUILD_POSTGRESQL          
               db_spec_main conf = handleSqlError $ do
-                let (beVerbose, dealerAI, playerAIs, numGames, suffix) = conf
-                let tableNames = getTableNames suffix
+                let (Conf.Config beVerbose dealerAI playerAIs numGames tableNames conn_str) = conf
 
                 --connect to the database
                 conn_string <- readPostgresConnectionString
@@ -74,9 +74,9 @@ printResults :: Either String Integer -> IO ()
 printResults (Left message) = putStrLn $ "ERROR.  message: " ++ message
 printResults (Right _) = putStrLn "Operations successful."
 
-printOptions :: Config -> IO ()
+printOptions :: Conf.Config -> IO ()
 printOptions conf = do
-        let (beVerbose, dealerAI, playerAIs, numGames, suffix) = conf
+        let (Conf.Config beVerbose dealerAI playerAIs numGames tableNames conn_str) = conf
         putStrLn "Using options: "
         putStrLn $ "verbose: " ++ (show beVerbose)
         putStrLn $ "Dealer AI:" ++ (show dealerAI)
