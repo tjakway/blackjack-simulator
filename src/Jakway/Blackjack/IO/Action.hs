@@ -11,19 +11,19 @@ import Jakway.Blackjack.IO.TableNames
 import Jakway.Blackjack.IO.DatabaseWrites
 import Jakway.Blackjack.CardOps
 import Jakway.Blackjack.Game
+import qualified Jakway.Blackjack.Interface.Config as Conf
 import System.Random
 
 --collapse all of the individual transacPerformMatchIO calls into one huge IO (Either String Integer)
 collapseMatches :: (IConnection a) =>
             Integer ->
             --state parameters
-            Config ->
+            Conf.Config ->
             a ->
             IO (Either String Integer)
 collapseMatches matches_per_transaction conf conn = do
-              let (beVerbose, dealerAI, playerAIs, numGames, suffix, _) = conf
-                  perTransactionConf = (beVerbose, dealerAI, playerAIs, matches_per_transaction, suffix)
-                  tableNames = getTableNames suffix
+              let (Conf.Config beVerbose dealerAI playerAIs numGames tableNames _) = conf
+                  perTransactionConf = conf { Conf.numGames = matches_per_transaction }
 
               --get the statements and the RNG
               (insHandStatement, insMatchStatement) <- getStatements conn tableNames
@@ -35,7 +35,7 @@ collapseMatches matches_per_transaction conf conn = do
               
               --run a separate transaction with the remaining games
               let numRemainderGames = numGames `mod` matches_per_transaction
-                  remainderConf = (beVerbose, dealerAI, playerAIs, numRemainderGames, suffix)
+                  remainderConf = conf { Conf.numGames = numRemainderGames }
               if numRemainderGames > 0 then case matchesRes of (Left s) -> return . Left $ s
                                                                (Right ng) -> transacPerformMatchIO remainderConf resGen insHandStatement insMatchStatement conn >>= (\(_, eitherTransacRes) -> return $ eitherTransacRes >>= (\remainderNumGames -> Right $ ng + remainderNumGames))
                                        else return matchesRes
@@ -46,7 +46,7 @@ collapseMatches matches_per_transaction conf conn = do
 
 transacPerformMatchIO :: (IConnection a, RandomGen g) =>
             --state parameters
-            Config ->
+            Conf.Config ->
             g ->
             --IO parameters
             Statement ->
@@ -61,7 +61,7 @@ transacPerformMatchIO conf gen insHandStatement insMatchStatement conn = commit 
 -- |The public interface to recursivePerformMatch
 performMatchIO :: (IConnection a, RandomGen g) =>
             --state parameters
-            Config ->
+            Conf.Config ->
             g ->
             --IO parameters
             Statement ->
@@ -74,7 +74,7 @@ performMatchIO = recursivePerformMatch 0
 recursivePerformMatch :: (IConnection a, RandomGen g) =>
             --state parameters
             Integer -> 
-            Config ->
+            Conf.Config ->
             g ->
             --IO parameters
             Statement ->
@@ -97,7 +97,7 @@ recursivePerformMatch numGames conf gen insHandStatement insMatchStatement conn 
 performMatch :: (IConnection a, RandomGen g) =>
             --state parameters
             Integer -> 
-            Config ->
+            Conf.Config ->
             g ->
             --IO parameters
             Statement ->
