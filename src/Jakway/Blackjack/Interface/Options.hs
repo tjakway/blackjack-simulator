@@ -10,6 +10,8 @@ import Jakway.Blackjack.Util
 import System.Console.GetOpt
 import Data.Maybe (fromJust, catMaybes)
 import System.Exit (die)
+import Jakway.Blackjack.IO.TableNames
+import qualified Jakway.Blackjack.Interface.Config as Conf
 
 data Flag = Verbose |
             WhichDealer AI |
@@ -19,7 +21,6 @@ data Flag = Verbose |
             PostgresqlConnectString String
             deriving (Show, Eq)
 
-type Config = (Bool, AI, [AI], Integer, String, Maybe String)
 
 --extract the number of BasicPlayer or return Nothing
 getNumBasicPlayer :: Flag -> Maybe Int
@@ -39,7 +40,7 @@ getPostgresqlConnectString (PostgresqlConnectString str) = Just str
 getPostgresqlConnectString _ = Nothing
 
 
-flagsToConfig :: [Flag] -> Either String Config
+flagsToConfig :: [Flag] -> Either String Conf.Config
 flagsToConfig [] = Left "No flags passed."
 flagsToConfig flags
                 --No dealer!
@@ -47,7 +48,7 @@ flagsToConfig flags
                 | (numPlayerAIs == 0) = Left "Must have >0 players!"
                 | numGames == Nothing = Left "Specify how many games to run."
                 | suffixes == [] = Left "You must specify a table name suffix."
-                | otherwise = Right (hasVerbose, (fromJust whichDealer), playerAIs, fromJust numGames, tableNameSuffix, pConnStr)
+                | otherwise = Right $ Conf.Config hasVerbose (fromJust whichDealer) playerAIs fromJust numGames (getTableNames tableNameSuffix) pConnStr
             --Make sure a player AI hasn't been passed for a dealer AI
             -- TODO: rewrite using filter?
             where whichDealer = case (catMaybes $ map getWhichDealer flags) of [] -> Nothing
@@ -103,7 +104,7 @@ parseOptions argv =
 
 
 --returns a valid configuration or prints an error and exits
-getConfig :: [String] -> IO Config
+getConfig :: [String] -> IO Conf.Config
 getConfig argv = parseOptions argv >>= \(flags, _) -> return (flagsToConfig flags) >>=
                                 \res -> case res of (Left x) -> die $ "Error processing options: " ++ x
                                                     (Right conf) -> return conf
