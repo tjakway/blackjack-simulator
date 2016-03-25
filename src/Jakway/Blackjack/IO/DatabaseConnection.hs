@@ -3,6 +3,7 @@ module Jakway.Blackjack.IO.DatabaseConnection
 (
 #ifdef BUILD_POSTGRESQL
 connectPostgresDB,
+connectPostgresDBHandleOpt,
 connectPostgresDBReadString,
 --export this so we can print it if passed --verbose
 readPostgresConnectionString,
@@ -50,6 +51,13 @@ connectPostgresDB connStr = connectPostgreSQL' connStr
 --connect to the database using the options read from the file
 connectPostgresDBReadString :: IO Connection
 connectPostgresDBReadString = readPostgresConnectionString >>= connectPostgresDB
+
+-- |if a connection string is passed, use that to connect to the database,
+-- otherwise read the connection string from the conf file (if it exists)
+-- if the conf file does not exist, connect using the default string
+connectPostgresDBHandleOpt :: Maybe String -> IO Connection
+connectPostgresDBHandleOpt Nothing = connectPostgresDBReadString
+connectPostgresDBHandleOpt (Just connStr) = connectPostgresDB connStr
 
 #else
 
