@@ -43,9 +43,10 @@ progMain = do
                 let (Conf.Config beVerbose dealerAI playerAIs numGames tableNames conn_str) = conf
 
                 --connect to the database
-                conn_string <- readPostgresConnectionString
-                when (beVerbose == True) $ putStrLn $ "Using Postgres connection string: " ++ conn_string
-                conn <- connectPostgresDB conn_string
+                
+                when (beVerbose == True) $ case conn_str of (Just cstr) -> putStrLn $ "Using Postgres connection string: " ++ cstr
+                                                            Nothing -> putStrLn "No Postgres connection string passed via command line arguments, using default connection string."
+                conn <- connectPostgresDBHandleOpt conn_str
 
                 initializeDatabase conn [tableNames]
                 createTables conn tableNames
