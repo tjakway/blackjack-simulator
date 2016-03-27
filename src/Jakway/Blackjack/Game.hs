@@ -38,6 +38,7 @@ evalGame :: AI -> [AI] -> Deck -> Maybe (Match)
 evalGame dealerAI [] deck = Nothing
 evalGame dealerAI allPlayers deck = flip evalState deck $ do
   dealersStartingHand <- startingHand
+
   playerHands <- reverse <$> mapM foldFnSt allPlayers
   dealerHand <- play' dealerAI dealersStartingHand
   let results = reverse . map (whoWon' dealerHand)
@@ -54,10 +55,10 @@ first f (a, b) = (f a, b)
 both :: (a -> b) -> (a, a) -> (b, b)
 both f (a, b) = (f a, f b)
 
-play' :: AI -> Hand -> Blackjack Hand
-play' ai hand = do
+play' :: AI -> [Hand] -> Hand -> Blackjack Hand
+play' ai otherHands hand = do
   deck <- get
-  let (resultingHand, resDeck) = play ai hand deck
+  let (resultingHand, resDeck) = play ai otherHands hand deck
   put resDeck
   return resultingHand
 

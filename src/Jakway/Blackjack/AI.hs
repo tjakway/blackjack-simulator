@@ -10,8 +10,10 @@ import System.Random
 data AI = BasicDealer | BasicPlayer | FiftyFiftyPlayer
         deriving (Show, Read, Eq)
 
-play :: AI -> Hand -> Deck -> (Hand, Deck)
-play BasicDealer myHand deck = flip runState deck $ do
+-- |which AI we are, other players' hands (index 0 is the dealer), our hand
+-- and the deck
+play :: AI -> [Hand] -> Hand -> Deck -> (Hand, Deck)
+play BasicDealer _ myHand deck = flip runState deck $ do
     let points = handPoints (map unwrapVisibility myHand)
     if points < 17
         then do
@@ -22,7 +24,7 @@ play BasicDealer myHand deck = flip runState deck $ do
         return myHand
 
 -- |currently all players play the same
-play BasicPlayer myHand deck = play BasicDealer myHand deck
+play BasicPlayer _ myHand deck = play BasicDealer myHand deck
 play FiftyFiftyPlayer myHand deck = if isBust $ map unwrapVisibility myHand 
                                         then stand myHand deck
                                         else fiftyfifty deck (hit FiftyFiftyPlayer myHand deck) (stand myHand deck)
