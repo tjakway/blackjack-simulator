@@ -12,22 +12,22 @@ data AI = BasicDealer | BasicPlayer | FiftyFiftyPlayer
 
 -- |which AI we are, other players' hands (index 0 is the dealer), our hand
 -- and the deck
-play :: AI -> [Hand] -> Hand -> Deck -> (Hand, Deck)
-play BasicDealer _ myHand deck = flip runState deck $ do
+play :: AI -> Hand -> [Hand] -> Deck -> (Hand, Deck)
+play BasicDealer myHand _ deck = flip runState deck $ do
     let points = handPoints (map unwrapVisibility myHand)
     if points < 17
         then do
         drawnCard <- drawCard
         deck' <- get
-        return . fst $ play BasicDealer (Shown drawnCard : myHand) deck'
+        return . fst $ play BasicDealer (Shown drawnCard : myHand) [] deck'
         else 
         return myHand
 
 -- |currently all players play the same
-play BasicPlayer _ myHand deck = play BasicDealer myHand deck
-play FiftyFiftyPlayer myHand deck = if isBust $ map unwrapVisibility myHand 
+play BasicPlayer myHand _ deck = play BasicDealer myHand [] deck
+play FiftyFiftyPlayer myHand _ deck = if isBust $ map unwrapVisibility myHand 
                                         then stand myHand deck
-                                        else fiftyfifty deck (hit FiftyFiftyPlayer myHand deck) (stand myHand deck)
+                                        else fiftyfifty deck (hit FiftyFiftyPlayer myHand [] deck) (stand myHand deck)
         where points = handPoints (map unwrapVisibility myHand)
               --uses the deck as a source of randomness
               --has a 50% chance of calling f, 50% chance of calling 
@@ -35,12 +35,12 @@ play FiftyFiftyPlayer myHand deck = if isBust $ map unwrapVisibility myHand
                                             in if randFlag == True then f
                                                                    else g
 
-hit :: AI -> Hand -> Deck -> (Hand, Deck)
-hit ai hand deck = flip runState deck $ do
+hit :: AI -> Hand -> [Hand] -> Deck -> (Hand, Deck)
+hit ai hand otherHands deck = flip runState deck $ do
     drawnCard <- drawCard
     deck' <- get
     let newHand = (Shown drawnCard : hand)
-    return . fst $ play ai (Shown drawnCard : hand) deck'
+    return . fst $ play ai (Shown drawnCard : hand) otherHands deck'
 
 stand :: Hand -> Deck -> (Hand, Deck)
 stand = (,)
