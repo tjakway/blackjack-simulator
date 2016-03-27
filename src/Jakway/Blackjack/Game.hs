@@ -38,8 +38,8 @@ evalGame :: AI -> [AI] -> Deck -> Maybe (Match)
 evalGame dealerAI [] deck = Nothing
 evalGame dealerAI allPlayers deck = flip evalState deck $ do
   dealersStartingHand <- startingHand
-  xdeck <- get
-  let accumPlays = foldr (\thisAIProc (currDeck, allHands) -> undefined) (xdeck, [dealersStartingHand]) (map foldFnSt allPlayers)
+--  xdeck <- get
+--  let accumPlays = foldr (\thisAIProc (currDeck, allHands) -> undefined) (xdeck, [dealersStartingHand]) (map foldFnSt allPlayers)
 
   playerHands <- reverse <$> mapM foldFnSt allPlayers
   dealerHand <- play' dealerAI dealersStartingHand
