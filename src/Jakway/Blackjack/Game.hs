@@ -39,11 +39,25 @@ evalGame dealerAI [] deck = Nothing
 evalGame dealerAI allPlayers deck = flip evalState deck $ do
   dealersStartingHand <- startingHand
 
+  xdeck <- get
+  let accumPlays = foldr (\thisAIProc (currDeck, allHands)) (xdeck, [dealersStartingHand]) (map foldFnSt allPlayers)
+
   playerHands <- reverse <$> mapM foldFnSt allPlayers
   dealerHand <- play' dealerAI dealersStartingHand
   let results = reverse . map (whoWon' dealerHand)
   return . Just $ Match dealerHand playerIDs playerHands (results playerHands)
   where playerIDs = [1.. (length allPlayers)]
+
+playWithOtherHands :: a -> (Deck, [Hand]) -> (Deck, [Hand])
+playWithOtherHands [] (deck, otherHands) = (deck, otherHands)
+-- ^if we've gone through every AI we're done
+playWithOtherHands aiProcs (deck, otherHands) = flip evalState deck $ do
+    result <- thisAIProc hands 
+    return $ reverse $ result `mconcat` otherHands
+
+    where thisAIProc = head aiProcs
+    
+
 
 infixl 8 &&&
 (&&&) :: forall t t1 t2. (t2 -> t) -> (t2 -> t1) -> t2 -> (t, t1)
@@ -55,8 +69,8 @@ first f (a, b) = (f a, b)
 both :: (a -> b) -> (a, a) -> (b, b)
 both f (a, b) = (f a, f b)
 
-play' :: AI -> [Hand] -> Hand -> Blackjack Hand
-play' ai otherHands hand = do
+play' :: AI -> -> Hand -> [Hand] -> Blackjack Hand
+play' ai hand otherHands = do
   deck <- get
   let (resultingHand, resDeck) = play ai otherHands hand deck
   put resDeck
