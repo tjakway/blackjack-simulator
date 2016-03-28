@@ -40,9 +40,7 @@ play FiftyFiftyPlayer myHand _ deck = if isBust $ map unwrapVisibility myHand
 hit :: AI -> Hand -> [Hand] -> Deck -> (Hand, Deck)
 hit ai hand otherHands deck = flip runState deck $ do
     drawnCard <- drawCard
-    deck' <- get
-    let newHand = (Shown drawnCard : hand)
-    return . fst $ play ai (Shown drawnCard : hand) otherHands deck'
+    state $ play ai (Shown drawnCard : hand) otherHands
 
 stand :: Hand -> Deck -> (Hand, Deck)
 stand = (,)
