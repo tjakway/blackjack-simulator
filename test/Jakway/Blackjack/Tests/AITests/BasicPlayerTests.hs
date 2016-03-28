@@ -36,12 +36,14 @@ testPlayerBust = let maybeMatch = evalGame BasicDealer [BasicPlayer] deck
                      --dealer has 21
                      expectedDealerHand = [Hidden $ Card Club Four, Shown $ Card Heart Three, Shown $ Card Heart Eight, Shown $ Card Club Six]
                      --player busts
-                     expectedPlayerHand = [Hidden $ Card Heart Six, Shown $ Card Diamond Seven, Shown $ Card Spade Nine]
+                     expectedPlayerHand = [Shown $ Card Heart Six, Shown $ Card Diamond Seven, Hidden $ Card Spade Nine]
                      expectedResult = Lose
                     in case maybeMatch of Nothing -> assertFailure "Failed to run match"
                                           Just (Match dHand pIds pHands pRes) -> assertEqual "Dealer's hand didn't match" (sort expectedDealerHand) (sort dHand) >> 
                                                                 assertEqual "Player's hand didn't match" (sort expectedPlayerHand) (sort . head $ pHands) >> assertEqual "Incorrect result" expectedResult (head pRes)
-        where deck = [Card {cardSuit = Club, cardValue = Four},Card {cardSuit = Heart, cardValue = Three},Card {cardSuit = Heart, cardValue = Six},Card {cardSuit = Diamond, cardValue = Seven},Card {cardSuit = Spade, cardValue = Nine},Card {cardSuit = Heart, cardValue = Eight},Card {cardSuit = Club, cardValue = Six},Card {cardSuit = Spade, cardValue = Ace},Card {cardSuit = Heart, cardValue = Ten},Card {cardSuit = Club, cardValue = Ace}]
+        where deck = [Card {cardSuit = Spade, cardValue = Nine},Card {cardSuit = Heart, cardValue = Eight},Card {cardSuit = Club, cardValue = Six},
+                     Card {cardSuit = Club, cardValue = Four},Card {cardSuit = Heart, cardValue = Three},Card {cardSuit = Heart, cardValue = Six},Card {cardSuit = Diamond, cardValue = Seven},
+                     Card {cardSuit = Spade, cardValue = Ace},Card {cardSuit = Heart, cardValue = Ten},Card {cardSuit = Club, cardValue = Ace}]
 
 testBlackjackTie :: Assertion
 testBlackjackTie =  case maybeMatch of Nothing -> assertFailure "Match failed"
