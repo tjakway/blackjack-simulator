@@ -46,7 +46,7 @@ evalGame dealerAI allPlayers deck = flip evalState deck $ do
 
   xdeck <- get
   let aiProcs =  (map foldFnSt allPlayers)
-      ((playerHands), resDeck) = playWithOtherHands aiProcs ([], xdeck)
+      (playerHands, resDeck) = playWithOtherHands aiProcs ([], xdeck)
   put resDeck
 
   dealersStartingHand <- startingHand
