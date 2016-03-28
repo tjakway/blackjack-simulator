@@ -35,7 +35,6 @@ foldFnSt :: AI -> [Hand] -> Blackjack Hand
 foldFnSt ai otherHands = startingHand >>= (\xHand -> play' ai xHand otherHands)
 
 -- |Plays a game and returns the relevant state
--- |returns a tuple of (dealersHand, playerHands, playerResults)
 -- |dealer score record is redundant and not returned (just the opposite of
 -- every Result)
 evalGame :: AI -> [AI] -> Deck -> Maybe (Match)
@@ -45,16 +44,16 @@ evalGame dealerAI allPlayers deck = flip evalState deck $ do
 --  let accumPlays = foldr (\thisAIProc (currDeck, allHands) -> undefined) (xdeck, [dealersStartingHand]) (map foldFnSt allPlayers)
 
   xdeck <- get
-  let aiProcs =  (map foldFnSt allPlayers)
-      (playerHands, resDeck) = playWithOtherHands aiProcs ([], xdeck)
-  put resDeck
-
-  dealersStartingHand <- startingHand
+  let aiProcs =  (map foldFnSt allPlayers) ++ [foldFnSt dealerAI]
+      (resHands, resDeck) = playWithOtherHands aiProcs ([], xdeck)
+      playerHands = init resHands
+      dealerHand = last resHands
+--  put resDeck
   --playerHands <- reverse <$> mapM foldFnSt allPlayers
   
   --the dealer's play is independent of the players' moves so the dealer's
   --ai doesn't need to go on playWithOtherHands
-  dealerHand <- play' dealerAI dealersStartingHand []
+--  dealerHand <- play' dealerAI dealersStartingHand []
   let results = reverse . map (whoWon' dealerHand)
   return . Just $ Match dealerHand playerIDs playerHands (results playerHands)
   where playerIDs = [1.. (length allPlayers)]
@@ -62,7 +61,8 @@ evalGame dealerAI allPlayers deck = flip evalState deck $ do
 --plays each AI in sequence so that every player can see the face up cards
 --of the previous players
 playWithOtherHands :: [AIProc] -> ([Hand], Deck) -> ([Hand], Deck)
-playWithOtherHands [] a = a
+--reverse the hands so the other is correct
+playWithOtherHands [] (hands, deck) = (reverse hands, deck)
 -- ^if we've gone through every AI we're done
 playWithOtherHands (thisAIProc:otherProcs) (otherHands, currDeck) = 
         let (myEndingHand, endingDeck) = (runState . thisAIProc) otherHands currDeck
