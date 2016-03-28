@@ -51,7 +51,7 @@ testBlackjackTie =  case maybeMatch of Nothing -> assertFailure "Match failed"
                                        Just (Match dHand pIds [pHand] [pRes]) -> assertEqual "Dealers hand didn't match" (sort expectedDealerHand) (sort dHand) >> assertEqual "Player's hand didn't match" (sort expectedPlayerHand) (sort pHand) >> assertEqual "Outcome didn't match" Tie pRes
     where expectedDealerHand = [Hidden $ Card Spade Ace, Shown $ Card Spade King]
           expectedPlayerHand = [Hidden $ Card Club King, Shown $ Card Heart Ace]
-          deck = map unwrapVisibility $ expectedDealerHand ++ expectedPlayerHand
+          deck = map unwrapVisibility $ expectedPlayerHand ++ expectedDealerHand
           maybeMatch = evalGame BasicDealer [BasicPlayer] deck
 
 testCases = [testCase "sanityCheck" sanityCheck, testCase "tie_1v1" tie_1v1, testCase "testPlayerBust" testPlayerBust, testCase "testBlackjackTie" testBlackjackTie]
