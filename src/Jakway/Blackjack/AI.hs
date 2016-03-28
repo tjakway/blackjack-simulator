@@ -10,6 +10,8 @@ import System.Random
 data AI = BasicDealer | BasicPlayer | FiftyFiftyPlayer
         deriving (Show, Read, Eq)
 
+type AIProc = [Hand] -> Blackjack Hand
+
 -- |which AI we are, other players' hands (index 0 is the dealer), our hand
 -- and the deck
 play :: AI -> Hand -> [Hand] -> Deck -> (Hand, Deck)
