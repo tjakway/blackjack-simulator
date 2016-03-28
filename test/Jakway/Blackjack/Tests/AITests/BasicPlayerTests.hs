@@ -34,9 +34,10 @@ tie_1v1 = do
 testPlayerBust :: Assertion
 testPlayerBust = let maybeMatch = evalGame BasicDealer [BasicPlayer] deck
                      --dealer has 21
-                     expectedDealerHand = [Hidden $ Card Club Four, Shown $ Card Heart Three, Shown $ Card Heart Eight, Shown $ Card Club Six]
+                     expectedDealerHand = [Hidden $ Card {cardSuit = Club, cardValue = Four},Shown $ Card {cardSuit = Heart, cardValue = Three},Shown $ Card {cardSuit = Heart, cardValue = Six},Shown $ Card {cardSuit = Diamond, cardValue = Seven}]
+                     
                      --player busts
-                     expectedPlayerHand = [Shown $ Card Heart Six, Shown $ Card Diamond Seven, Hidden $ Card Spade Nine]
+                     expectedPlayerHand = [Hidden $ Card {cardSuit = Spade, cardValue = Nine},Shown $ Card {cardSuit = Heart, cardValue = Eight},Shown $ Card {cardSuit = Club, cardValue = Six}]
                      expectedResult = Lose
                     in case maybeMatch of Nothing -> assertFailure "Failed to run match"
                                           Just (Match dHand pIds pHands pRes) -> assertEqual "Dealer's hand didn't match" (sort expectedDealerHand) (sort dHand) >> 
