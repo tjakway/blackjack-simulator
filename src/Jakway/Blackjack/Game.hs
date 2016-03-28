@@ -71,7 +71,7 @@ both f (a, b) = (f a, f b)
 play' :: AI -> Hand -> [Hand] -> Blackjack Hand
 play' ai hand otherHands = do
   deck <- get
-  let (resultingHand, resDeck) = play ai otherHands hand deck
+  let (resultingHand, resDeck) = play ai hand otherHands deck
   put resDeck
   return resultingHand
 
