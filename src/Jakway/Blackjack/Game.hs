@@ -41,16 +41,26 @@ foldFnSt ai otherHands = startingHand >>= (\xHand -> play' ai xHand otherHands)
 evalGame :: AI -> [AI] -> Deck -> Maybe (Match)
 evalGame dealerAI [] deck = Nothing
 evalGame dealerAI allPlayers deck = flip evalState deck $ do
-  dealersStartingHand <- startingHand
 --  xdeck <- get
 --  let accumPlays = foldr (\thisAIProc (currDeck, allHands) -> undefined) (xdeck, [dealersStartingHand]) (map foldFnSt allPlayers)
 
-  playerHands <- reverse <$> mapM foldFnSt allPlayers
-  dealerHand <- play' dealerAI dealersStartingHand
+  xdeck <- get
+  let aiProcs =  (map foldFnSt allPlayers)
+      ((playerHands), resDeck) = playWithOtherHands aiProcs ([], xdeck)
+  put resDeck
+
+  dealersStartingHand <- startingHand
+  --playerHands <- reverse <$> mapM foldFnSt allPlayers
+  
+  --the dealer's play is independent of the players' moves so the dealer's
+  --ai doesn't need to go on playWithOtherHands
+  dealerHand <- play' dealerAI dealersStartingHand []
   let results = reverse . map (whoWon' dealerHand)
   return . Just $ Match dealerHand playerIDs playerHands (results playerHands)
   where playerIDs = [1.. (length allPlayers)]
 
+--plays each AI in sequence so that every player can see the face up cards
+--of the previous players
 playWithOtherHands :: [AIProc] -> ([Hand], Deck) -> ([Hand], Deck)
 playWithOtherHands [] a = a
 -- ^if we've gone through every AI we're done
