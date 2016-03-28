@@ -47,10 +47,10 @@ evalGame dealerAI allPlayers deck = flip evalState deck $ do
   return . Just $ Match dealerHand playerIDs playerHands (results playerHands)
   where playerIDs = [1.. (length allPlayers)]
 
-playWithOtherHands :: a -> (Deck, [Hand]) -> (Deck, [Hand])
-playWithOtherHands [] (deck, otherHands) = (deck, otherHands)
+playWithOtherHands :: [AIProc] -> ([Hand], Deck) -> ([Hand], Deck)
+playWithOtherHands [] a = a
 -- ^if we've gone through every AI we're done
-playWithOtherHands aiProcs (deck, otherHands) = flip evalState deck $ do
+playWithOtherHands (thisAIProc:otherProcs) (otherHands, deck) = flip evalState deck $ do
     result <- thisAIProc otherHands 
     return $ reverse $ result `mconcat` otherHands
 
