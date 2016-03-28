@@ -33,18 +33,18 @@ tie_1v1 = do
 
 testPlayerBust :: Assertion
 testPlayerBust = let maybeMatch = evalGame BasicDealer [BasicPlayer] deck
-                     --dealer has 21
-                     expectedDealerHand = [Hidden $ Card {cardSuit = Club, cardValue = Four},Shown $ Card {cardSuit = Heart, cardValue = Three},Shown $ Card {cardSuit = Heart, cardValue = Six},Shown $ Card {cardSuit = Diamond, cardValue = Seven}]
-                     
                      --player busts
-                     expectedPlayerHand = [Hidden $ Card {cardSuit = Spade, cardValue = Nine},Shown $ Card {cardSuit = Heart, cardValue = Eight},Shown $ Card {cardSuit = Club, cardValue = Six}]
+                     expectedPlayerHand = [Hidden $ Card {cardSuit = Spade, cardValue = Nine},Shown $ Card {cardSuit = Heart, cardValue = Three}, Shown $ Card {cardSuit = Heart, cardValue = Ten}]
+                     --dealer has 17
+                     expectedDealerHand = [Hidden $ Card {cardSuit = Club, cardValue = Six}, Shown $ Card {cardSuit = Club, cardValue = Four}, Shown $ Card {cardSuit = Heart, cardValue = Six}, Shown $ Card {cardSuit = Spade, cardValue = Ace}]
+                      
                      expectedResult = Lose
                     in case maybeMatch of Nothing -> assertFailure "Failed to run match"
                                           Just (Match dHand pIds pHands pRes) -> assertEqual "Dealer's hand didn't match" (sort expectedDealerHand) (sort dHand) >> 
                                                                 assertEqual "Player's hand didn't match" (sort expectedPlayerHand) (sort . head $ pHands) >> assertEqual "Incorrect result" expectedResult (head pRes)
-        where deck = [Card {cardSuit = Spade, cardValue = Nine},Card {cardSuit = Heart, cardValue = Eight},Card {cardSuit = Club, cardValue = Six},
-                     Card {cardSuit = Club, cardValue = Four},Card {cardSuit = Heart, cardValue = Three},Card {cardSuit = Heart, cardValue = Six},Card {cardSuit = Diamond, cardValue = Seven},
-                     Card {cardSuit = Spade, cardValue = Ace},Card {cardSuit = Heart, cardValue = Ten},Card {cardSuit = Club, cardValue = Ace}]
+        where deck = [Card {cardSuit = Spade, cardValue = Nine},Card {cardSuit = Heart, cardValue = Three}, Card {cardSuit = Heart, cardValue = Ten},
+                     Card {cardSuit = Club, cardValue = Six}, Card {cardSuit = Club, cardValue = Four},Card {cardSuit = Heart, cardValue = Six}, Card {cardSuit = Spade, cardValue = Ace},
+                     Card {cardSuit = Heart, cardValue = Eight},Card {cardSuit = Club, cardValue = Ace}]
 
 testBlackjackTie :: Assertion
 testBlackjackTie =  case maybeMatch of Nothing -> assertFailure "Match failed"
