@@ -28,7 +28,11 @@ startingHand = do
   secondCard <- Shown <$> drawCard
   return [firstCard, secondCard]
 
-foldFnSt ai = startingHand >>= play' ai
+-- |version of play' that removes the need to pass the players starting
+-- hand
+-- TODO: refactor with play'
+foldFnSt :: AI -> [Hand] -> Blackjack Hand
+foldFnSt ai otherHands = startingHand >>= (\xHand -> play' ai xHand otherHands)
 
 -- |Plays a game and returns the relevant state
 -- |returns a tuple of (dealersHand, playerHands, playerResults)
@@ -50,13 +54,9 @@ evalGame dealerAI allPlayers deck = flip evalState deck $ do
 playWithOtherHands :: [AIProc] -> ([Hand], Deck) -> ([Hand], Deck)
 playWithOtherHands [] a = a
 -- ^if we've gone through every AI we're done
-playWithOtherHands (thisAIProc:otherProcs) (otherHands, deck) = flip evalState deck $ do
-    result <- thisAIProc otherHands 
-    return $ reverse $ result `mconcat` otherHands
-
-    where thisAIProc = head aiProcs
-    
-
+playWithOtherHands (thisAIProc:otherProcs) (otherHands, currDeck) = 
+        let (myEndingHand, endingDeck) = (runState . thisAIProc) otherHands currDeck
+            in playWithOtherHands otherProcs (endingDeck, myEndingHand : otherHands)
 
 infixl 8 &&&
 (&&&) :: forall t t1 t2. (t2 -> t) -> (t2 -> t1) -> t2 -> (t, t1)
