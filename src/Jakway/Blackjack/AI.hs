@@ -19,9 +19,8 @@ play BasicDealer myHand _ deck = flip runState deck $ do
     let points = handPoints (map unwrapVisibility myHand)
     if points < 17
         then do
-        drawnCard <- drawCard
-        deck' <- get
-        return . fst $ play BasicDealer (Shown drawnCard : myHand) [] deck'
+            drawnCard <- drawCard
+            state $ play BasicDealer (Shown drawnCard : myHand) []
         else 
         return myHand
 
