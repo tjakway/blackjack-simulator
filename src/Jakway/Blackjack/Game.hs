@@ -56,7 +56,7 @@ playWithOtherHands [] a = a
 -- ^if we've gone through every AI we're done
 playWithOtherHands (thisAIProc:otherProcs) (otherHands, currDeck) = 
         let (myEndingHand, endingDeck) = (runState . thisAIProc) otherHands currDeck
-            in playWithOtherHands otherProcs (endingDeck, myEndingHand : otherHands)
+            in playWithOtherHands otherProcs (myEndingHand : otherHands, endingDeck)
 
 infixl 8 &&&
 (&&&) :: forall t t1 t2. (t2 -> t) -> (t2 -> t1) -> t2 -> (t, t1)
