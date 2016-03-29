@@ -88,6 +88,7 @@ options =
     [ Option ['v']     ["verbose"] (NoArg Verbose)       "Be verbose."
     , Option []        ["with-dealer"]  (ReqArg dealerOpt "DealerAI")  "Which dealer AI to use."
     , Option []        ["num-BasicPlayer"]  (ReqArg nbpOpt  "NUM")  "Number of BasicPlayer AI's."
+    , Option []        ["num-FiftyFiftyPlayer"]  (ReqArg nbpOpt  "NUM")  "Number of FiftyFiftyPlayer AI's."
     , Option ['g']     ["num-games"]  (ReqArg ngOpt "NUM") "Number of games to run."
     , Option ['s']     ["tablename-suffix"] (ReqArg TableNameSuffix "SUFFIX") "Table name suffix."
     , Option []        ["postgres-string"] (ReqArg PostgresqlConnectString "CONNSTR")  "Postgresql connection string (used instead of config file if both are present)"
