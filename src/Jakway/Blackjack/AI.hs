@@ -44,6 +44,8 @@ hit ai hand otherHands deck = flip runState deck $ do
 stand :: Hand -> Deck -> (Hand, Deck)
 stand = (,)
 
+-- |TODO: write a test comparing the randomness of deckToRNG to the
+-- built-in StdGen
 deckToRNG :: Deck -> StdGen
 --draw a card from the deck at an arbitrary position and use it to seed a RNG
 --the randomness comes from the fact that the deck is shuffled
