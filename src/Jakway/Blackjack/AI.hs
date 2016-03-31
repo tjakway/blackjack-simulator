@@ -7,7 +7,10 @@ import Jakway.Blackjack.Points
 import Control.Monad.State
 import System.Random
 
-data AI = BasicDealer | BasicPlayer | FiftyFiftyPlayer
+data AI = BasicDealer 
+          | FiftyFiftyDealer
+          | BasicPlayer 
+          | FiftyFiftyPlayer
         deriving (Show, Read, Eq)
 
 type AIProc = [Hand] -> Blackjack Hand
@@ -35,6 +38,8 @@ play FiftyFiftyPlayer myHand _ deck = if isBust $ map unwrapVisibility myHand
               fiftyfifty deck f g = let randFlag = fst . random . deckToRNG $ deck
                                             in if randFlag == True then f
                                                                    else g
+
+play FiftyFiftyDealer h ph d = play FiftyFiftyPlayer h ph d
 
 hit :: AI -> Hand -> [Hand] -> Deck -> (Hand, Deck)
 hit ai hand otherHands deck = flip runState deck $ do
