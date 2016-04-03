@@ -8,6 +8,7 @@ import Jakway.Blackjack.Visibility
 import Control.Monad.State
 import System.Random
 import System.Random.Shuffle
+import Control.Applicative
 
 --disambiguate between a player's hand and the deck--both are lists of cards
 type Deck = [Card]

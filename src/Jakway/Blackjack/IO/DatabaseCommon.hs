@@ -28,6 +28,7 @@ import qualified Jakway.Blackjack.IO.RDBMS.Postgres as Postgres
 import qualified Jakway.Blackjack.IO.RDBMS.SQLite as SQLite
 import Control.Monad (join, liftM)
 import Data.List (delete)
+import Control.Applicative
 
 #ifdef BUILD_POSTGRESQL
 createTables :: IConnection a => a -> TableNames -> IO ()

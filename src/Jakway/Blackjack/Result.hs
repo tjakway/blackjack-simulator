@@ -1,5 +1,7 @@
 module Jakway.Blackjack.Result where 
 
+import Data.Monoid
+
 data Result = Lose | Tie | Win deriving (Eq, Ord, Bounded, Show, Enum)
 
 

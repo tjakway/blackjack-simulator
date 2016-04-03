@@ -8,7 +8,7 @@ import Jakway.Blackjack.AI
 import Jakway.Blackjack.Util
 import System.Console.GetOpt
 import Data.Maybe (fromJust, catMaybes)
-import System.Exit (die)
+import System.Exit
 import Jakway.Blackjack.IO.TableNames
 import qualified Jakway.Blackjack.Interface.Config as Conf
 

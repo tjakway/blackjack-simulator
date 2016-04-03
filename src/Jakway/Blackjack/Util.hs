@@ -2,6 +2,8 @@
 module Jakway.Blackjack.Util where
 
 import Data.List (elemIndex)
+import System.IO
+import System.Exit
 
 innerMapTuple4 :: forall t t1. (t -> t1) -> (t, t, t, t) -> (t1, t1, t1, t1)
 innerMapTuple4 f (a,b,c,d) = (f a, f b, f c, f d)
@@ -33,3 +35,8 @@ ssub_wrep_char rep_char orig (x:xs) = case xIndex of Nothing -> error "Could not
 --use the default replacement character, ?
 ssub :: String -> [String] -> String
 ssub = ssub_wrep_char default_replacement_character
+
+-- |simple implementation of die
+-- only exists in base >= 4.8
+die :: String -> IO a
+die errMsg = hPutStrLn stderr errMsg >> exitFailure

@@ -16,7 +16,7 @@ import qualified Jakway.Blackjack.IO.DatabaseCommon as DB
 import qualified Jakway.Blackjack.IO.TableNames as DB
 import Jakway.Blackjack.Cards
 import Jakway.Blackjack.CardOps
-import Data.Maybe (fromJust)
+import Data.Maybe
 import Jakway.Blackjack.Visibility
 import Data.List (sort, delete)
 import Test.Framework

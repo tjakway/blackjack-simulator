@@ -3,6 +3,7 @@ module Jakway.Blackjack.Points where
 import Jakway.Blackjack.Cards
 import Jakway.Blackjack.CardOps
 import Data.Monoid
+import Data.Foldable (foldMap)
 
 cardPoints :: CardValue -> Int
 cardPoints cardVal 

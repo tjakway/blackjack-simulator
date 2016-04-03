@@ -13,6 +13,7 @@ import Data.Ord
 import Data.Monoid
 import Data.Maybe (fromJust)
 import System.Random
+import Control.Applicative
 
 blackjack :: [Card] -> Bool
 blackjack hand = 2 == length hand && hasAce && hasFaceCard
