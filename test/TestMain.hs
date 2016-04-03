@@ -8,6 +8,7 @@ import qualified Jakway.Blackjack.Tests.IntegrationTests.MainTests as MainTests
 import Test.HUnit
 import Test.Framework
 import Test.Framework.Providers.HUnit
+import Data.Monoid
 
 main :: IO ()
 main = defaultMainWithOpts 
