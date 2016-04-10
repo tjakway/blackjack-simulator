@@ -3,7 +3,8 @@ module Jakway.Blackjack.Util where
 
 import Data.List (elemIndex)
 import System.IO
-import System.Exit
+import System.Exit (exitFailure)
+import qualified Paths_blackjack_simulator as Paths
 
 innerMapTuple4 :: forall t t1. (t -> t1) -> (t, t, t, t) -> (t1, t1, t1, t1)
 innerMapTuple4 f (a,b,c,d) = (f a, f b, f c, f d)
@@ -40,3 +41,10 @@ ssub = ssub_wrep_char default_replacement_character
 -- only exists in base >= 4.8
 die :: String -> IO a
 die errMsg = hPutStrLn stderr errMsg >> exitFailure
+
+-- |resource name utils
+initialize_sql_resource :: IO FilePath
+initialize_sql_resource = Paths.getDataFileName "res/initialize.sql"
+
+functions_sql_resource :: IO FilePath
+functions_sql_resource = Paths.getDataFileName "res/functions.sql"
