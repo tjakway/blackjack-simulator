@@ -8,6 +8,7 @@ category:            Other
 build-type:          Simple
 extra-source-files:  ChangeLog.md
 cabal-version:       >=1.10
+data-files:          res/*
 
 Flag PostgreSQL
   description: Build with PostgreSQL instead of SQLite
@@ -59,7 +60,6 @@ Executable blackjack-simulator
 
   build-depends:       base, blackjack-simulator
 
-  data-files:          res/*
 
   if flag(test)
     CPP-Options: -DTESTING
