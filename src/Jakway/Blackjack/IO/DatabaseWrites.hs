@@ -5,21 +5,13 @@ import Jakway.Blackjack.CardOps
 import Jakway.Blackjack.Match
 import Jakway.Blackjack.AI
 import Jakway.Blackjack.IO.DatabaseCommon
+import qualified Jakway.Blackjack.IO.RDBMS.Postgres as PSQL
 import Jakway.Blackjack.IO.TableNames
 import Database.HDBC
 import Data.Maybe (fromJust)
 
---PostgreSQL doesn't support PRAGMA syntax and will throw an error
-enableForeignKeys :: IConnection a => a -> IO Integer
-#ifdef BUILD_POSTGRESQL
---don't do anything, postgres enables foreign keys by default
-enableForeignKeys _ = return 0 
-#else
-enableForeignKeys conn = run conn "PRAGMA foreign_keys = ON;" []
-#endif
-
-initializeDatabase :: (IConnection a) => a -> [TableNames]-> IO ()
-initializeDatabase conn allTableNames = enableForeignKeys conn >> mapM_ (createTables conn) allTableNames >> commit conn
+initializeDatabase :: (IConnection a) => a -> IO ()
+initializeDatabase = withTransaction >>= PSQL.initialize
 
 --there's only one cards table
 insertCardStatement :: (IConnection a) => a -> IO (Statement)
