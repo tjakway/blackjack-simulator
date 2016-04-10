@@ -10,25 +10,25 @@ CREATE TABLE IF NOT EXISTS runs (
 
 CREATE TABLE IF NOT EXISTS players (
                                 run_id bigint NOT NULL REFERENCES runs,
-                                player_no int NOT NULL, -- 0 can be assumed as always the dealer
+                                player_id int NOT NULL, -- 0 can be assumed as always the dealer
                                 ai_type text NOT NULL,
-                                PRIMARY KEY (run_id, player_no));
+                                PRIMARY KEY (run_id, player_id));
 
 CREATE TABLE IF NOT EXISTS matches (
                                 run_id bigint NOT NULL REFERENCES runs,
-                                match_no int NOT NULL,
-                                PRIMARY KEY (run_id, match_no));
+                                match_id int NOT NULL,
+                                PRIMARY KEY (run_id, match_id));
 
 CREATE TABLE IF NOT EXISTS hands (
                                 hand_id bigserial NOT NULL PRIMARY KEY,
                                 run_id bigint NOT NULL REFERENCES runs,
-                                match_no int NOT NULL,
+                                match_id int NOT NULL,
                                 cards card ARRAY NOT NULL,
-                                player_no int NOT NULL,
+                                player_id int NOT NULL,
                                 victor int NOT NULL, --the player ID (in the current run) of the victor.  
-                                                     --Will be either player_no or 0
-                                UNIQUE (run_id, match_no, cards),
-                                FOREIGN KEY (run_id, match_no) REFERENCES matches,
-                                FOREIGN KEY (run_id, player_no) REFERENCES players,
+                                                     --Will be either player_id or 0
+                                UNIQUE (run_id, match_id, cards),
+                                FOREIGN KEY (run_id, match_id) REFERENCES matches,
+                                FOREIGN KEY (run_id, player_id) REFERENCES players,
                                 FOREIGN KEY (run_id, victor) REFERENCES players);
 

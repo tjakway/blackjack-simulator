@@ -1,29 +1,29 @@
 --create functions
 
 CREATE OR REPLACE FUNCTION players(int) RETURNS SETOF players AS $$
-  SELECT * FROM players WHERE run_id = $1 ORDER BY player_no;
+  SELECT * FROM players WHERE run_id = $1 ORDER BY player_id;
   $$ LANGUAGE SQL;
 
 CREATE OR REPLACE FUNCTION matches(int) RETURNS SETOF matches AS $$
-  SELECT * FROM matches WHERE run_id = $1 ORDER BY match_no;
+  SELECT * FROM matches WHERE run_id = $1 ORDER BY match_id;
   $$ LANGUAGE SQL;
 
 CREATE OR REPLACE FUNCTION hands(int) RETURNS SETOF hands AS $$
-  SELECT * FROM hands WHERE run_id = $1 ORDER BY match_no, cards;
+  SELECT * FROM hands WHERE run_id = $1 ORDER BY match_id, cards;
   $$ LANGUAGE SQL;
 
 CREATE OR REPLACE FUNCTION hands(int, int) RETURNS SETOF hands AS $$
-  SELECT * FROM hands WHERE run_id = $1 AND match_no = $2 ORDER BY cards;
+  SELECT * FROM hands WHERE run_id = $1 AND match_id = $2 ORDER BY cards;
   $$ LANGUAGE SQL;
 
-CREATE OR REPLACE FUNCTION next_player_no (int) RETURNS int AS $$
+CREATE OR REPLACE FUNCTION next_player_id (int) RETURNS int AS $$
   SELECT CASE WHEN EXISTS (SELECT 1 FROM runs WHERE run_id = $1) THEN
-           COALESCE((SELECT MAX(player_no) FROM players WHERE run_id = $1), 0) + 1 END
+           COALESCE((SELECT MAX(player_id) FROM players WHERE run_id = $1), 0) + 1 END
            $$ LANGUAGE SQL;
 
-CREATE OR REPLACE FUNCTION next_match_no (int) RETURNS int AS $$
+CREATE OR REPLACE FUNCTION next_match_id (int) RETURNS int AS $$
   SELECT CASE WHEN EXISTS (SELECT 1 FROM runs WHERE run_id = $1) THEN
-           COALESCE((SELECT MAX(match_no) FROM matches WHERE run_id = $1), 0) + 1 END
+           COALESCE((SELECT MAX(match_id) FROM matches WHERE run_id = $1), 0) + 1 END
            $$ LANGUAGE SQL;
 
 --TODO: rewrite these functions:
