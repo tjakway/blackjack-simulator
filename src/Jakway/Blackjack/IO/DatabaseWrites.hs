@@ -101,15 +101,14 @@ insertMatchStatement :: (IConnection a) => a -> IO (Statement)
 insertMatchStatement conn tableNames = prepare conn ("INSERT INTO " ++ matchesTable ++ " (whichGame, dealersHand, whichPlayer, thisPlayersHand, playerResult) VALUES(?, ?, ?, ?, ?)")
                 where matchesTable = getMatchTableName tableNames
 
-insertRowStatement :: (IConnection a) => a -> IO (Statement)
-insertRowStatement conn = prepare conn "INSERT INTO runs DEFAULT VALUES RETURNING run_id;"
+insertRunStatement :: (IConnection a) => a -> IO (Statement)
+insertRunStatement conn = prepare conn "INSERT INTO runs DEFAULT VALUES RETURNING run_id;"
 
-insertNewRow :: (IConnection a) => a -> Statement -> IO (Integer)
-insertNewRow insRowStatement = do
-        rows_modified <- execute insRowStatement []
+insertNewRun :: (IConnection a) => a -> Statement -> IO (Integer)
+insertNewRun insRunStatement = do
+        rows_modified <- execute insRunStatement []
         return $ assert (rows_modified == 1) rows_modified
-        rows <- fetchAllRows' insRowStatement
-        return . fromSql . head . join 
+        fetchAllRows' insRunStatement >>= return . fromSql . head . join 
 
 insertMatch :: (IConnection a) => Statement -> Statement -> a -> Integer -> Match -> IO (Integer)
 insertMatch insHandStatement insMatchStatement runId conn (Match dHand pIds pHands pResults) = do
@@ -130,11 +129,12 @@ prepRun insRunStatement conn dealerAI playerAIs = do
             insertPlayers conn dealerAI playerAIs
             return thisRunId
 
-insertGame :: (IConnection a) => Statement -> Statement -> Statement -> a -> Integer -> AI -> [AI] -> Match -> IO (Integer)
-insertGame insRunStatement insPlayerStatement insHandStatement insMatchStatement runId p_conn dealerAI playerAIs (Match dHand pIds pHands pResults) = 
+
+
+insertGame :: (IConnection a) => Statement -> Statement -> Statement -> a -> AI -> [AI] -> [Match] -> IO (Integer)
+insertGame insRunStatement insPlayerStatement insHandStatement insMatchStatement p_conn dealerAI playerAIs (Match dHand pIds pHands pResults) = 
         withTransaction $ \conn -> do
             thisRunId <- prepRun
 
 
-    
 
