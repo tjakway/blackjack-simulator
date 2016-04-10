@@ -27,6 +27,8 @@ Library
   
   exposed-modules: Jakway.Blackjack.Match, Jakway.Blackjack.Util, Jakway.Blackjack.Interface.Options, Jakway.Blackjack.ProgMain, Jakway.Blackjack.Game, Jakway.Blackjack.Visibility, Jakway.Blackjack.AI, Jakway.Blackjack.CardOps, Jakway.Blackjack.IO.DatabaseCommon, Jakway.Blackjack.IO.TableNames, Jakway.Blackjack.IO.Action, Jakway.Blackjack.IO.DatabaseReads, Jakway.Blackjack.IO.RDBMS.SQLite, Jakway.Blackjack.IO.RDBMS.Postgres, Jakway.Blackjack.IO.DatabaseWrites, Jakway.Blackjack.IO.DatabaseConnection, Jakway.Blackjack.Cards, Jakway.Blackjack.Result, Jakway.Blackjack.Points, Jakway.Blackjack.Invariants.Checks, Jakway.Blackjack.Interface.Config
 
+  other-modules: Paths_blackjack_simulator
+
   if flag(test)
     CPP-Options: -DTESTING
 
@@ -60,6 +62,7 @@ Executable blackjack-simulator
 
   build-depends:       base, blackjack-simulator
 
+  other-modules: Paths_blackjack_simulator
 
   if flag(test)
     CPP-Options: -DTESTING
