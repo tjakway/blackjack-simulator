@@ -25,7 +25,8 @@ CREATE TABLE IF NOT EXISTS hands (
                                 match_no int NOT NULL,
                                 cards card ARRAY NOT NULL,
                                 player_no int NOT NULL,
-                                victor int NOT NULL, --the player ID (in the current run) of the victor.  Will be either player_no or 0
+                                victor int NOT NULL, --the player ID (in the current run) of the victor.  
+                                                     --Will be either player_no or 0
                                 UNIQUE (run_id, match_no, cards),
                                 FOREIGN KEY (run_id, match_no) REFERENCES matches,
                                 FOREIGN KEY (run_id, player_no) REFERENCES players,
