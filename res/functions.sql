@@ -30,7 +30,7 @@ CREATE OR REPLACE FUNCTION next_match_no (int) RETURNS int AS $$
 CREATE OR REPLACE FUNCTION card_to_int (card) RETURNS int AS $$
   SELECT ((SELECT enumsortorder::int-1 FROM pg_enum WHERE enumtypid = 'card_suit'::regtype AND enumlabel = ($1).suit::name) * 13 +
             (SELECT enumsortorder::int-1 FROM pg_enum WHERE enumtypid = 'card_value'::regtype AND enumlabel = ($1).value::name) + 1) *
-                     CASE WHEN ($1).face_up THEN 2 ELSE 1 END
+                     CASE WHEN ($1).visible THEN 2 ELSE 1 END
                      $$ LANGUAGE SQL; -- SELECT card_to_int(('3', 'Spades', false))
 
 CREATE OR REPLACE FUNCTION int_to_card (int) RETURNS card AS $$
