@@ -1,5 +1,18 @@
 {-# LANGUAGE ExistentialQuantification #-}
-module Jakway.Blackjack.Util where
+module Jakway.Blackjack.Util
+(
+innerMapTuple4,
+innerMapTuple3,
+flipInner2,
+replaceElem,
+default_replacement_character,
+ssub_wrep_char,
+ssub,
+die,
+initialize_sql_query,
+functions_sql_query
+)
+where
 
 import Data.List (elemIndex)
 import System.IO
@@ -42,7 +55,14 @@ ssub = ssub_wrep_char default_replacement_character
 die :: String -> IO a
 die errMsg = hPutStrLn stderr errMsg >> exitFailure
 
--- |resource name utils
+-- |resource access utils
+initialize_sql_query :: IO String
+initialize_sql_query = initialize_sql_resource >>= readFile 
+
+functions_sql_query :: IO String
+functions_sql_query = functions_sql_resource >>= readFile
+
+-- |internal resource functions (not exported)
 initialize_sql_resource :: IO FilePath
 initialize_sql_resource = Paths.getDataFileName "res/initialize.sql"
 
