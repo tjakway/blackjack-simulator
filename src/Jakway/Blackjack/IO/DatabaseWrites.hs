@@ -111,10 +111,8 @@ insertNewRow insRowStatement = do
         rows <- fetchAllRows' insRowStatement
         return . fromSql . head . join 
 
-insertMatch :: (IConnection a) => Statement -> Statement -> Statement -> a -> Match -> IO (Integer)
-insertMatch insRowStatement insHandStatement insMatchStatement conn (Match dHand pIds pHands pResults) = do
-    thisRowId <- insertNewRow insRowStatement
-
+insertMatch :: (IConnection a) => Statement -> Statement -> a -> Integer -> Match -> IO (Integer)
+insertMatch insHandStatement insMatchStatement runId conn (Match dHand pIds pHands pResults) = do
     --FIXME: dealer's ID is assumed to be 0!  Change if rewriting this
     dealersHandId <- insertHand insHandStatement conn tableNames 0 dHand
     commit conn
@@ -125,3 +123,18 @@ insertMatch insRowStatement insHandStatement insMatchStatement conn (Match dHand
     executeMany insMatchStatement values
     commit conn
     return gameId
+
+
+prepRun insRunStatement conn dealerAI playerAIs = do
+            thisRunId <- insertNewRow insRunStatement
+            insertPlayers conn dealerAI playerAIs
+            return thisRunId
+
+insertGame :: (IConnection a) => Statement -> Statement -> Statement -> a -> Integer -> AI -> [AI] -> Match -> IO (Integer)
+insertGame insRunStatement insPlayerStatement insHandStatement insMatchStatement runId p_conn dealerAI playerAIs (Match dHand pIds pHands pResults) = 
+        withTransaction $ \conn -> do
+            thisRunId <- prepRun
+
+
+    
+
