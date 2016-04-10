@@ -9,8 +9,8 @@ default_replacement_character,
 ssub_wrep_char,
 ssub,
 die,
-initialize_sql_query,
-functions_sql_query
+initializeSqlQuery,
+functionsSqlQuery
 )
 where
 
@@ -56,15 +56,15 @@ die :: String -> IO a
 die errMsg = hPutStrLn stderr errMsg >> exitFailure
 
 -- |resource access utils
-initialize_sql_query :: IO String
-initialize_sql_query = initialize_sql_resource >>= readFile 
+initializeSqlQuery :: IO String
+initializeSqlQuery = initializeSqlResource >>= readFile 
 
-functions_sql_query :: IO String
-functions_sql_query = functions_sql_resource >>= readFile
+functionsSqlQuery :: IO String
+functionsSqlQuery = functionsSqlResource >>= readFile
 
 -- |internal resource functions (not exported)
-initialize_sql_resource :: IO FilePath
-initialize_sql_resource = Paths.getDataFileName "res/initialize.sql"
+initializeSqlResource :: IO FilePath
+initializeSqlResource = Paths.getDataFileName "res/initialize.sql"
 
-functions_sql_resource :: IO FilePath
-functions_sql_resource = Paths.getDataFileName "res/functions.sql"
+functionsSqlResource :: IO FilePath
+functionsSqlResource = Paths.getDataFileName "res/functions.sql"
