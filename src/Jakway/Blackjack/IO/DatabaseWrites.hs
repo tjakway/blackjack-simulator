@@ -13,25 +13,10 @@ import Data.Maybe (fromJust)
 initializeDatabase :: (IConnection a) => a -> IO ()
 initializeDatabase = withTransaction >>= PSQL.initialize
 
---there's only one cards table
-insertCardStatement :: (IConnection a) => a -> IO (Statement)
---ignore the id field
-insertCardStatement conn = prepare conn ("INSERT INTO cards(id, cardValue, suit, visible) VALUES(?, ?, ?, ?)")
-
-
-insertAllCards :: (IConnection a) => a -> IO ()
-insertAllCards conn = do 
-                         -- ^ newDeck is a (sorted) array of all possible card values
-                         insertStatement <- insertCardStatement conn
-                         executeMany insertStatement cardsSqlValues
-                         commit conn
-
 insertPlayerStatement :: (IConnection a) => a -> IO (Statement)
-insertPlayerStatement conn tableNames = prepare conn ("INSERT INTO " ++ playersTable ++ "(whichPlayer, aiType) VALUES(?, ?)")
+insertPlayerStatement conn tableNames = prepare conn ("INSERT INTO " ++ playersTable ++ "(run_id, whichPlayer, aiType) VALUES(?, ?, ?)")
                         where playersTable = getPlayerTableName tableNames
 
--- |note: include the dealer in the number of players you're inserting
--- if you pass 1 you won't have anyone to play against
 insertPlayers :: (IConnection a) => a -> Integer -> AI -> [AI] -> IO ()
 insertPlayers conn runId dealerAI playerAIs = insertPlayerStatement conn tableNames >>= (\insertStatement -> executeMany insertStatement insValues)
                         where numPlayers = length playerAIs
