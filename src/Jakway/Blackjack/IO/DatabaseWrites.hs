@@ -26,14 +26,14 @@ insertAllCards conn = do
                          executeMany insertStatement cardsSqlValues
                          commit conn
 
-insertPlayerStatement :: (IConnection a) => a -> TableNames -> IO (Statement)
+insertPlayerStatement :: (IConnection a) => a -> IO (Statement)
 insertPlayerStatement conn tableNames = prepare conn ("INSERT INTO " ++ playersTable ++ "(whichPlayer, aiType) VALUES(?, ?)")
                         where playersTable = getPlayerTableName tableNames
 
 -- |note: include the dealer in the number of players you're inserting
 -- if you pass 1 you won't have anyone to play against
-insertPlayers :: (IConnection a) => a -> TableNames -> AI -> [AI] -> IO ()
-insertPlayers conn tableNames dealerAI playerAIs = insertPlayerStatement conn tableNames >>= (\insertStatement -> executeMany insertStatement insValues)
+insertPlayers :: (IConnection a) => a -> Integer -> AI -> [AI] -> IO ()
+insertPlayers conn runId dealerAI playerAIs = insertPlayerStatement conn tableNames >>= (\insertStatement -> executeMany insertStatement insValues)
                         where numPlayers = length playerAIs
                               dealerAIVal = toSql . show $ dealerAI
                               playerStrVals = map (toSql . show) playerAIs
@@ -42,15 +42,17 @@ insertPlayers conn tableNames dealerAI playerAIs = insertPlayerStatement conn ta
                               insValues = ([iToSql 0, dealerAIVal] :  playerVals) :: [[SqlValue]]
                               -- ^ player number 0 is the dealer!
 
-insertHandStatement :: (IConnection a) => a -> TableNames -> IO (Statement)
+-- TODO: rewrite to use the SQL function next_hand_id
+insertHandStatement :: (IConnection a) => a -> IO (Statement)
 insertHandStatement conn tableNames = prepare conn ("INSERT INTO " ++ handTable ++ "(whichPlayer, whichHand, thisCard) VALUES(?, ?, ?)")
                         where handTable = getHandTableName tableNames
-
+-- XXX: replace with SQL function next_hand_id and delete
+-- *************************************************
 -- |need this function because insertHand returns the whichHand value of the inserted
 -- hand
 -- there are many fewer whichHand values than id values because one hand is
 -- spread over many columns (one per card)
-nextHandId :: (IConnection a) => a -> TableNames -> IO (Integer)
+nextHandId :: (IConnection a) => a -> IO (Integer)
 nextHandId conn tableNames = do
                     resArray <- quickQuery' conn ("SELECT MAX(whichHand) FROM " ++ handTable) []
                     let res = head . head $ resArray
@@ -61,13 +63,13 @@ nextHandId conn tableNames = do
 handToSqlValues :: Int -> Integer -> Hand -> [[SqlValue]]
 handToSqlValues whichPlayer handId hand = map (\thisCard -> [toSql whichPlayer, toSql handId, toSql $ fromJust $ cardToForeignKeyId thisCard]) hand
 
-insertHand :: (IConnection a) => Statement -> a -> TableNames -> Int -> Hand -> IO (Integer)
+insertHand :: (IConnection a) => Statement -> a -> Integer -> Integer -> Int -> Hand -> IO (Integer)
 -- use the connection to figure out what whichHand ID to assign this hand
 -- (this is NOT the database id column!)
 -- before running this, need to build the cards table, then run
 -- insertHandStatement once for every card in this hand, passing the rowId
 -- of the corresponding card for thisCard 
-insertHand insertStatement conn tableNames whichPlayer hand = do
+insertHand insertStatement conn runId matchId whichPlayer hand = do
         handId <- nextHandId conn tableNames
         -- |if cardtoForeignKeyId returns Nothing it's an unrecoverable
         -- error anyways
@@ -95,22 +97,23 @@ insertHands insertStatement conn tableNames (whichPlayers, hands) = do
        mapM_ (executeMany insertStatement) values
        return handIds
 
--- |like nextHandId but for whichGame
-nextGameId :: (IConnection a) => a -> TableNames -> IO (Integer)
-nextGameId conn tableNames = do
-                    resArray <- quickQuery' conn ("SELECT MAX(whichGame) FROM " ++ matchesTable) []
-                    let res = ((resArray !! 0) !! 0)
-                    if res == SqlNull then return 0
-                                      else return . (+1) . fromSql $ res
-                where matchesTable = getMatchTableName tableNames
-
-insertMatchStatement :: (IConnection a) => a -> TableNames -> IO (Statement)
+insertMatchStatement :: (IConnection a) => a -> IO (Statement)
 insertMatchStatement conn tableNames = prepare conn ("INSERT INTO " ++ matchesTable ++ " (whichGame, dealersHand, whichPlayer, thisPlayersHand, playerResult) VALUES(?, ?, ?, ?, ?)")
                 where matchesTable = getMatchTableName tableNames
 
-insertMatch :: (IConnection a) => Statement -> Statement -> a -> TableNames -> Match -> IO (Integer)
-insertMatch insHandStatement insMatchStatement conn tableNames (Match dHand pIds pHands pResults) = do
-    gameId <- nextGameId conn tableNames
+insertRowStatement :: (IConnection a) => a -> IO (Statement)
+insertRowStatement conn = prepare conn "INSERT INTO runs DEFAULT VALUES RETURNING run_id;"
+
+insertNewRow :: (IConnection a) => a -> Statement -> IO (Integer)
+insertNewRow insRowStatement = do
+        rows_modified <- execute insRowStatement []
+        return $ assert (rows_modified == 1) rows_modified
+        rows <- fetchAllRows' insRowStatement
+        return . fromSql . head . join 
+
+insertMatch :: (IConnection a) => Statement -> Statement -> Statement -> a -> Match -> IO (Integer)
+insertMatch insRowStatement insHandStatement insMatchStatement conn (Match dHand pIds pHands pResults) = do
+    thisRowId <- insertNewRow insRowStatement
 
     --FIXME: dealer's ID is assumed to be 0!  Change if rewriting this
     dealersHandId <- insertHand insHandStatement conn tableNames 0 dHand
