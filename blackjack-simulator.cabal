@@ -59,6 +59,8 @@ Executable blackjack-simulator
 
   build-depends:       base, blackjack-simulator
 
+  data-files:          res/*
+
   if flag(test)
     CPP-Options: -DTESTING
 
