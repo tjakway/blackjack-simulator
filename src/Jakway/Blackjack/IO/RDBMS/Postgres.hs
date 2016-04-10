@@ -12,10 +12,10 @@ import Jakway.Blackjack.IO.TableNames
 import Database.HDBC
 
 createTables :: IConnection a => a -> IO ()
-createTables conn = initializeSqlQuery >>= flipInner2 run conn []
+createTables conn = initializeSqlQuery >>= flipInner2 run conn [] >> return ()
 
 loadFunctions :: IConnection a => a -> IO ()
-loadFunctions conn = functionsSqlQuery >>= flipInner2 run conn []
+loadFunctions conn = functionsSqlQuery >>= flipInner2 run conn [] >> return ()
 
 -- |set up the DB
 initialize :: IConnection a => a -> IO ()
