@@ -8,7 +8,7 @@ category:            Other
 build-type:          Simple
 extra-source-files:  ChangeLog.md
 cabal-version:       >=1.10
-data-files:          res/*
+data-files:          res/*.sql
 
 Flag PostgreSQL
   description: Build with PostgreSQL instead of SQLite
