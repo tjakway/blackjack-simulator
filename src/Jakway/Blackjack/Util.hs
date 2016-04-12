@@ -3,7 +3,7 @@ module Jakway.Blackjack.Util where
 
 import Data.List (elemIndex)
 import System.IO
-import System.Exit
+import System.Exit hiding (die)
 
 innerMapTuple4 :: forall t t1. (t -> t1) -> (t, t, t, t) -> (t1, t1, t1, t1)
 innerMapTuple4 f (a,b,c,d) = (f a, f b, f c, f d)
