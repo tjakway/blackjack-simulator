@@ -48,10 +48,24 @@ evalGame dealerAI allPlayers deck = Just $ Match dealerHand playerIDs playerHand
               results = reverse . map (whoWon' dealerHand)
               playerIDs = [1.. (length allPlayers)]
   
+-- |curry play' with the AI constructors and pass the resulting list
+-- i.e. (map play' ais)
+-- deals each players starting hand in the correct order and returns the
+-- list of AIProc (which is just ([Hand] -> Blackjack Hand)
+dealStartingHands :: Deck -> [(Hand -> [Hand] -> Blackjack Hand)] -> ([AIProc], Deck)
+dealStartingHands deck ais = (correctlyOrderedProcs, deck)
+        where (reversedProcs, drawnDeck) = foldr (\thisAIFunc (procs, thisDeck) -> 
+                                                    let (thisStartingHand, resDeck) = runState startingHand thisDeck
+                                                        thisProc = thisAIFunc thisStartingHand
+                                                    in (thisProc : procs, resDeck)) ([], deck) ais
+              correctlyOrderedProcs = reverse reversedProcs
+
+
+
 --plays each AI in sequence so that every player can see the face up cards
 --of the previous players
 playWithOtherHands :: [AIProc] -> ([Hand], Deck) -> ([Hand], Deck)
---reverse the hands so the other is correct
+--reverse the hands so the order is correct
 playWithOtherHands [] (hands, deck) = (reverse hands, deck)
 -- ^if we've gone through every AI we're done
 playWithOtherHands (thisAIProc:otherProcs) (otherHands, currDeck) = 
