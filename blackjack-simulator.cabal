@@ -78,12 +78,12 @@ Executable fuzzy-checker
 
   ghc-options:         -Wall -fwarn-tabs -fwarn-incomplete-record-updates -fwarn-unused-do-bind -fwarn-incomplete-uni-patterns
 
-  build-depends:       base, blackjack-simulator, statistics
+  build-depends:       base, blackjack-simulator, statistics, vector
 
   if flag(buildfuzzychecker)
-    Buildable = True
+    buildable = True
   else
-    Buildable = False
+    buildable = False
 
 Test-Suite test-blackjack-simulator
   type:
