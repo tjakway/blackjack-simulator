@@ -48,7 +48,7 @@ evalGame dealerAI allPlayers deck = Just $ Match dealerHand playerIDs playerHand
 -- deals each players starting hand in the correct order and returns the
 -- list of AIProc (which is just ([Hand] -> Blackjack Hand)
 dealStartingHands :: Deck -> [(Hand -> [Hand] -> Blackjack Hand)] -> ([AIProc], Deck)
-dealStartingHands deck ais = (correctlyOrderedProcs, deck)
+dealStartingHands deck ais = (correctlyOrderedProcs, drawnDeck)
         where (reversedProcs, drawnDeck) = foldr (\thisAIFunc (procs, thisDeck) -> 
                                                     let (thisStartingHand, resDeck) = runState startingHand thisDeck
                                                         thisProc = thisAIFunc thisStartingHand
