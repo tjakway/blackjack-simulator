@@ -4,16 +4,23 @@ import qualified Statistics.Test.Types as Stats
 import qualified Statistics.Test.ChiSquared as Stats
 import qualified Data.Vector.Unboxed as U
 import System.Random
+import Jakway.Blackjack.CardOps (infiniteShuffledDeck)
 
---get stdgen -> newshuffled deck -> stdgen -> integer 
+-- |get stdgen -> newshuffled deck -> stdgen -> integer 
+rngOutputWithRange :: (RandomGen g) => g -> (Int, (Int, Int))
+rngOutputWithRange gen = let deck = infiniteShuffledDeck gen
+                    rngFromDeck = deckToRNG deck
+                    in (fst . next $ rngFromDeck, genRange rngFromDeck)
 
--- |returns the first random int (given by next) and the range of possible
--- values
-rngOutput :: (RandomGen g) => g -> (Int, (Int, Int))
-rngOutput gen = (fst . next $ gen, genRange gen)
- 
--- |
---testSourceUnbiased :: 
+-- |same as above but ignore the range
+rngOutput :: (RandomGen g) => g -> Int
+rngOutput = fst rngOutputWithRange
+                     
+
+testSourceUnbiased pvalue numSamples = undefined
+        additionalDF = (snd genRange gen) - (fst genRange gen)
+        -- ^ DOUBLE CHECK THIS
+        
 
 
 -- |Takes as input a set of bins with the number of observations in each
