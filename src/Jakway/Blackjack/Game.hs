@@ -29,12 +29,6 @@ startingHand = do
   secondCard <- Shown <$> drawCard
   return [firstCard, secondCard]
 
--- |version of play' that removes the need to pass the players starting
--- hand
--- TODO: refactor with play'
-foldFnSt :: AI -> [Hand] -> Blackjack Hand
-foldFnSt ai otherHands = startingHand >>= (\xHand -> play' ai xHand otherHands)
-
 -- |Plays a game and returns the relevant state
 -- |dealer score record is redundant and not returned (just the opposite of
 -- every Result)
@@ -86,6 +80,7 @@ first f (a, b) = (f a, b)
 both :: (a -> b) -> (a, a) -> (b, b)
 both f (a, b) = (f a, f b)
 
+-- |monadic version of play
 play' :: AI -> Hand -> [Hand] -> Blackjack Hand
 play' ai hand otherHands = do
   deck <- get
