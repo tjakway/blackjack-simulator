@@ -29,6 +29,7 @@ tie_1v1 = do
         let message = "Both players should have 3 cards"
         assertBool message (length dealerHand == 3)
         assertBool message (length (head playerHand) == 3)
+        -- ^ head because there's only one player
 
 
 testPlayerBust :: Assertion
