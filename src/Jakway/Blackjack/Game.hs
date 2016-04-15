@@ -41,8 +41,9 @@ foldFnSt ai otherHands = startingHand >>= (\xHand -> play' ai xHand otherHands)
 evalGame :: AI -> [AI] -> Deck -> Maybe (Match)
 evalGame dealerAI [] deck = Nothing
 evalGame dealerAI allPlayers deck = Just $ Match dealerHand playerIDs playerHands (results playerHands)
-        where aiProcs =  (map foldFnSt allPlayers) ++ [foldFnSt dealerAI]
-              (resHands, resDeck) = playWithOtherHands aiProcs ([], deck)
+        where (aiProcs, deckAfterDeal) = dealStartingHands deck (allPlayers ++ [dealerAI])
+                                                                -- ^dealer goes last
+              (resHands, resDeck) = playWithOtherHands aiProcs ([], deckAfterDeal)
               playerHands = init resHands
               dealerHand = last resHands
               results = reverse . map (whoWon' dealerHand)
@@ -71,6 +72,9 @@ playWithOtherHands [] (hands, deck) = (reverse hands, deck)
 playWithOtherHands (thisAIProc:otherProcs) (otherHands, currDeck) = 
         let (myEndingHand, endingDeck) = (runState . thisAIProc) otherHands currDeck
             in playWithOtherHands otherProcs (myEndingHand : otherHands, endingDeck)
+                -- ^ since we prepend results to the list of hands we need to
+                -- reverse it so it's in the same order as the [AIProc] that
+                -- was passed in
 
 infixl 8 &&&
 (&&&) :: forall t t1 t2. (t2 -> t) -> (t2 -> t1) -> t2 -> (t, t1)
