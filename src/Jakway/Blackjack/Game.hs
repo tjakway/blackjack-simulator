@@ -70,10 +70,6 @@ playWithOtherHands (thisAIProc:otherProcs) (otherHands, currDeck) =
                 -- reverse it so it's in the same order as the [AIProc] that
                 -- was passed in
 
-infixl 8 &&&
-(&&&) :: forall t t1 t2. (t2 -> t) -> (t2 -> t1) -> t2 -> (t, t1)
-(f &&& g) a = (f a, g a)
-
 first :: (a -> b) -> (a, c) -> (b, c)
 first f (a, b) = (f a, b)
 
