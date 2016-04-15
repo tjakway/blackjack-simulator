@@ -70,12 +70,6 @@ playWithOtherHands (thisAIProc:otherProcs) (otherHands, currDeck) =
                 -- reverse it so it's in the same order as the [AIProc] that
                 -- was passed in
 
-first :: (a -> b) -> (a, c) -> (b, c)
-first f (a, b) = (f a, b)
-
-both :: (a -> b) -> (a, a) -> (b, b)
-both f (a, b) = (f a, f b)
-
 -- |monadic version of play
 play' :: AI -> Hand -> [Hand] -> Blackjack Hand
 play' ai hand otherHands = do
