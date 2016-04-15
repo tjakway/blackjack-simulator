@@ -17,6 +17,10 @@ Flag Test
   description: Whether testing is enabled.
   default: True
 
+Flag BuildFuzzyChecker
+  description: Whether to build the Fuzzy Checker executable
+  default: False
+
 Library 
 
   hs-source-dirs:      src
@@ -65,6 +69,21 @@ Executable blackjack-simulator
   if flag(postgresql)
     CPP-Options: -DBUILD_POSTGRESQL
     build-depends: HDBC-postgresql, directory
+
+Executable fuzzy-checker
+  main-is:           FuzzyChecker.hs
+  hs-source-dirs:    main test
+
+  default-language:    Haskell2010
+
+  ghc-options:         -Wall -fwarn-tabs -fwarn-incomplete-record-updates -fwarn-unused-do-bind -fwarn-incomplete-uni-patterns
+
+  build-depends:       base, blackjack-simulator, statistics
+
+  if flag(buildfuzzychecker)
+    Buildable = True
+  else
+    Buildable = False
 
 Test-Suite test-blackjack-simulator
   type:
