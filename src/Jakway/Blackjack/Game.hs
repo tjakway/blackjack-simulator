@@ -35,7 +35,7 @@ startingHand = do
 evalGame :: AI -> [AI] -> Deck -> Maybe (Match)
 evalGame dealerAI [] deck = Nothing
 evalGame dealerAI allPlayers deck = Just $ Match dealerHand playerIDs playerHands (results playerHands)
-        where (aiProcs, deckAfterDeal) = dealStartingHands deck (allPlayers ++ [dealerAI])
+        where (aiProcs, deckAfterDeal) = dealStartingHands deck (map play' (allPlayers ++ [dealerAI]))
                                                                 -- ^dealer goes last
               (resHands, resDeck) = playWithOtherHands aiProcs ([], deckAfterDeal)
               playerHands = init resHands
