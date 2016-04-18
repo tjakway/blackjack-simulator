@@ -41,12 +41,6 @@ testDeckRandomness pvalue numSamples dealerAI playerAIs = do
         where newDeckIO = getStdGen >>= return . infiniteShuffledDeck
 
 
---testSourceUnbiased pvalue numSamples = undefined --getStdGen >>= getAdditionalDF
---        where getAdditionalDF gen = (snd $ genRange gen) - (fst $ genRange gen)
-        -- ^ DOUBLE CHECK THIS
-        
-
-
 -- |Takes as input a set of bins with the number of observations in each
 -- returns the set of bins you would expect given an even distribution
 -- across all bins zipped with the observed values
