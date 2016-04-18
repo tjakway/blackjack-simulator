@@ -31,10 +31,10 @@ testDeckRandomness pvalue numSamples dealerAI playerAIs = do
                                 case maybeDeck of Nothing -> return vec
                                                   (Just (resDeck,_)) -> return $ deckToObservation vec resDeck))) samplesVec [1..numSamples] 
 
-        let additionalDF = (length observations) - 1
+        let additionalDF = (U.length observations) - 1
 
         
-        return Stats.chi2test pvalue additionalDF (evenDistribution observations)
+        return $ Stats.chi2test pvalue additionalDF (evenDistribution observations)
 
         where newDeckIO = getStdGen >>= return . infiniteShuffledDeck
 
@@ -49,7 +49,7 @@ testDeckRandomness pvalue numSamples dealerAI playerAIs = do
 -- returns the set of bins you would expect given an even distribution
 -- across all bins zipped with the observed values
 evenDistribution :: U.Vector Int -> U.Vector (Int, Double)
-evenDistribution observed = zip observed expectedObservations
-        where numBins = length observed
-              totalObservations = fromIntegral . sum $ observed
-              expectedObservations = replicate numBins (totalObservations / (fromIntegral numBins))
+evenDistribution observed = U.zip observed expectedObservations
+        where numBins = U.length observed
+              totalObservations = fromIntegral . U.sum $ observed
+              expectedObservations = U.fromList $ replicate numBins (totalObservations / (fromIntegral numBins))
