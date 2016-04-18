@@ -2,10 +2,13 @@ module Jakway.Blackjack.Fuzzy.Checks where
 
 import qualified Statistics.Test.Types as Stats
 import qualified Statistics.Test.ChiSquared as Stats
-import qualified Data.Vector.Unboxed as U
+import qualified Data.Vector.Unboxed as V
 import System.Random
 import Jakway.Blackjack.AI (deckToRNG)
-import Jakway.Blackjack.CardOps (infiniteShuffledDeck)
+import Jakway.Blackjack.CardOps 
+import Data.Hashable
+
+deck_value_range = 104 -- ^ 52 cards plus the visibility flag
 
 -- |get stdgen -> newshuffled deck -> stdgen -> integer 
 rngOutputWithRange :: (RandomGen g) => g -> (Int, (Int, Int))
@@ -13,13 +16,34 @@ rngOutputWithRange gen = let deck = infiniteShuffledDeck gen
                              rngFromDeck = deckToRNG deck
                          in (fst . next $ rngFromDeck, genRange rngFromDeck)
 
+
 -- |same as above but ignore the range
 rngOutput :: (RandomGen g) => g -> Int
-rngOutput = fst rngOutputWithRange
-                     
+rngOutput gen = fst $ rngOutputWithRange gen
 
-testSourceUnbiased pvalue numSamples = getStdGen >>= getAdditionalDF
-        where getAdditionalDF gen = (snd genRange gen) - (fst genRange gen)
+
+
+-- |record a new observation, updating the vector in place
+deckToObservation :: Vector Int -> Deck -> Vector Int
+deckToObservation vec deck = modify (\v -> write v index newCount)
+        where index = (`mod` deck_value_range) . hash $ deck
+              newCount = (vec ! index) + 1
+
+                     
+testDeckRandomness :: Double -> Integer -> AI -> [AI] -> IO TestResult
+testDeckRandomness pvalue numSamples dealerAI playerAIs = do
+        
+        let samplesVec = (fromList (replicate deck_value_range 0)) :: Vector Int
+
+        observations <- foldM (\vec _ -> newDeckIO >>= (\d -> return $ evalGameKeepDeck dealerAI playerAIs d >>= \maybeDeck -> 
+                                case maybeDeck of Nothing -> return vec
+                                                (Just resDeck) -> return $ deckToObservation vec resDeck)) samplesVec [1..numSamples] 
+
+        where newDeckIO = (liftM infiniteShuffledDeck) . getStdGen
+
+
+testSourceUnbiased pvalue numSamples = undefined --getStdGen >>= getAdditionalDF
+        where getAdditionalDF gen = (snd $ genRange gen) - (fst $ genRange gen)
         -- ^ DOUBLE CHECK THIS
         
 
