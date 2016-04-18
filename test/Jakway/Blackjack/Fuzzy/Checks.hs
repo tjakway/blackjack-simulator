@@ -9,7 +9,7 @@ import Jakway.Blackjack.AI
 import Jakway.Blackjack.CardOps 
 import Jakway.Blackjack.Game
 import Data.Hashable
-import Control.Monad (liftM)
+import Control.Monad (liftM, foldM)
 
 deck_value_range = 104 -- ^ 52 cards plus the visibility flag
 
@@ -17,7 +17,7 @@ deck_value_range = 104 -- ^ 52 cards plus the visibility flag
 
 -- |record a new observation, updating the U.Vector in place
 deckToObservation :: U.Vector Int -> Deck -> U.Vector Int
-deckToObservation vec deck = U.modify (\v -> UM.write v index newCount)
+deckToObservation vec deck = U.modify (\v -> UM.write v index newCount) vec
         where index = (`mod` deck_value_range) . hash $ deck
               newCount = (vec U.! index) + 1
 
@@ -27,16 +27,16 @@ testDeckRandomness pvalue numSamples dealerAI playerAIs = do
         
         let samplesVec = (U.fromList (replicate deck_value_range 0)) :: U.Vector Int
 
-        observations <- U.foldM' (\vec _ -> newDeckIO >>= (\d -> return $ evalGameKeepDeck dealerAI playerAIs d >>= \maybeDeck -> 
+        observations <- foldM (\vec _ -> newDeckIO >>= (\d -> (return $ evalGameKeepDeck dealerAI playerAIs d) >>= (\maybeDeck -> 
                                 case maybeDeck of Nothing -> return vec
-                                                  (Just resDeck) -> return $ deckToObservation vec resDeck)) samplesVec [1..numSamples] 
+                                                  (Just (resDeck,_)) -> return $ deckToObservation vec resDeck))) samplesVec [1..numSamples] 
 
         let additionalDF = (length observations) - 1
 
         
         return Stats.chi2test pvalue additionalDF (evenDistribution observations)
 
-        where newDeckIO = (liftM infiniteShuffledDeck) . getStdGen
+        where newDeckIO = getStdGen >>= return . infiniteShuffledDeck
 
 
 --testSourceUnbiased pvalue numSamples = undefined --getStdGen >>= getAdditionalDF
