@@ -36,7 +36,7 @@ testDeckRandomness pvalue numSamples dealerAI playerAIs = do
                                                   -- | modify the list of observations and return it
                                                   (Just (resDeck,_)) -> return $ deckToObservation vec resDeck))) samplesVec [1..numSamples] 
 
-        let additionalDF = U.length observations
+        let additionalDF = 0
 
         
         return $ Stats.chi2test pvalue additionalDF (evenDistribution observations)
