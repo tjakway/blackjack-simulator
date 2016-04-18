@@ -14,13 +14,15 @@ import Jakway.Blackjack.CardOps
 import Jakway.Blackjack.Game
 import Data.Hashable
 import Control.Monad (liftM, foldM)
+import Data.List (foldl')
 
 deck_value_range = 104 -- ^ 52 cards plus the visibility flag
 
 -- |record a new observation, updating the U.Vector in place
 deckToObservation :: U.Vector Int -> Deck -> U.Vector Int
 deckToObservation vec deck = U.modify (\v -> UM.write v index newCount) vec
-        where index = (`mod` deck_value_range) . hash $ deck
+        where vecRange = U.length vec
+              index = (`mod` vecRange) . hash $ deck
               newCount = (vec U.! index) + 1
 
                      
@@ -29,7 +31,7 @@ testDeckRandomness pvalue numSamples dealerAI playerAIs = do
         
         let samplesVec = (U.fromList (replicate deck_value_range 0)) :: U.Vector Int
 
-        observations <- foldM (\vec _ -> newDeckIO >>= (\d -> (return $ evalGameKeepDeck dealerAI playerAIs d) >>= (\maybeDeck -> 
+        observations <- sequence $ foldl' (\vec _ -> newDeckIO >>= (\d -> (return $ evalGameKeepDeck dealerAI playerAIs d) >>= (\maybeDeck -> 
                                 case maybeDeck of Nothing -> return vec
                                                   -- | modify the list of observations and return it
                                                   (Just (resDeck,_)) -> return $ deckToObservation vec resDeck))) samplesVec [1..numSamples] 
