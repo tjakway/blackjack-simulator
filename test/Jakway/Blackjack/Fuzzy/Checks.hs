@@ -1,4 +1,8 @@
-module Jakway.Blackjack.Fuzzy.Checks where
+module Jakway.Blackjack.Fuzzy.Checks
+(
+testDeckRandomness
+)
+where
 
 import qualified Statistics.Test.Types as Stats
 import qualified Statistics.Test.ChiSquared as Stats
@@ -12,8 +16,6 @@ import Data.Hashable
 import Control.Monad (liftM, foldM)
 
 deck_value_range = 104 -- ^ 52 cards plus the visibility flag
-
-
 
 -- |record a new observation, updating the U.Vector in place
 deckToObservation :: U.Vector Int -> Deck -> U.Vector Int
