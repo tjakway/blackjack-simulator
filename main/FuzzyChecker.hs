@@ -19,6 +19,8 @@ main = do
         dealerAI = BasicDealer
         playerAIs = [BasicPlayer]
     
+    if (samples <= 104) then die "Samples must be >104." else return ()
+
     --for now just run it with a very basic setup
     testDeckRandomness pvalue samples dealerAI playerAIs >>= printResult
 
