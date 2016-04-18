@@ -31,6 +31,7 @@ testDeckRandomness pvalue numSamples dealerAI playerAIs = do
 
         observations <- foldM (\vec _ -> newDeckIO >>= (\d -> (return $ evalGameKeepDeck dealerAI playerAIs d) >>= (\maybeDeck -> 
                                 case maybeDeck of Nothing -> return vec
+                                                  -- | modify the list of observations and return it
                                                   (Just (resDeck,_)) -> return $ deckToObservation vec resDeck))) samplesVec [1..numSamples] 
 
         let additionalDF = (U.length observations) - 1
