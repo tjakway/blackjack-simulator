@@ -14,8 +14,8 @@ main = do
                                 else return ()
 
     
-    let pvalue = read (args !! 0)
-        samples = read (args !! 1)
+    let pvalue = (read (args !! 0)) :: Double
+        samples = (read (args !! 1)) :: Integer
         dealerAI = BasicDealer
         playerAIs = [BasicPlayer]
     
