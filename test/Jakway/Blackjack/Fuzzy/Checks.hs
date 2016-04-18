@@ -4,21 +4,22 @@ import qualified Statistics.Test.Types as Stats
 import qualified Statistics.Test.ChiSquared as Stats
 import qualified Data.Vector.Unboxed as U
 import System.Random
+import Jakway.Blackjack.AI (deckToRNG)
 import Jakway.Blackjack.CardOps (infiniteShuffledDeck)
 
 -- |get stdgen -> newshuffled deck -> stdgen -> integer 
 rngOutputWithRange :: (RandomGen g) => g -> (Int, (Int, Int))
 rngOutputWithRange gen = let deck = infiniteShuffledDeck gen
-                    rngFromDeck = deckToRNG deck
-                    in (fst . next $ rngFromDeck, genRange rngFromDeck)
+                             rngFromDeck = deckToRNG deck
+                         in (fst . next $ rngFromDeck, genRange rngFromDeck)
 
 -- |same as above but ignore the range
 rngOutput :: (RandomGen g) => g -> Int
 rngOutput = fst rngOutputWithRange
                      
 
-testSourceUnbiased pvalue numSamples = undefined
-        additionalDF = (snd genRange gen) - (fst genRange gen)
+testSourceUnbiased pvalue numSamples = getStdGen >>= getAdditionalDF
+        where getAdditionalDF gen = (snd genRange gen) - (fst genRange gen)
         -- ^ DOUBLE CHECK THIS
         
 
