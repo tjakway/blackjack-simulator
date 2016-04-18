@@ -32,9 +32,9 @@ startingHand = do
 -- |Plays a game and returns the relevant state
 -- |dealer score record is redundant and not returned (just the opposite of
 -- every Result)
-evalGame :: AI -> [AI] -> Deck -> Maybe (Match)
-evalGame dealerAI [] deck = Nothing
-evalGame dealerAI allPlayers deck = Just $ Match dealerHand playerIDs playerHands (results playerHands)
+evalGameKeepDeck :: AI -> [AI] -> Deck -> Maybe (Deck, Match)
+evalGameKeepDeck dealerAI [] deck = Nothing
+evalGameKeepDeck dealerAI allPlayers deck = Just $ (resDeck, Match dealerHand playerIDs playerHands (results playerHands))
         where (aiProcs, deckAfterDeal) = dealStartingHands deck (map play' (allPlayers ++ [dealerAI]))
                                                                 -- ^dealer goes last
               (resHands, resDeck) = playWithOtherHands aiProcs ([], deckAfterDeal)
@@ -42,6 +42,10 @@ evalGame dealerAI allPlayers deck = Just $ Match dealerHand playerIDs playerHand
               dealerHand = last resHands
               results = reverse . map (whoWon' dealerHand)
               playerIDs = [1.. (length allPlayers)]
+
+evalGame :: AI -> [AI] -> Deck -> Maybe (Match)
+evalGame dealerAI allPlayers deck = evalGameKeepDeck dealerAI allPlayers deck >>= return . snd
+
   
 -- |curry play' with the AI constructors and pass the resulting list
 -- i.e. (map play' ais)
