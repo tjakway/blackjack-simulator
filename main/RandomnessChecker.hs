@@ -13,7 +13,7 @@ main = do
     conf <- getConfig args
 
     -- | TODO: make the RNG max range an option
-    let rngMaxRange = toInteger (maxBound :: Int)
+    let rngMaxRange = toInteger $ 2 ^ 25
 
     let distrib = distribution conf
         pval = pvalue conf
