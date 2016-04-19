@@ -1,3 +1,5 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+
 module Jakway.Blackjack.Fuzzy.Checks
 (
 testDeckRandomness
@@ -25,6 +27,10 @@ deckToObservation vec deck = U.modify (\v -> UM.write v index newCount) vec
               index = (`mod` vecRange) . hash $ (deck !! 13) -- ^ we've arbitrarily chosen the position to take a card from
               newCount = (vec U.! index) + 1
 
+vecIncrement :: U.Vector Int -> Int -> U.Vector Int
+vecIncrement v pos = U.modify (\mv -> UM.write mv pos newCount) v
+        where newCount = (v !! pos) + 1
+
                      
 testDeckRandomness :: Double -> Integer -> AI -> [AI] -> IO Stats.TestResult
 testDeckRandomness pvalue numSamples dealerAI playerAIs = do
@@ -42,6 +48,26 @@ testDeckRandomness pvalue numSamples dealerAI playerAIs = do
         return $ Stats.chi2test pvalue additionalDF (evenDistribution observations)
 
         where newDeckIO = getStdGen >>= return . infiniteShuffledDeck
+
+--instead of testing against an even distribution, test against the
+--distribution of the default StdGen
+
+rngDistribution :: (RandomGen g) => g -> Integer -> U.Vector Int -> U.Vector (Int, Double)
+rngDistribution gen numRngObservations observed = U.zip observed percents
+        where numBins = snd $ genRange gen
+              -- how many observations to get the standard RNG
+              -- distribution?
+              startingVec = (U.fromList (replicate numRngObservations 0)) :: U.Vector Int
+              rngObservations = take numRngObservations $ randoms gen
+              -- |increment the count for this observation
+              rngObservationCounts = foldr (\thisObservation vec -> vecIncrement vec thisObservation) startingVec rngObservations
+              -- |the distribution as a percent for each bin (i.e. a list
+              -- of doubles)
+              percents :: [Double]
+              percents = map (\o -> (fromIntegral o) / (fromIntegral numRngObservations)) rngObservationCounts
+
+              
+
 
 
 -- |Takes as input a set of bins with the number of observations in each
