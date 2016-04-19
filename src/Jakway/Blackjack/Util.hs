@@ -5,6 +5,7 @@ import Data.List (elemIndex)
 import System.IO
 import System.Exit hiding (die)
 import System.Console.GetOpt
+import Data.Maybe (catMaybes)
 
 innerMapTuple4 :: forall t t1. (t -> t1) -> (t, t, t, t) -> (t1, t1, t1, t1)
 innerMapTuple4 f (a,b,c,d) = (f a, f b, f c, f d)
@@ -53,6 +54,6 @@ parseOptions argv options usage =
 
 -- |returns the underlying value of the underlying flag if exactly one
 -- exists
-getSingleFlag :: (a -> Maybe a) -> [a] -> Maybe a
+getSingleFlag :: (a -> Maybe b) -> [a] -> Maybe b
 getSingleFlag f allFlags = case catMaybes $ map f allFlags of [x] -> Just x
                                                               [] -> Nothing
