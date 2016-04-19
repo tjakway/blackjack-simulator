@@ -29,7 +29,7 @@ deckToObservation vec deck = U.modify (\v -> UM.write v index newCount) vec
 
 vecIncrement :: U.Vector Int -> Int -> U.Vector Int
 vecIncrement v pos = U.modify (\mv -> UM.write mv pos newCount) v
-        where newCount = (v !! pos) + 1
+        where newCount = (v U.! pos) + 1
 
                      
 testDeckRandomness :: Double -> Integer -> AI -> [AI] -> IO Stats.TestResult
@@ -53,7 +53,7 @@ testDeckRandomness pvalue numSamples dealerAI playerAIs = do
 --distribution of the default StdGen
 
 rngDistribution :: (RandomGen g) => g -> Integer -> U.Vector Int -> U.Vector (Int, Double)
-rngDistribution gen numRngObservations observed = U.zip observed percents
+rngDistribution gen numRngObservations observed = U.zip observed (U.fromList percents)
         where numBins = snd $ genRange gen
               -- how many observations to get the standard RNG
               -- distribution?
