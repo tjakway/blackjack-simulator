@@ -4,6 +4,7 @@ module Jakway.Blackjack.Util where
 import Data.List (elemIndex)
 import System.IO
 import System.Exit hiding (die)
+import System.Console.GetOpt
 
 innerMapTuple4 :: forall t t1. (t -> t1) -> (t, t, t, t) -> (t1, t1, t1, t1)
 innerMapTuple4 f (a,b,c,d) = (f a, f b, f c, f d)
@@ -43,3 +44,9 @@ ssub = ssub_wrep_char default_replacement_character
 -- only exists in base >= 4.8
 die :: String -> IO a
 die errMsg = hPutStrLn stderr errMsg >> exitFailure
+
+parseOptions :: [String] -> [OptDescr a] -> String -> IO ([a], [String])
+parseOptions argv options usage = 
+    case getOpt Permute options argv of
+        (o,n,[]  ) -> return (o,n)
+        (_,_,errs) -> ioError (userError (concat errs ++ usageInfo usage options))

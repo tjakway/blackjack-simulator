@@ -114,17 +114,8 @@ options =
     , Option []        ["postgres-string"] (ReqArg PostgresqlConnectString "CONNSTR")  "Postgresql connection string (used instead of config file if both are present)"
     ]
 
-
-parseOptions :: [String] -> IO ([Flag], [String])
-parseOptions argv = 
-    case getOpt Permute options argv of
-        (o,n,[]  ) -> return (o,n)
-        (_,_,errs) -> ioError (userError (concat errs ++ usageInfo header options))
-    where header = "Usage: blackjack-simulator [OPTION...]"
-
-
 --returns a valid configuration or prints an error and exits
 getConfig :: [String] -> IO Conf.Config
-getConfig argv = parseOptions argv >>= \(flags, _) -> return (flagsToConfig flags) >>=
+getConfig argv = parseOptions argv options "Usage: blackjack-simulator [OPTION...]" >>= \(flags, _) -> return (flagsToConfig flags) >>=
                                 \res -> case res of (Left x) -> die $ "Error processing options: " ++ x
                                                     (Right conf) -> return conf
