@@ -15,13 +15,14 @@ main = do
     let distrib = distribution conf
         pval = pvalue conf
         n = sampleSize conf
+        r = rngSampleSize conf
         dealerAI = BasicDealer
         playerAIs = [BasicPlayer]
     
     if (n <= 104) then die "Samples must be >104." else return ()
 
     case distrib of EvenDistribution -> testDeckEvenDistribution pval n dealerAI playerAIs >>= printResult
-                    RNGDistribution -> testRNGDistribution pval n dealerAI playerAIs >>= printResult
+                    RNGDistribution -> testRNGDistribution pval n r dealerAI playerAIs >>= printResult
                     _ -> die "Fatal error, unknown test!"
 
 
