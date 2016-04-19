@@ -1,6 +1,7 @@
-module Jakway.Blackjack.Fuzzy.Options
+module Jakway.Blackjack.Random.Options
 (
-Config(..)
+Config(..),
+getConfig
 )
 where
 
@@ -35,7 +36,7 @@ flagsToConfig [] = Left "No flags passed."
 flagsToConfig flags
                 | dist == Nothing = Left "No distribution passed."
                 | pval < 0 = Left "P value must be greater than 0."
-                | n < 104 = Left "Sample size must be greater than 104."
+                | n <= 104 = Left "Sample size must be greater than 104."
                 | otherwise = Right . Config $ fromJust <$> dist <*> pval <*> n
         where dist = getSingleFlag getWhichDistribution flags
               pval = getSingleFlag getPValue flags
@@ -57,7 +58,7 @@ options =
 
 
 --returns a valid configuration or prints an error and exits
-getConfig :: [String] -> IO Conf.Config
-getConfig argv = parseOptions argv options "Usage: blackjack-simulator [OPTION...]" >>= \(flags, _) -> return (flagsToConfig flags) >>=
+getConfig :: [String] -> IO Config
+getConfig argv = parseOptions argv options "Usage: probability-testing [OPTION...]" >>= \(flags, _) -> return (flagsToConfig flags) >>=
                                 \res -> case res of (Left x) -> die $ "Error processing options: " ++ x
                                                     (Right conf) -> return conf

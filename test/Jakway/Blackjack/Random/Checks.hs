@@ -1,8 +1,9 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Jakway.Blackjack.Fuzzy.Checks
+module Jakway.Blackjack.Random.Checks
 (
-testDeckRandomness
+testDeckEvenDistribution,
+testRNGDistribution
 )
 where
 
@@ -49,6 +50,9 @@ testDeckEvenDistribution pvalue numSamples dealerAI playerAIs = do
         return $ Stats.chi2test pvalue additionalDF (evenDistribution observations)
 
         where newDeckIO = getStdGen >>= return . infiniteShuffledDeck
+
+testRNGDistribution :: Double -> Integer -> AI -> [AI] -> IO Stats.TestResult
+testRNGDistribution = undefined
 
 --instead of testing against an even distribution, test against the
 --distribution of the default StdGen

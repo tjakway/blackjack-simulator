@@ -2,30 +2,30 @@ module Main where
 
 import System.Environment (getArgs)
 import qualified Statistics.Test.Types as Stats
-import Jakway.Blackjack.Fuzzy.Checks
+import Jakway.Blackjack.Random.Checks
+import Jakway.Blackjack.Random.Options
 import Jakway.Blackjack.Util (die)     -- ^ die is implemented here for compatibility with older GHC versions
 import Jakway.Blackjack.AI
 
 main :: IO ()
 main = do
     args <- getArgs
+    conf <- getConfig args
 
-    if (length args) /= numArgs then die usage 
-                                else return ()
-
-    
-    let pvalue = (read (args !! 0)) :: Double
-        samples = (read (args !! 1)) :: Integer
+    let distrib = distribution conf
+        pval = pvalue conf
+        n = sampleSize conf
         dealerAI = BasicDealer
         playerAIs = [BasicPlayer]
     
     if (samples <= 104) then die "Samples must be >104." else return ()
 
+    case distrib of EvenDistribution -> testDeckEvenDistribution pval n dealerAI playerAIs >>= printResult
+                    RNGDistribution -> testRNGDistribution pval n dealerAI playerAIs >>= printResult
+                    _ -> die "Fatal error, unknown test!"
     --for now just run it with a very basic setup
     testDeckRandomness pvalue samples dealerAI playerAIs >>= printResult
 
-    where usage = "Usage: [pvalue] [samples]"
-          numArgs = 2       -- ^ doesn't include the program's name
 
 printResult :: Stats.TestResult -> IO ()
 printResult (Stats.Significant) = putStrLn $ "The test result is: Significant.  There is evidence to conclude that the deck IS NOT an unbiased source of randomness."
