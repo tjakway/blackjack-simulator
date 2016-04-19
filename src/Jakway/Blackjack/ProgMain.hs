@@ -8,7 +8,7 @@ where
 
 import Control.Monad (liftM, when, mapM_, unless)
 import System.Environment (getArgs)
-import Jakway.Blackjack.AI
+import Jakway.Blackjack.AI.AI
 import Jakway.Blackjack.Game
 import Jakway.Blackjack.Cards
 import Jakway.Blackjack.CardOps

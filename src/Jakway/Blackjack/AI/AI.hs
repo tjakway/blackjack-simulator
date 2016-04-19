@@ -1,4 +1,4 @@
-module Jakway.Blackjack.AI where
+module Jakway.Blackjack.AI.AI where
 
 import Jakway.Blackjack.Visibility
 import Jakway.Blackjack.CardOps

@@ -4,7 +4,7 @@ import Jakway.Blackjack.Tests.Constants
 import Jakway.Blackjack.CardOps
 import Jakway.Blackjack.Cards
 import Jakway.Blackjack.Visibility
-import Jakway.Blackjack.AI
+import Jakway.Blackjack.AI.AI
 import Jakway.Blackjack.Match
 import Jakway.Blackjack.Game
 import Data.Maybe (fromJust)

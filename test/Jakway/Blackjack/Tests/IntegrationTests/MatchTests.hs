@@ -8,7 +8,7 @@ import Jakway.Blackjack.IO.TableNames
 import Jakway.Blackjack.CardOps
 import Jakway.Blackjack.Match
 import Jakway.Blackjack.Game
-import Jakway.Blackjack.AI
+import Jakway.Blackjack.AI.AI
 import Jakway.Blackjack.Tests.DatabaseTests.Common
 import Data.Maybe (fromJust, isJust)
 import Test.HUnit hiding (State)

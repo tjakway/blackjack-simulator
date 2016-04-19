@@ -4,7 +4,7 @@ module Jakway.Blackjack.Interface.Options
 getConfig
 ) where
 
-import Jakway.Blackjack.AI
+import Jakway.Blackjack.AI.AI
 import Jakway.Blackjack.Util
 import System.Console.GetOpt
 import Data.Maybe (fromJust, catMaybes)

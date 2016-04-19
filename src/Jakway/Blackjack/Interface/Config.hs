@@ -1,6 +1,6 @@
 module Jakway.Blackjack.Interface.Config where
 
-import Jakway.Blackjack.AI
+import Jakway.Blackjack.AI.AI
 import Jakway.Blackjack.IO.TableNames
 
 

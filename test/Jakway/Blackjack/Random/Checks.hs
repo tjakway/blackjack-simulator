@@ -12,7 +12,7 @@ import qualified Statistics.Test.ChiSquared as Stats
 import qualified Data.Vector.Unboxed as U
 import qualified Data.Vector.Unboxed.Mutable as UM
 import System.Random
-import Jakway.Blackjack.AI
+import Jakway.Blackjack.AI.AI
 import Jakway.Blackjack.CardOps 
 import Jakway.Blackjack.Game
 import Data.Hashable

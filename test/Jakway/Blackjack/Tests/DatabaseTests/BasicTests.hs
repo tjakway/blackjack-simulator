@@ -2,7 +2,7 @@
 module Jakway.Blackjack.Tests.DatabaseTests.BasicTests (tests) where
 
 import Jakway.Blackjack.Tests.DatabaseTests.Common
-import Jakway.Blackjack.AI
+import Jakway.Blackjack.AI.AI
 import System.Directory
 import Database.HDBC
 import Database.HDBC.Sqlite3

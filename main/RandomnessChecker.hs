@@ -5,7 +5,7 @@ import qualified Statistics.Test.Types as Stats
 import Jakway.Blackjack.Random.Checks
 import Jakway.Blackjack.Random.Options
 import Jakway.Blackjack.Util (die)     -- ^ die is implemented here for compatibility with older GHC versions
-import Jakway.Blackjack.AI
+import Jakway.Blackjack.AI.AI
 
 main :: IO ()
 main = do

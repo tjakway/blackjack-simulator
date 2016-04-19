@@ -1,7 +1,7 @@
 module Jakway.Blackjack.Tests.Constants (testDeck, test_1v1_game, test_db_name) where
 
 import Jakway.Blackjack.Cards
-import Jakway.Blackjack.AI
+import Jakway.Blackjack.AI.AI
 import Jakway.Blackjack.Game
 import Data.Maybe (fromJust)
 
