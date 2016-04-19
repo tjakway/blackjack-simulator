@@ -33,8 +33,8 @@ vecIncrement v pos = U.modify (\mv -> UM.write mv pos newCount) v
         where newCount = (v U.! pos) + 1
 
                      
-testDeckRandomness :: Double -> Integer -> AI -> [AI] -> IO Stats.TestResult
-testDeckRandomness pvalue numSamples dealerAI playerAIs = do
+testDeckEvenDistribution :: Double -> Integer -> AI -> [AI] -> IO Stats.TestResult
+testDeckEvenDistribution pvalue numSamples dealerAI playerAIs = do
         
         let samplesVec = (U.fromList (replicate deck_value_range 0)) :: U.Vector Int
 
