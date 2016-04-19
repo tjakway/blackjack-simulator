@@ -18,13 +18,11 @@ main = do
         dealerAI = BasicDealer
         playerAIs = [BasicPlayer]
     
-    if (samples <= 104) then die "Samples must be >104." else return ()
+    if (n <= 104) then die "Samples must be >104." else return ()
 
     case distrib of EvenDistribution -> testDeckEvenDistribution pval n dealerAI playerAIs >>= printResult
                     RNGDistribution -> testRNGDistribution pval n dealerAI playerAIs >>= printResult
                     _ -> die "Fatal error, unknown test!"
-    --for now just run it with a very basic setup
-    testDeckRandomness pvalue samples dealerAI playerAIs >>= printResult
 
 
 printResult :: Stats.TestResult -> IO ()

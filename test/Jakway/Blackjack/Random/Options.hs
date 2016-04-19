@@ -1,11 +1,19 @@
 module Jakway.Blackjack.Random.Options
 (
 Config(..),
+Distribution(..),
 getConfig
 )
 where
 
-data Distribution = EvenDistribution | RNGDistribution
+import System.Console.GetOpt
+import Data.Maybe (fromJust)
+import Jakway.Blackjack.Util
+
+
+data Distribution = EvenDistribution |
+                    RNGDistribution
+                    deriving (Show, Eq, Read)
 
 data Config = Config
             { distribution :: Distribution,
@@ -19,8 +27,7 @@ data Flag = WhichDistribution Distribution |
             deriving (Show, Eq)
 
 getWhichDistribution :: Flag -> Maybe Distribution
-getWhichDistribution EvenDistribution = Just EvenDistribution
-getWhichDistribution RNGDistribution = Just RNGDistribution
+getWhichDistribution (WhichDistribution a) = Just a
 getWhichDistribution _ = Nothing
 
 getPValue :: Flag -> Maybe Double
@@ -37,10 +44,10 @@ flagsToConfig flags
                 | dist == Nothing = Left "No distribution passed."
                 | pval < 0 = Left "P value must be greater than 0."
                 | n <= 104 = Left "Sample size must be greater than 104."
-                | otherwise = Right . Config $ fromJust <$> dist <*> pval <*> n
+                | otherwise = Right  (Config (fromJust dist) pval n)
         where dist = getSingleFlag getWhichDistribution flags
-              pval = getSingleFlag getPValue flags
-              n = getSingleFlag getSampleSize flags
+              pval = fromJust $ getSingleFlag getPValue flags
+              n = fromJust $ getSingleFlag getSampleSize flags
 
 
 
@@ -53,7 +60,7 @@ options :: [OptDescr Flag]
 options =
     [ Option ['p']        ["pvalue"]  (ReqArg pvalueOpt "percent")  "P value."
     , Option ['n']        ["sample-size"]  (ReqArg sampleSizeOpt  "num")  "Number of samples."
-    , Option ['d']     ["distribution"]  (ReqArg  "distribution") "Which test to run (the expected distribution).  Possible values are EvenDistribution and RNGDistribution"
+    , Option ['d']     ["distribution"]  (ReqArg  whichDistOpt "distribution") "Which test to run (the expected distribution).  Possible values are EvenDistribution and RNGDistribution"
     ]
 
 
