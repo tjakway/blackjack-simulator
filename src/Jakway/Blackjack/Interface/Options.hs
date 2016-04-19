@@ -22,12 +22,6 @@ data Flag = Verbose |
             deriving (Show, Eq)
 
 
--- |returns the underlying value of the underlying flag if exactly one
--- exists
-getSingleFlag :: (Flag -> Maybe a) -> [Flag] -> Maybe a
-getSingleFlag f allFlags = case catMaybes $ map f allFlags of [x] -> Just x
-                                                              [] -> Nothing
-
 -- |TODO: is there any way to eliminate the boilerplate from writing a lot
 -- of pattern matching functions?
 -- how do you write a generic "if the constructors match extract this flag"

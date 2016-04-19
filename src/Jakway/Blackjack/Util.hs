@@ -50,3 +50,9 @@ parseOptions argv options usage =
     case getOpt Permute options argv of
         (o,n,[]  ) -> return (o,n)
         (_,_,errs) -> ioError (userError (concat errs ++ usageInfo usage options))
+
+-- |returns the underlying value of the underlying flag if exactly one
+-- exists
+getSingleFlag :: (a -> Maybe a) -> [a] -> Maybe a
+getSingleFlag f allFlags = case catMaybes $ map f allFlags of [x] -> Just x
+                                                              [] -> Nothing
