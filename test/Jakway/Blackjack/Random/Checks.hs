@@ -53,21 +53,20 @@ testDeckEvenDistribution pvalue numSamples dealerAI playerAIs = do
         return $ Stats.chi2test pvalue additionalDF (evenDistribution observations)
         where additionalDF = 0
 
-testRNGDistribution :: Double -> Integer -> Integer -> AI -> [AI] -> IO Stats.TestResult
-testRNGDistribution pvalue numSamples numRNGSamples dealerAI playerAIs = getStdGen >>= (\gen -> observeDeck numSamples dealerAI playerAIs >>= \samples -> return $ Stats.chi2test pvalue 0 $ rngDistribution numRNGSamples gen samples)
+testRNGDistribution :: Double -> Integer -> Integer -> Integer -> AI -> [AI] -> IO Stats.TestResult
+testRNGDistribution pvalue numSamples numRNGSamples rngMaxRange dealerAI playerAIs = getStdGen >>= (\gen -> observeDeck numSamples dealerAI playerAIs >>= \samples -> return $ Stats.chi2test pvalue 0 $ rngDistribution numRNGSamples rngMaxRange gen samples)
 
 --instead of testing against an even distribution, test against the
 --distribution of the default StdGen
 
-rngDistribution :: (RandomGen g) => Integer -> g -> U.Vector Int -> U.Vector (Int, Double)
-rngDistribution numRngObservations gen observed = U.zip observed percents
-        where numBins = snd $ genRange gen
-              -- how many observations to get the standard RNG
+rngDistribution :: (RandomGen g) => Integer -> Integer -> g -> U.Vector Int -> U.Vector (Int, Double)
+rngDistribution numRngObservations maxr gen observed = U.zip observed percents
+        where -- how many observations to get the standard RNG
               -- distribution?
-              startingVec = (U.fromList (genericReplicate numRngObservations 0)) :: U.Vector Int
-              rngObservations = genericTake numRngObservations $ randoms gen
+              startingVec = (U.fromList (genericReplicate maxr 0)) :: U.Vector Int
+              rngObservations = genericTake numRngObservations $ randomRs (0, maxr) gen -- ^ lower bound on random numbers is 0
               -- |increment the count for this observation
-              rngObservationCounts = foldr (\thisObservation vec -> vecIncrement vec thisObservation) startingVec rngObservations
+              rngObservationCounts = foldr (\thisObservation vec -> vecIncrement vec thisObservation) startingVec $ map fromIntegral rngObservations
               -- |the distribution as a percent for each bin (i.e. a list
               -- of doubles)
               percents :: U.Vector Double
