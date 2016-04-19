@@ -16,6 +16,7 @@ import Jakway.Blackjack.CardOps
 import Jakway.Blackjack.Game
 import Data.Hashable
 import Control.Monad (foldM)
+import Data.List (genericReplicate, genericTake)
 
 deck_value_range :: Int
 deck_value_range = 104 -- ^ 52 cards plus the visibility flag
@@ -53,21 +54,18 @@ testDeckRandomness pvalue numSamples dealerAI playerAIs = do
 --distribution of the default StdGen
 
 rngDistribution :: (RandomGen g) => g -> Integer -> U.Vector Int -> U.Vector (Int, Double)
-rngDistribution gen numRngObservations observed = U.zip observed (U.fromList percents)
+rngDistribution gen numRngObservations observed = U.zip observed percents
         where numBins = snd $ genRange gen
               -- how many observations to get the standard RNG
               -- distribution?
-              startingVec = (U.fromList (replicate numRngObservations 0)) :: U.Vector Int
-              rngObservations = take numRngObservations $ randoms gen
+              startingVec = (U.fromList (genericReplicate numRngObservations 0)) :: U.Vector Int
+              rngObservations = genericTake numRngObservations $ randoms gen
               -- |increment the count for this observation
               rngObservationCounts = foldr (\thisObservation vec -> vecIncrement vec thisObservation) startingVec rngObservations
               -- |the distribution as a percent for each bin (i.e. a list
               -- of doubles)
-              percents :: [Double]
-              percents = map (\o -> (fromIntegral o) / (fromIntegral numRngObservations)) rngObservationCounts
-
-              
-
+              percents :: U.Vector Double
+              percents = U.map (\o -> (fromIntegral o) / (fromIntegral numRngObservations)) rngObservationCounts
 
 
 -- |Takes as input a set of bins with the number of observations in each
