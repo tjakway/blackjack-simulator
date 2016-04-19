@@ -33,32 +33,34 @@ vecIncrement :: U.Vector Int -> Int -> U.Vector Int
 vecIncrement v pos = U.modify (\mv -> UM.write mv pos newCount) v
         where newCount = (v U.! pos) + 1
 
-                     
-testDeckEvenDistribution :: Double -> Integer -> AI -> [AI] -> IO Stats.TestResult
-testDeckEvenDistribution pvalue numSamples dealerAI playerAIs = do
-        
-        let samplesVec = (U.fromList (replicate deck_value_range 0)) :: U.Vector Int
 
-        observations <- foldM (\vec _ -> newDeckIO >>= (\d -> (return $ evalGameKeepDeck dealerAI playerAIs d) >>= (\maybeDeck -> 
+newDeckIO :: IO Deck
+newDeckIO = getStdGen >>= return . infiniteShuffledDeck
+
+observeDeck :: Integer -> AI -> [AI] -> IO (U.Vector Int)
+observeDeck numSamples dealerAI playerAIs =
+        foldM (\vec _ -> newDeckIO >>= (\d -> (return $ evalGameKeepDeck dealerAI playerAIs d) >>= (\maybeDeck -> 
                                 case maybeDeck of Nothing -> return vec
                                                   -- | modify the list of observations and return it
                                                   (Just (resDeck,_)) -> return $ deckToObservation vec resDeck))) samplesVec [1..numSamples] 
 
-        let additionalDF = 0
+        where samplesVec = (U.fromList (replicate deck_value_range 0)) :: U.Vector Int
 
-        
+                     
+testDeckEvenDistribution :: Double -> Integer -> AI -> [AI] -> IO Stats.TestResult
+testDeckEvenDistribution pvalue numSamples dealerAI playerAIs = do
+        observations <- observeDeck numSamples dealerAI playerAIs
         return $ Stats.chi2test pvalue additionalDF (evenDistribution observations)
+        where additionalDF = 0
 
-        where newDeckIO = getStdGen >>= return . infiniteShuffledDeck
-
-testRNGDistribution :: Double -> Integer -> AI -> [AI] -> IO Stats.TestResult
-testRNGDistribution = undefined
+testRNGDistribution :: Double -> Integer -> Integer -> AI -> [AI] -> IO Stats.TestResult
+testRNGDistribution pvalue numSamples numRNGSamples dealerAI playerAIs = getStdGen >>= (\gen -> observeDeck numSamples dealerAI playerAIs >>= \samples -> return $ Stats.chi2test pvalue 0 $ rngDistribution numRNGSamples gen samples)
 
 --instead of testing against an even distribution, test against the
 --distribution of the default StdGen
 
-rngDistribution :: (RandomGen g) => g -> Integer -> U.Vector Int -> U.Vector (Int, Double)
-rngDistribution gen numRngObservations observed = U.zip observed percents
+rngDistribution :: (RandomGen g) => Integer -> g -> U.Vector Int -> U.Vector (Int, Double)
+rngDistribution numRngObservations gen observed = U.zip observed percents
         where numBins = snd $ genRange gen
               -- how many observations to get the standard RNG
               -- distribution?
