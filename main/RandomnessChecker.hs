@@ -12,6 +12,9 @@ main = do
     args <- getArgs
     conf <- getConfig args
 
+    -- | TODO: make the RNG max range an option
+    let rngMaxRange = toInteger (maxBound :: Int)
+
     let distrib = distribution conf
         pval = pvalue conf
         n = sampleSize conf
@@ -22,11 +25,10 @@ main = do
     if (n <= 104) then die "Samples must be >104." else return ()
 
     case distrib of EvenDistribution -> testDeckEvenDistribution pval n dealerAI playerAIs >>= printResult
-                    RNGDistribution -> testRNGDistribution pval n r dealerAI playerAIs >>= printResult
+                    RNGDistribution -> testRNGDistribution pval n r rngMaxRange dealerAI playerAIs >>= printResult
                     _ -> die "Fatal error, unknown test!"
 
 
 printResult :: Stats.TestResult -> IO ()
 printResult (Stats.Significant) = putStrLn $ "The test result is: Significant.  There is evidence to conclude that the deck IS NOT an unbiased source of randomness."
 printResult (Stats.NotSignificant) = putStrLn $ "The test result is: Not Significant.  There is insufficient evidence to conclude that the deck is not an unbiased source of randomness."
-
