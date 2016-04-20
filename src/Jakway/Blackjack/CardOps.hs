@@ -8,7 +8,6 @@ import Jakway.Blackjack.Visibility
 import Control.Monad.State
 import System.Random
 import System.Random.Shuffle
-import Control.Applicative
 
 --disambiguate between a player's hand and the deck--both are lists of cards
 type Deck = [Card]
@@ -22,11 +21,11 @@ allSuits = [minBound..maxBound] :: [Suit]
 allCardValues :: [CardValue]
 allCardValues = [minBound..maxBound] :: [CardValue]
 
-isFaceCard :: Card -> Bool
-isFaceCard (Card _ Jack)  = True
-isFaceCard (Card _ Queen) = True
-isFaceCard (Card _ King)  = True
-isFaceCard (Card _ _)     = False
+isFaceCard :: CardValue -> Bool
+isFaceCard Jack  = True
+isFaceCard Queen = True
+isFaceCard King  = True
+isFaceCard _     = False
 
 newDeck :: Deck
 newDeck = Card <$> allSuits <*> allCardValues
