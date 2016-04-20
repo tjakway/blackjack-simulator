@@ -28,7 +28,7 @@ Library
   ghc-options:         -Wall -fwarn-tabs -fwarn-incomplete-record-updates -fwarn-unused-do-bind -fwarn-incomplete-uni-patterns
   build-depends:       base, random, mtl, random-shuffle, HDBC, HDBC-sqlite3, HDBC-session, containers, convertible, hashable
   
-  exposed-modules: Jakway.Blackjack.Match, Jakway.Blackjack.Util, Jakway.Blackjack.Interface.Options, Jakway.Blackjack.ProgMain, Jakway.Blackjack.Game, Jakway.Blackjack.Visibility, Jakway.Blackjack.AI.AI, Jakway.Blackjack.CardOps, Jakway.Blackjack.IO.DatabaseCommon, Jakway.Blackjack.IO.TableNames, Jakway.Blackjack.IO.Action, Jakway.Blackjack.IO.DatabaseReads, Jakway.Blackjack.IO.RDBMS.SQLite, Jakway.Blackjack.IO.RDBMS.Postgres, Jakway.Blackjack.IO.DatabaseWrites, Jakway.Blackjack.IO.DatabaseConnection, Jakway.Blackjack.Cards, Jakway.Blackjack.Result, Jakway.Blackjack.Points, Jakway.Blackjack.Invariants.Checks, Jakway.Blackjack.Interface.Config
+  exposed-modules: Jakway.Blackjack.Match, Jakway.Blackjack.Util, Jakway.Blackjack.Interface.Options, Jakway.Blackjack.ProgMain, Jakway.Blackjack.Game, Jakway.Blackjack.Visibility, Jakway.Blackjack.AI.AI, Jakway.Blackjack.AI.CardCounting, Jakway.Blackjack.CardOps, Jakway.Blackjack.IO.DatabaseCommon, Jakway.Blackjack.IO.TableNames, Jakway.Blackjack.IO.Action, Jakway.Blackjack.IO.DatabaseReads, Jakway.Blackjack.IO.RDBMS.SQLite, Jakway.Blackjack.IO.RDBMS.Postgres, Jakway.Blackjack.IO.DatabaseWrites, Jakway.Blackjack.IO.DatabaseConnection, Jakway.Blackjack.Cards, Jakway.Blackjack.Result, Jakway.Blackjack.Points, Jakway.Blackjack.Invariants.Checks, Jakway.Blackjack.Interface.Config
 
   if flag(test)
     CPP-Options: -DTESTING
