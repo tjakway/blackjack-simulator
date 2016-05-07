@@ -1,7 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable, CPP, ScopedTypeVariables #-}
 module Jakway.Blackjack.IO.DatabaseCommon
 (
-createTables,
 cardIdMap,
 cardPermutations,
 cardSqlArr,
@@ -30,13 +29,6 @@ import Control.Monad (join, liftM)
 import Data.List (delete)
 import Control.Applicative
 
-#ifdef BUILD_POSTGRESQL
-createTables :: IConnection a => a -> TableNames -> IO ()
-createTables = Postgres.createTables
-#else
-createTables :: IConnection a => a -> TableNames -> IO ()
-createTables = SQLite.createTables
-#endif
 
 dropAllTables :: IConnection a => a -> IO()
 dropAllTables conn = withTransaction conn $ \t_conn -> getDropStatement t_conn >>= (\dropStatement -> case dropStatement of (Just ds) -> execute ds []                  
