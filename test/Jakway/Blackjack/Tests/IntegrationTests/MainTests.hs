@@ -70,7 +70,7 @@ testReadWriteXMatches expectedNumPlayers expectedMatches = sandboxTables $ do
     where args = ["-v", "--with-dealer=BasicDealer", "--num-BasicPlayer=" ++ (show expectedNumPlayers), "--num-games=" ++ (show expectedMatches), "--tablename-suffix=" ++ mainTestsSuffix]
 
 testReadWriteRandomMatches :: Assertion
-testReadWriteRandomMatches = getStdGen >>= (\gen -> return (snd . split $ gen,randMatches gen) >>= 
+testReadWriteRandomMatches = newStdGen >>= (\gen -> return (snd . split $ gen,randMatches gen) >>= 
        ( \(n_gen, rM) -> return (randPlayers n_gen, rM) >>= uncurry testReadWriteXMatches))
         where randInRange min max gen = head . (randomRs (min, max)) $ gen
               randMatches = randInRange minMatches maxMatches

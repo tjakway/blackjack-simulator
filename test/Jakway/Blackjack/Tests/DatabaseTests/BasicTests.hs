@@ -83,7 +83,7 @@ testInsertRandStartingHands = withSingleTableTestDatabase $ \conn -> do
 
        --insert between 10 and 100 hands
        numHands <- randomRIO (10, 100)
-       gen <- getStdGen
+       gen <- newStdGen
        let startingDeck = infiniteShuffledDeck gen
        
         --don't need the state monad here--use a fold to keep track of state
@@ -100,7 +100,7 @@ testInsertThreeCardHand = withSingleTableTestDatabase $ \conn -> do
        DB.insertPlayers conn basicTestTableNames BasicDealer (replicate 2 BasicPlayer)
        commit conn
 
-       gen <- getStdGen
+       gen <- newStdGen
        let deck = infiniteShuffledDeck gen
        let hand = return $ flip evalState deck $ do
                     firstCard <- drawCard

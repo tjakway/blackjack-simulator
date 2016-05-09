@@ -35,7 +35,7 @@ vecIncrement v pos = U.modify (\mv -> UM.write mv pos newCount) v
 
 
 newDeckIO :: IO Deck
-newDeckIO = getStdGen >>= return . infiniteShuffledDeck
+newDeckIO = newStdGen >>= return . infiniteShuffledDeck
 
 observeDeck :: Integer -> AI -> [AI] -> IO (U.Vector Int)
 observeDeck numSamples dealerAI playerAIs =
@@ -54,7 +54,7 @@ testDeckEvenDistribution pvalue numSamples dealerAI playerAIs = do
         where additionalDF = 0
 
 testRNGDistribution :: Double -> Integer -> Integer -> Integer -> AI -> [AI] -> IO Stats.TestResult
-testRNGDistribution pvalue numSamples numRNGSamples rngMaxRange dealerAI playerAIs = getStdGen >>= (\gen -> observeDeck numSamples dealerAI playerAIs >>= \samples -> return $ Stats.chi2test pvalue 0 $ rngDistribution numRNGSamples rngMaxRange gen samples)
+testRNGDistribution pvalue numSamples numRNGSamples rngMaxRange dealerAI playerAIs = newStdGen >>= (\gen -> observeDeck numSamples dealerAI playerAIs >>= \samples -> return $ Stats.chi2test pvalue 0 $ rngDistribution numRNGSamples rngMaxRange gen samples)
 
 --instead of testing against an even distribution, test against the
 --distribution of the default StdGen

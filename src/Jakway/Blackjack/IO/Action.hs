@@ -27,7 +27,7 @@ collapseMatches matches_per_transaction conf conn = do
 
               --get the statements and the RNG
               (insHandStatement, insMatchStatement) <- getStatements conn tableNames
-              initialGen <- getStdGen
+              initialGen <- newStdGen
 
               (resGen, matchesRes) <- foldr (\_ ioRes -> ioRes >>= (\(mutatedGen, res) -> 
                                 case res of (Left _) -> return (mutatedGen, res)
