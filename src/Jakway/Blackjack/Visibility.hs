@@ -3,6 +3,7 @@ module Jakway.Blackjack.Visibility where
 
 import Jakway.Blackjack.Cards
 import Control.Applicative
+import Control.Monad (join)
 
 data Visibility a = Hidden a | Shown a
                   deriving (Eq, Show)
@@ -33,3 +34,9 @@ instance Ord (Visibility Card) where
         compare (Shown _) (Hidden _) = GT
         compare (Hidden a) (Hidden b) = compare a b
         compare (Shown a) (Shown b) = compare a b
+
+-- | analogous to catMaybes
+-- returns a list of all Shown a in the input list or the empty list
+catShown :: [Visibility a] -> [a]
+catShown = join . (fmap (\k -> case k of Shown l -> [l]
+                                         Hidden m -> []))
