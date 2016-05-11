@@ -6,11 +6,12 @@ import Jakway.Blackjack.CardOps
 
 -- |a score assigned to a card by the AI used to make playing decisions
 type Score = Int
+
 -- |determines what move to make based on the count (actually the index
 -- table tells you when to diverge from basic strategy)
 -- takes as input a score, the hit function and the stand function and
 -- returns which move to make
-newtype IndexTable a b c = IndexTable { lookupIndex :: Score -> a -> b -> c }
+newtype IndexTable a b c = IndexTable { lookupIndex :: Hand -> Hand -> Score -> a -> b -> c }
 
 hiLo :: Hand -> Hand -> [Hand] -> (a -> b) -> (c -> d) -> f
 hiLo myHand 
@@ -30,4 +31,6 @@ hiLoCount val
             | otherwise = 1 -- ^ 2 through 6 = +1
 
 illustrious18 :: IndexTable a b c
-illustrious18 score hitF standF = undefined
+illustrious18 myHand dealersHand score hitF standF = 
+        where myHandPoints = handPoints . (fmap unwrapVisibility) $ myHand
+              dealerHandPoints = 
